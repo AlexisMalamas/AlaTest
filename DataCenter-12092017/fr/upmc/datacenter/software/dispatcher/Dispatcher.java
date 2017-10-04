@@ -1,6 +1,8 @@
 package fr.upmc.datacenter.software.dispatcher;
 
 import fr.upmc.components.AbstractComponent;
+import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorServicesNotificationConsumerI;
+import fr.upmc.datacenter.software.applicationvm.interfaces.TaskI;
 import fr.upmc.datacenter.software.interfaces.RequestI;
 import fr.upmc.datacenter.software.interfaces.RequestNotificationHandlerI;
 import fr.upmc.datacenter.software.interfaces.RequestNotificationI;
@@ -13,16 +15,23 @@ import fr.upmc.datacenter.software.ports.RequestSubmissionOutboundPort;
 
 public class Dispatcher 
 extends AbstractComponent
-implements RequestSubmissionHandlerI, RequestNotificationHandlerI{
+implements RequestSubmissionHandlerI, RequestNotificationHandlerI, ProcessorServicesNotificationConsumerI{
 	
 	protected final String dispatcherURI ;
+	
+	// send request to VM
 	protected RequestSubmissionOutboundPort	rsop ;
+	
+	// receive request 
 	protected RequestSubmissionInboundPort rsip ;
-	protected RequestNotificationInboundPort rnip ;
+	
+	//send notification
 	protected RequestNotificationOutboundPort rnop ;
 	
+	//receive notification
+	protected RequestNotificationInboundPort rnip ;
+	
 	public Dispatcher(String dispatcherURI,
-			
 			String requestSubmissionInboundPortURI,
 			String requestSubmissionOutboundPortURI,
 			String requestNotificationOutboundPortURI,
@@ -73,5 +82,10 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI{
 	@Override
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
 		this.rnop.notifyRequestTermination(r);
+	}
+
+	@Override
+	public void acceptNotifyEndOfTask(TaskI t) throws Exception {
+		this.rnop.notifyRequestTermination(t.getRequest());	
 	}
 }
