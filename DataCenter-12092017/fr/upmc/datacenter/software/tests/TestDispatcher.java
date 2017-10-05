@@ -28,7 +28,7 @@ import fr.upmc.datacenterclient.tests.TestRequestGenerator;
 
 public class TestDispatcher 
 extends AbstractCVM{
-	
+
 	// ------------------------------------------------------------------------
 	// Constants and instance variables
 	// ------------------------------------------------------------------------
@@ -43,18 +43,17 @@ extends AbstractCVM{
 	public static final String	ComputerDynamicStateDataOutboundPortURI = "cds-dop" ;
 	public static final String	ApplicationVMManagementInboundPortURI = "avm-ibp" ;
 	public static final String	ApplicationVMManagementOutboundPortURI = "avm-obp" ;
-	
-	public static final String	DispatcherRequestSubmissionInboundPortURI = "drsip" ;
-	public static final String	DispatcherRequestSubmissionOutboundPortURI = "drsop" ;
-	public static final String	DispatcherRequestNotificationInboundPortURI = "drnip" ;
-	public static final String	DispatcherRequestNotificationOutboundPortURI = "drnop" ;
-	public static final String	GeneratorRequestSubmissionOutboundPortURI = "grsop" ;
-	public static final String	GeneratorRequestNotificationInboundPortURI = "grnip" ;
-	public static final String	VmRequestNotificationOutboundPortURI = "vmrnop" ;
-	public static final String	VmRequestSubmissionInboundPortURI = "vmsip" ;
-	
+	public static final String	RequestSubmissionInboundPortURI = "rsibp" ;
+	public static final String	RequestSubmissionOutboundPortURI = "rsobp" ;
+	public static final String	RequestNotificationInboundPortURI = "rnibp" ;
+	public static final String	RequestNotificationOutboundPortURI = "rnobp" ;
 	public static final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
 	public static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
+	
+	public static final String	RequestSubmissionOutboundPortDispatchorURI = "rsdopDS" ;
+	public static final String	RequestSubmissionInboundPortVMURI = "rsdipVM" ;
+	public static final String	RequestNotificationOutboundPortVMURI = "rndopVM" ;
+	public static final String	RequestNotificationInboundPortDispatchorURI = "rndipDS" ;
 
 	/** Port connected to the computer component to access its services.	*/
 	protected ComputerServicesOutboundPort			csPort ;
@@ -77,7 +76,7 @@ extends AbstractCVM{
 	// ------------------------------------------------------------------------
 
 	public				TestDispatcher()
-	throws Exception
+			throws Exception
 	{
 		super();
 	}
@@ -106,28 +105,28 @@ extends AbstractCVM{
 		processingPower.put(1500, 1500000) ;	// 1,5 GHz executes 1,5 Mips
 		processingPower.put(3000, 3000000) ;	// 3 GHz executes 3 Mips
 		Computer c = new Computer(
-							computerURI,
-							admissibleFrequencies,
-							processingPower,  
-							1500,		// Test scenario 1, frequency = 1,5 GHz
-							// 3000,	// Test scenario 2, frequency = 3 GHz
-							1500,		// max frequency gap within a processor
-							numberOfProcessors,
-							numberOfCores,
-							ComputerServicesInboundPortURI,
-							ComputerStaticStateDataInboundPortURI,
-							ComputerDynamicStateDataInboundPortURI) ;
+				computerURI,
+				admissibleFrequencies,
+				processingPower,  
+				1500,		// Test scenario 1, frequency = 1,5 GHz
+				// 3000,	// Test scenario 2, frequency = 3 GHz
+				1500,		// max frequency gap within a processor
+				numberOfProcessors,
+				numberOfCores,
+				ComputerServicesInboundPortURI,
+				ComputerStaticStateDataInboundPortURI,
+				ComputerDynamicStateDataInboundPortURI) ;
 		this.addDeployedComponent(c) ;
 
 		// Create a mock-up computer services port to later allocate its cores
 		// to the application virtual machine.
 		this.csPort = new ComputerServicesOutboundPort(
-										ComputerServicesOutboundPortURI,
-										new AbstractComponent(0, 0) {}) ;
+				ComputerServicesOutboundPortURI,
+				new AbstractComponent(0, 0) {}) ;
 		this.csPort.publishPort() ;
 		this.csPort.doConnection(
-						ComputerServicesInboundPortURI,
-						ComputerServicesConnector.class.getCanonicalName()) ;
+				ComputerServicesInboundPortURI,
+				ComputerServicesConnector.class.getCanonicalName()) ;
 		// --------------------------------------------------------------------
 
 		// --------------------------------------------------------------------
@@ -135,69 +134,56 @@ extends AbstractCVM{
 		// with the computer component.
 		// --------------------------------------------------------------------
 		this.cm = new ComputerMonitor(computerURI,
-									 true,
-									 ComputerStaticStateDataOutboundPortURI,
-									 ComputerDynamicStateDataOutboundPortURI) ;
+				true,
+				ComputerStaticStateDataOutboundPortURI,
+				ComputerDynamicStateDataOutboundPortURI) ;
 		this.addDeployedComponent(this.cm) ;
 		this.cm.doPortConnection(
-						ComputerStaticStateDataOutboundPortURI,
-						ComputerStaticStateDataInboundPortURI,
-						DataConnector.class.getCanonicalName()) ;
+				ComputerStaticStateDataOutboundPortURI,
+				ComputerStaticStateDataInboundPortURI,
+				DataConnector.class.getCanonicalName()) ;
 
 		this.cm.doPortConnection(
-					ComputerDynamicStateDataOutboundPortURI,
-					ComputerDynamicStateDataInboundPortURI,
-					ControlledDataConnector.class.getCanonicalName()) ;
+				ComputerDynamicStateDataOutboundPortURI,
+				ComputerDynamicStateDataInboundPortURI,
+				ControlledDataConnector.class.getCanonicalName()) ;
 		// --------------------------------------------------------------------
 
 		// --------------------------------------------------------------------
 		// Create an Application VM component
 		// --------------------------------------------------------------------
 		this.vm = new ApplicationVM("vm0",	// application vm component URI
-								    ApplicationVMManagementInboundPortURI,
-								    VmRequestSubmissionInboundPortURI,
-								    VmRequestNotificationOutboundPortURI) ;
+				ApplicationVMManagementInboundPortURI,
+				RequestSubmissionInboundPortVMURI,
+				RequestNotificationOutboundPortVMURI) ;
 		this.addDeployedComponent(this.vm) ;
 
 		// Create a mock up port to manage the AVM component (allocate cores).
 		this.avmPort = new ApplicationVMManagementOutboundPort(
-									ApplicationVMManagementOutboundPortURI,
-									new AbstractComponent(0, 0) {}) ;
+				ApplicationVMManagementOutboundPortURI,
+				new AbstractComponent(0, 0) {}) ;
 		this.avmPort.publishPort() ;
 		this.avmPort.
-				doConnection(
-					ApplicationVMManagementInboundPortURI,
-					ApplicationVMManagementConnector.class.getCanonicalName()) ;
+		doConnection(
+				ApplicationVMManagementInboundPortURI,
+				ApplicationVMManagementConnector.class.getCanonicalName()) ;
 
 		// Toggle on tracing and logging in the application virtual machine to
 		// follow the execution of individual requests.
 		this.vm.toggleTracing() ;
 		this.vm.toggleLogging() ;
 		// --------------------------------------------------------------------
-		
-		// --------------------------------------------------------------------
-		// Creating the dispatcher component.
-		// --------------------------------------------------------------------
-		
-		this.ds = new Dispatcher("ds", DispatcherRequestSubmissionInboundPortURI, DispatcherRequestSubmissionOutboundPortURI,
-				DispatcherRequestNotificationOutboundPortURI, DispatcherRequestNotificationInboundPortURI);
-		this.addDeployedComponent(ds) ;
-
-		this.ds.toggleTracing() ;
-		this.ds.toggleLogging() ;
-		
-		// --------------------------------------------------------------------
 
 		// --------------------------------------------------------------------
 		// Creating the request generator component.
 		// --------------------------------------------------------------------
 		this.rg = new RequestGenerator(
-					"rg",			// generator component URI
-					500.0,			// mean time between two requests
-					6000000000L,	// mean number of instructions in requests
-					RequestGeneratorManagementInboundPortURI,
-					GeneratorRequestSubmissionOutboundPortURI,
-					GeneratorRequestNotificationInboundPortURI) ;
+				"rg",			// generator component URI
+				500.0,			// mean time between two requests
+				6000000000L,	// mean number of instructions in requests
+				RequestGeneratorManagementInboundPortURI,
+				RequestSubmissionOutboundPortURI,
+				RequestNotificationInboundPortURI) ;
 		this.addDeployedComponent(rg) ;
 
 		// Toggle on tracing and logging in the request generator to
@@ -205,6 +191,20 @@ extends AbstractCVM{
 		// individual requests.
 		this.rg.toggleTracing() ;
 		this.rg.toggleLogging() ;
+
+
+		// --------------------------------------------------------------------
+
+		// --------------------------------------------------------------------
+		// Creating the dispatchor component.
+		// --------------------------------------------------------------------
+
+		this.ds = new Dispatcher("ds", RequestSubmissionInboundPortURI, RequestSubmissionOutboundPortDispatchorURI,
+				RequestNotificationOutboundPortURI, RequestNotificationInboundPortDispatchorURI);
+		this.addDeployedComponent(ds) ;
+
+		this.ds.toggleTracing() ;
+		this.ds.toggleLogging() ;
 
 		// Connecting the request generator to the application virtual machine.
 		// Request generators have three different interfaces:
@@ -214,31 +214,32 @@ extends AbstractCVM{
 		// - one for request generation management i.e., starting and stopping
 		//   the generation process.
 		this.rg.doPortConnection(
-					GeneratorRequestSubmissionOutboundPortURI,
-					DispatcherRequestSubmissionInboundPortURI,
-					RequestSubmissionConnector.class.getCanonicalName()) ;
+				RequestSubmissionOutboundPortURI,
+				RequestSubmissionInboundPortURI,
+				RequestSubmissionConnector.class.getCanonicalName()) ;
 
+		this.ds.doPortConnection(
+				RequestNotificationOutboundPortURI,
+				RequestNotificationInboundPortURI,
+				RequestNotificationConnector.class.getCanonicalName()) ;
+
+		
 		this.vm.doPortConnection(
-					VmRequestNotificationOutboundPortURI,
-					DispatcherRequestNotificationInboundPortURI,
-					RequestNotificationConnector.class.getCanonicalName()) ;
+				RequestNotificationOutboundPortVMURI,
+				RequestNotificationInboundPortDispatchorURI,
+				RequestNotificationConnector.class.getCanonicalName());
 		
 		this.ds.doPortConnection(
-				DispatcherRequestSubmissionOutboundPortURI,
-				VmRequestSubmissionInboundPortURI,
-				RequestNotificationConnector.class.getCanonicalName()) ;
+				RequestSubmissionOutboundPortDispatchorURI,
+				RequestSubmissionInboundPortVMURI,
+				RequestSubmissionConnector.class.getCanonicalName()) ;
 		
-		this.ds.doPortConnection(
-				DispatcherRequestNotificationOutboundPortURI,
-				GeneratorRequestNotificationInboundPortURI,
-				RequestNotificationConnector.class.getCanonicalName()) ;
 		
-
 		// Create a mock up port to manage to request generator component
 		// (starting and stopping the generation).
 		this.rgmop = new RequestGeneratorManagementOutboundPort(
-							RequestGeneratorManagementOutboundPortURI,
-							new AbstractComponent(0, 0) {}) ;
+				RequestGeneratorManagementOutboundPortURI,
+				new AbstractComponent(0, 0) {}) ;
 		this.rgmop.publishPort() ;
 		this.rgmop.doConnection(
 				RequestGeneratorManagementInboundPortURI,
@@ -273,10 +274,8 @@ extends AbstractCVM{
 		// disconnect all ports explicitly connected in the deploy phase.
 		this.csPort.doDisconnection() ;
 		this.avmPort.doDisconnection() ;
-		this.rg.doPortDisconnection(GeneratorRequestSubmissionOutboundPortURI) ;
-		this.vm.doPortDisconnection(VmRequestNotificationOutboundPortURI) ;
-		this.ds.doPortDisconnection(DispatcherRequestSubmissionOutboundPortURI) ;
-		this.ds.doPortDisconnection(DispatcherRequestNotificationOutboundPortURI) ;
+		this.rg.doPortDisconnection(RequestSubmissionOutboundPortURI) ;
+		this.vm.doPortDisconnection(RequestNotificationOutboundPortURI) ;
 		this.rgmop.doDisconnection() ;
 
 		super.shutdown() ;
