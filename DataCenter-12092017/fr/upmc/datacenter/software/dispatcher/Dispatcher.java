@@ -22,13 +22,13 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, ProcessorServ
 	// send request to VM
 	protected RequestSubmissionOutboundPort	rsop ;
 	
-	// receive request 
+	// receive request from RequesGenerator
 	protected RequestSubmissionInboundPort rsip ;
 	
-	//send notification
+	//send notification to RequesGenerator
 	protected RequestNotificationOutboundPort rnop ;
 	
-	//receive notification
+	//receive notification from VM
 	protected RequestNotificationInboundPort rnip ;
 	
 	public Dispatcher(String dispatcherURI,
@@ -77,6 +77,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, ProcessorServ
 	@Override
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
 		this.rsop.submitRequestAndNotify(r) ;
+		System.out.println("tttttttttttttt");
 	}
 
 	@Override

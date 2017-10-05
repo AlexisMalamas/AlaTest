@@ -43,14 +43,18 @@ extends AbstractCVM{
 	public static final String	ComputerDynamicStateDataOutboundPortURI = "cds-dop" ;
 	public static final String	ApplicationVMManagementInboundPortURI = "avm-ibp" ;
 	public static final String	ApplicationVMManagementOutboundPortURI = "avm-obp" ;
-	public static final String	RequestSubmissionInboundPortURI = "rsibp" ;
-	public static final String	RequestSubmissionOutboundPortURI = "rsobp" ;
-	public static final String	RequestNotificationInboundPortURI = "rnibp" ;
-	public static final String	RequestNotificationOutboundPortURI = "rnobp" ;
+	
+	public static final String	DispatcherRequestSubmissionInboundPortURI = "drsip" ;
+	public static final String	DispatcherRequestSubmissionOutboundPortURI = "drsop" ;
+	public static final String	DispatcherRequestNotificationInboundPortURI = "drnip" ;
+	public static final String	DispatcherRequestNotificationOutboundPortURI = "drnop" ;
+	public static final String	GeneratorRequestSubmissionOutboundPortURI = "grsop" ;
+	public static final String	GeneratorRequestNotificationInboundPortURI = "grnip" ;
+	public static final String	VmRequestNotificationOutboundPortURI = "vmrnop" ;
+	public static final String	VmRequestSubmissionInboundPortURI = "vmsip" ;
+	
 	public static final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
 	public static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
-	public static final String	DispatchorOutboundPortURI = "dop" ;
-	public static final String	DispatchorInboundPortURI = "dip" ;
 
 	/** Port connected to the computer component to access its services.	*/
 	protected ComputerServicesOutboundPort			csPort ;
@@ -67,7 +71,6 @@ extends AbstractCVM{
 	/** Port connected to the request generator component to manage its
 	 *  execution (starting and stopping the request generation).			*/
 	protected RequestGeneratorManagementOutboundPort	rgmop ;
-	protected DispatcherManagementInboundPort	dip ;
 
 	// ------------------------------------------------------------------------
 	// Component virtual machine constructors
@@ -152,8 +155,8 @@ extends AbstractCVM{
 		// --------------------------------------------------------------------
 		this.vm = new ApplicationVM("vm0",	// application vm component URI
 								    ApplicationVMManagementInboundPortURI,
-								    RequestSubmissionInboundPortURI,
-								    RequestNotificationOutboundPortURI) ;
+								    VmRequestSubmissionInboundPortURI,
+								    VmRequestNotificationOutboundPortURI) ;
 		this.addDeployedComponent(this.vm) ;
 
 		// Create a mock up port to manage the AVM component (allocate cores).
@@ -171,6 +174,19 @@ extends AbstractCVM{
 		this.vm.toggleTracing() ;
 		this.vm.toggleLogging() ;
 		// --------------------------------------------------------------------
+		
+		// --------------------------------------------------------------------
+		// Creating the dispatcher component.
+		// --------------------------------------------------------------------
+		
+		this.ds = new Dispatcher("ds", DispatcherRequestSubmissionInboundPortURI, DispatcherRequestSubmissionOutboundPortURI,
+				DispatcherRequestNotificationOutboundPortURI, DispatcherRequestNotificationInboundPortURI);
+		this.addDeployedComponent(ds) ;
+
+		this.ds.toggleTracing() ;
+		this.ds.toggleLogging() ;
+		
+		// --------------------------------------------------------------------
 
 		// --------------------------------------------------------------------
 		// Creating the request generator component.
@@ -180,8 +196,8 @@ extends AbstractCVM{
 					500.0,			// mean time between two requests
 					6000000000L,	// mean number of instructions in requests
 					RequestGeneratorManagementInboundPortURI,
-					RequestSubmissionOutboundPortURI,
-					RequestNotificationInboundPortURI) ;
+					GeneratorRequestSubmissionOutboundPortURI,
+					GeneratorRequestNotificationInboundPortURI) ;
 		this.addDeployedComponent(rg) ;
 
 		// Toggle on tracing and logging in the request generator to
@@ -198,14 +214,25 @@ extends AbstractCVM{
 		// - one for request generation management i.e., starting and stopping
 		//   the generation process.
 		this.rg.doPortConnection(
-					RequestSubmissionOutboundPortURI,
-					RequestSubmissionInboundPortURI,
+					GeneratorRequestSubmissionOutboundPortURI,
+					DispatcherRequestSubmissionInboundPortURI,
 					RequestSubmissionConnector.class.getCanonicalName()) ;
 
 		this.vm.doPortConnection(
-					RequestNotificationOutboundPortURI,
-					RequestNotificationInboundPortURI,
+					VmRequestNotificationOutboundPortURI,
+					DispatcherRequestNotificationInboundPortURI,
 					RequestNotificationConnector.class.getCanonicalName()) ;
+		
+		this.ds.doPortConnection(
+				DispatcherRequestSubmissionOutboundPortURI,
+				VmRequestSubmissionInboundPortURI,
+				RequestNotificationConnector.class.getCanonicalName()) ;
+		
+		this.ds.doPortConnection(
+				DispatcherRequestNotificationOutboundPortURI,
+				GeneratorRequestNotificationInboundPortURI,
+				RequestNotificationConnector.class.getCanonicalName()) ;
+		
 
 		// Create a mock up port to manage to request generator component
 		// (starting and stopping the generation).
@@ -216,40 +243,6 @@ extends AbstractCVM{
 		this.rgmop.doConnection(
 				RequestGeneratorManagementInboundPortURI,
 				RequestGeneratorManagementConnector.class.getCanonicalName()) ;
-		// --------------------------------------------------------------------
-		
-		// --------------------------------------------------------------------
-		// Creating the request generator component.
-		// --------------------------------------------------------------------
-		
-		this.ds = new Dispatcher("ds", RequestSubmissionInboundPortURI, RequestSubmissionOutboundPortURI,
-				RequestNotificationOutboundPortURI, RequestNotificationInboundPortURI);
-		this.addDeployedComponent(ds) ;
-
-		this.ds.toggleTracing() ;
-		this.ds.toggleLogging() ;
-
-		this.ds.doPortConnection(
-					RequestSubmissionOutboundPortURI,
-					RequestSubmissionInboundPortURI,
-					RequestSubmissionConnector.class.getCanonicalName()) ;
-
-		this.ds.doPortConnection(
-					RequestNotificationOutboundPortURI,
-					RequestNotificationInboundPortURI,
-					RequestNotificationConnector.class.getCanonicalName()) ;
-
-		// Create a mock up port to manage to request generator component
-		// (starting and stopping the generation).
-		this.dop = new RequestGeneratorManagementOutboundPort(
-							RequestGeneratorManagementOutboundPortURI,
-							new AbstractComponent(0, 0) {}) ;
-		this.rgmop.publishPort() ;
-		this.rgmop.doConnection(
-				RequestGeneratorManagementInboundPortURI,
-				RequestGeneratorManagementConnector.class.getCanonicalName()) ;
-
-		
 		// --------------------------------------------------------------------
 
 
@@ -280,8 +273,10 @@ extends AbstractCVM{
 		// disconnect all ports explicitly connected in the deploy phase.
 		this.csPort.doDisconnection() ;
 		this.avmPort.doDisconnection() ;
-		this.rg.doPortDisconnection(RequestSubmissionOutboundPortURI) ;
-		this.vm.doPortDisconnection(RequestNotificationOutboundPortURI) ;
+		this.rg.doPortDisconnection(GeneratorRequestSubmissionOutboundPortURI) ;
+		this.vm.doPortDisconnection(VmRequestNotificationOutboundPortURI) ;
+		this.ds.doPortDisconnection(DispatcherRequestSubmissionOutboundPortURI) ;
+		this.ds.doPortDisconnection(DispatcherRequestNotificationOutboundPortURI) ;
 		this.rgmop.doDisconnection() ;
 
 		super.shutdown() ;
@@ -316,19 +311,19 @@ extends AbstractCVM{
 		// Uncomment next line to execute components in debug mode.
 		// AbstractCVM.toggleDebugMode() ;
 		try {
-			final TestRequestGenerator trg = new TestRequestGenerator() ;
+			final TestDispatcher tds = new TestDispatcher() ;
 			// Deploy the components
-			trg.deploy() ;
+			tds.deploy() ;
 			System.out.println("starting...") ;
 			// Start them.
-			trg.start() ;
+			tds.start() ;
 			// Execute the chosen request generation test scenario in a
 			// separate thread.
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					try {
-						trg.testScenario() ;
+						tds.testScenario() ;
 					} catch (Exception e) {
 						throw new RuntimeException(e) ;
 					}
@@ -338,7 +333,7 @@ extends AbstractCVM{
 			Thread.sleep(90000L) ;
 			// Shut down the application.
 			System.out.println("shutting down...") ;
-			trg.shutdown() ;
+			tds.shutdown() ;
 			System.out.println("ending...") ;
 			// Exit from Java.
 			System.exit(0) ;
