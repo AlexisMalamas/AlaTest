@@ -72,21 +72,24 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, ProcessorServ
 	@Override
 	public void acceptRequestSubmission(RequestI r) throws Exception {
 		this.rsop.submitRequest(r) ;
+		System.out.println("test1");
 	}
 
 	@Override
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
 		this.rsop.submitRequestAndNotify(r) ;
-		System.out.println("tttttttttttttt");
+		System.out.println("test2");
 	}
 
 	@Override
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
 		this.rnop.notifyRequestTermination(r);
+		System.out.println("test3");
 	}
 
 	@Override
 	public void acceptNotifyEndOfTask(TaskI t) throws Exception {
-		this.rnop.notifyRequestTermination(t.getRequest());	
+		this.rnop.notifyRequestTermination(t.getRequest());
+		System.out.println("test4");
 	}
 }
