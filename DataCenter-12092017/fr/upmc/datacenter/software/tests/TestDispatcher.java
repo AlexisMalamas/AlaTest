@@ -1,5 +1,6 @@
 package fr.upmc.datacenter.software.tests;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -197,7 +198,10 @@ extends AbstractCVM{
 		// Creating the dispatcher component.
 		// --------------------------------------------------------------------
 		
-		this.ds = new Dispatcher("ds", DispatcherRequestSubmissionInboundPortURI, DispatcherRequestSubmissionOutboundPortURI,
+		ArrayList<String> dispatcherOutboundPortList = new ArrayList<String>();
+		dispatcherOutboundPortList.add(DispatcherRequestSubmissionOutboundPortURI);
+		
+		this.ds = new Dispatcher("ds", DispatcherRequestSubmissionInboundPortURI, dispatcherOutboundPortList,
 				DispatcherRequestNotificationOutboundPortURI, DispatcherRequestNotificationInboundPortURI);
 		this.addDeployedComponent(ds) ;
 

@@ -1,5 +1,7 @@
 package fr.upmc.datacenter.software.dispatcher;
 
+import java.util.ArrayList;
+
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorServicesNotificationConsumerI;
 import fr.upmc.datacenter.software.applicationvm.interfaces.TaskI;
@@ -19,8 +21,11 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, ProcessorServ
 	
 	protected final String dispatcherURI ;
 	
+	// current Vm
+	private int currentVm;
+	
 	// send request to VM
-	protected RequestSubmissionOutboundPort	rsop ;
+	protected ArrayList<RequestSubmissionOutboundPort>	rsopList ;
 	
 	// receive request from RequesGenerator
 	protected RequestSubmissionInboundPort rsip ;
@@ -33,7 +38,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, ProcessorServ
 	
 	public Dispatcher(String dispatcherURI,
 			String requestSubmissionInboundPortURI,
-			String requestSubmissionOutboundPortURI,
+			ArrayList<String> requestSubmissionOutboundPortURI,
 			String requestNotificationOutboundPortURI,
 			String requestNotificationInboundPortURI
 			) throws Exception
@@ -47,11 +52,15 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, ProcessorServ
 		assert  requestNotificationOutboundPortURI != null ;
 		
 		this.dispatcherURI = dispatcherURI;
-		
-		this.addRequiredInterface(RequestSubmissionI.class) ;
-		this.rsop = new RequestSubmissionOutboundPort(requestSubmissionOutboundPortURI, this) ;
-		this.addPort(this.rsop) ;
-		this.rsop.publishPort() ;
+		this.currentVm = 0;
+
+		this.rsopList = new ArrayList<RequestSubmissionOutboundPort>();
+		for(int i=0; i<requestSubmissionOutboundPortURI.size(); i++){
+			this.addRequiredInterface(RequestSubmissionI.class) ;
+			this.rsopList.add(new RequestSubmissionOutboundPort(requestSubmissionOutboundPortURI.get(i), this)) ;
+			this.addPort(this.rsopList.get(i)) ;
+			this.rsopList.get(i).publishPort() ;
+		}
 		
 		this.addOfferedInterface(RequestNotificationI.class) ;
 		this.rnip = new RequestNotificationInboundPort(requestNotificationInboundPortURI, this) ;
@@ -68,15 +77,31 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, ProcessorServ
 		this.addPort(this.rnop) ;
 		this.rnop.publishPort() ;
 	}
+	
+	public void addRequestSubmissionOutboundPort(String rsop) throws Exception{
+		this.addRequiredInterface(RequestSubmissionI.class) ;
+		this.rsopList.add(new RequestSubmissionOutboundPort(rsop, this)) ;
+		this.addPort(this.rsopList.get(this.rsopList.size()-1)) ;
+		this.rsopList.get(this.rsopList.size()-1).publishPort() ;
+	}
+	
+	public void removeRequestSubmissionOutboundPort(){
+		if(!this.rsopList.isEmpty())
+			this.rsopList.remove(this.rsopList.size()-1);
+	}
 
 	@Override
 	public void acceptRequestSubmission(RequestI r) throws Exception {
-		this.rsop.submitRequest(r) ;
+		this.rsopList.get(this.currentVm).submitRequest(r) ;
+		this.currentVm += 1;
+		this.currentVm %= this.rsopList.size();
 	}
 
 	@Override
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
-		this.rsop.submitRequestAndNotify(r) ;
+		this.rsopList.get(this.currentVm).submitRequestAndNotify(r) ;
+		this.currentVm += 1;
+		this.currentVm %= this.rsopList.size();
 	}
 
 	@Override
