@@ -3,6 +3,7 @@ package fr.upmc.datacenter.software.dispatcher;
 import java.util.ArrayList;
 
 import fr.upmc.components.AbstractComponent;
+import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorServicesNotificationConsumerI;
 import fr.upmc.datacenter.software.applicationvm.interfaces.TaskI;
 import fr.upmc.datacenter.software.interfaces.RequestI;
@@ -17,7 +18,7 @@ import fr.upmc.datacenter.software.ports.RequestSubmissionOutboundPort;
 
 public class Dispatcher 
 extends AbstractComponent
-implements RequestSubmissionHandlerI, RequestNotificationHandlerI, ProcessorServicesNotificationConsumerI{
+implements RequestSubmissionHandlerI, RequestNotificationHandlerI{
 	
 	protected final String dispatcherURI ;
 	
@@ -110,7 +111,28 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, ProcessorServ
 	}
 
 	@Override
-	public void acceptNotifyEndOfTask(TaskI t) throws Exception {
-		this.rnop.notifyRequestTermination(t.getRequest()) ;
+	public void shutdown() throws ComponentShutdownException {
+		try {
+            if (this.rnop.connected()) {
+                this.rnop.doDisconnection();
+            }
+            for (RequestSubmissionOutboundPort rsoport : this.rsopList)
+                if (rsoport.connected()) {
+                	rsoport.doDisconnection();
+                }
+            
+            if (this.rsip.connected()) 
+            	this.rsip.doDisconnection();
+            
+            if (this.rnip.connected()) 
+            	this.rnip.doDisconnection();
+        }
+        catch (Exception e) {
+            throw new ComponentShutdownException(e);
+        }
+		
+		super.shutdown();
 	}
+
+	
 }
