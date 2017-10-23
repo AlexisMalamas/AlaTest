@@ -16,6 +16,13 @@ import fr.upmc.datacenter.software.ports.RequestNotificationOutboundPort;
 import fr.upmc.datacenter.software.ports.RequestSubmissionInboundPort;
 import fr.upmc.datacenter.software.ports.RequestSubmissionOutboundPort;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
+
 public class Dispatcher 
 extends AbstractComponent
 implements RequestSubmissionHandlerI, RequestNotificationHandlerI{
