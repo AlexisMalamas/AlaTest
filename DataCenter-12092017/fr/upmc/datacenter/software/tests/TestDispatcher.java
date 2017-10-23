@@ -52,12 +52,15 @@ extends AbstractCVM{
 	
 	public static final String	DispatcherRequestSubmissionInboundPortURI = "drsip" ;
 	public static final String	DispatcherRequestSubmissionOutboundPortURI = "drsop" ;
+	public static final String	DispatcherRequestSubmissionOutboundPortURI2 = "drsop2" ;
 	public static final String	DispatcherRequestNotificationInboundPortURI = "drnip" ;
 	public static final String	DispatcherRequestNotificationOutboundPortURI = "drnop" ;
 	public static final String	GeneratorRequestSubmissionOutboundPortURI = "grsop" ;
 	public static final String	GeneratorRequestNotificationInboundPortURI = "grnip" ;
 	public static final String	VmRequestNotificationOutboundPortURI = "vmrnop" ;
 	public static final String	VmRequestSubmissionInboundPortURI = "vmsip" ;
+	public static final String	VmRequestNotificationOutboundPortURI2 = "vmrnop2" ;
+	public static final String	VmRequestSubmissionInboundPortURI2 = "vmsip2" ;
 	
 	public static final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
 	public static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
@@ -69,6 +72,7 @@ extends AbstractCVM{
 	protected ComputerMonitor						cm ;
 	/** 	Application virtual machine component.							*/
 	protected ApplicationVM							vm ;
+	protected ApplicationVM							vm2 ;
 	/** 	Request generator component.										*/
 	protected RequestGenerator						rg ;
 	/** Dispatcher			*/
@@ -180,6 +184,27 @@ extends AbstractCVM{
 		// follow the execution of individual requests.
 		this.vm.toggleTracing() ;
 		this.vm.toggleLogging() ;
+		
+		this.vm2 = new ApplicationVM("vm1",	// application vm component URI
+			    ApplicationVMManagementInboundPortURI,
+			    VmRequestSubmissionInboundPortURI2,
+			    VmRequestNotificationOutboundPortURI2) ;
+		this.addDeployedComponent(this.vm2) ;
+		
+		// Create a mock up port to manage the AVM component (allocate cores).
+		this.avmPort = new ApplicationVMManagementOutboundPort(
+			ApplicationVMManagementOutboundPortURI,
+			new AbstractComponent(0, 0) {}) ;
+		this.avmPort.publishPort() ;
+		this.avmPort.
+		doConnection(
+			ApplicationVMManagementInboundPortURI,
+			ApplicationVMManagementConnector.class.getCanonicalName()) ;
+		
+		// Toggle on tracing and logging in the application virtual machine to
+		// follow the execution of individual requests.
+		this.vm2.toggleTracing() ;
+		this.vm2.toggleLogging() ;
 		// --------------------------------------------------------------------
 		
 		// --------------------------------------------------------------------
@@ -206,6 +231,7 @@ extends AbstractCVM{
 		
 		ArrayList<String> dispatcherOutboundPortList = new ArrayList<String>();
 		dispatcherOutboundPortList.add(DispatcherRequestSubmissionOutboundPortURI);
+		dispatcherOutboundPortList.add(DispatcherRequestSubmissionOutboundPortURI2);
 		
 		this.ds = new Dispatcher("ds", DispatcherRequestSubmissionInboundPortURI, dispatcherOutboundPortList,
 				DispatcherRequestNotificationOutboundPortURI, DispatcherRequestNotificationInboundPortURI);
@@ -242,6 +268,11 @@ extends AbstractCVM{
 		this.ds.doPortConnection(
 				DispatcherRequestSubmissionOutboundPortURI,
 				VmRequestSubmissionInboundPortURI,
+				RequestSubmissionConnector.class.getCanonicalName()) ;
+		
+		this.ds.doPortConnection(
+				DispatcherRequestSubmissionOutboundPortURI2,
+				VmRequestSubmissionInboundPortURI2,
 				RequestSubmissionConnector.class.getCanonicalName()) ;
 		
 		// Create a mock up port to manage to request generator component
