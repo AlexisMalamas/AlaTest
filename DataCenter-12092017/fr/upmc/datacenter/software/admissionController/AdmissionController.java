@@ -9,13 +9,21 @@ import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
 import fr.upmc.datacenter.software.dispatcher.Dispatcher;
 import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class AdmissionController 
 extends AbstractComponent{
 	
-	ArrayList<ApplicationVM> listApplicationVM;
-	ArrayList<RequestGenerator> listRequestGenerator;
- 	ArrayList<Dispatcher> listDispatcher;
 	
+	protected ArrayList<ApplicationVM> listApplicationVM;
+	protected ArrayList<RequestGenerator> listRequestGenerator;
+	protected ArrayList<Dispatcher> listDispatcher;
+	
+ 	
 	public AdmissionController()
 	{
 		super(1,1);
