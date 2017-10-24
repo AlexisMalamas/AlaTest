@@ -54,6 +54,7 @@ extends AbstractCVM{
 	public static final String	DispatcherRequestSubmissionOutboundPortURI = "drsop" ;
 	public static final String	DispatcherRequestSubmissionOutboundPortURI2 = "drsop2" ;
 	public static final String	DispatcherRequestNotificationInboundPortURI = "drnip" ;
+	public static final String	DispatcherRequestNotificationInboundPortURI2 = "drnip2" ;
 	public static final String	DispatcherRequestNotificationOutboundPortURI = "drnop" ;
 	public static final String	GeneratorRequestSubmissionOutboundPortURI = "grsop" ;
 	public static final String	GeneratorRequestNotificationInboundPortURI = "grnip" ;
@@ -233,8 +234,12 @@ extends AbstractCVM{
 		dispatcherOutboundPortList.add(DispatcherRequestSubmissionOutboundPortURI);
 		dispatcherOutboundPortList.add(DispatcherRequestSubmissionOutboundPortURI2);
 		
+		ArrayList<String> dispatcherRequestNotificationInboundPortList = new ArrayList<String>();
+		dispatcherRequestNotificationInboundPortList.add(DispatcherRequestNotificationInboundPortURI);
+		dispatcherRequestNotificationInboundPortList.add(DispatcherRequestNotificationInboundPortURI2);
+		
 		this.ds = new Dispatcher("ds", DispatcherRequestSubmissionInboundPortURI, dispatcherOutboundPortList,
-				DispatcherRequestNotificationOutboundPortURI, DispatcherRequestNotificationInboundPortURI);
+				DispatcherRequestNotificationOutboundPortURI, dispatcherRequestNotificationInboundPortList);
 		this.addDeployedComponent(ds) ;
 
 		this.ds.toggleTracing() ;
@@ -274,6 +279,11 @@ extends AbstractCVM{
 				DispatcherRequestSubmissionOutboundPortURI2,
 				VmRequestSubmissionInboundPortURI2,
 				RequestSubmissionConnector.class.getCanonicalName()) ;
+		
+		this.vm2.doPortConnection(
+				VmRequestNotificationOutboundPortURI2,
+				DispatcherRequestNotificationInboundPortURI2,
+				RequestNotificationConnector.class.getCanonicalName()) ;
 		
 		// Create a mock up port to manage to request generator component
 		// (starting and stopping the generation).

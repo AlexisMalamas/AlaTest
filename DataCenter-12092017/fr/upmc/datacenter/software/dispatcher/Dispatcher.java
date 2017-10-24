@@ -29,7 +29,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI{
 	
 	protected final String dispatcherURI ;
 	
-	// current Vm
+	// current VM
 	private int currentVm;
 	
 	// send request to VM
@@ -42,13 +42,13 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI{
 	protected RequestNotificationOutboundPort rnop ;
 	
 	//receive notification from VM
-	protected RequestNotificationInboundPort rnip ;
+	protected ArrayList<RequestNotificationInboundPort> rnipList ;
 	
 	public Dispatcher(String dispatcherURI,
 			String requestSubmissionInboundPortURI,
 			ArrayList<String> requestSubmissionOutboundPortURI,
 			String requestNotificationOutboundPortURI,
-			String requestNotificationInboundPortURI
+			ArrayList<String> requestNotificationInboundPortURI
 			) throws Exception
 	{
 		super(1, 1);
@@ -70,10 +70,14 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI{
 			this.rsopList.get(i).publishPort() ;
 		}
 		
-		this.addOfferedInterface(RequestNotificationI.class) ;
-		this.rnip = new RequestNotificationInboundPort(requestNotificationInboundPortURI, this) ;
-		this.addPort(this.rnip) ;
-		this.rnip.publishPort() ;
+		this.rnipList = new ArrayList<RequestNotificationInboundPort>();
+		for(int i=0; i<requestNotificationInboundPortURI.size(); i++)
+		{
+			this.addOfferedInterface(RequestNotificationI.class) ;
+			this.rnipList.add(new RequestNotificationInboundPort(requestNotificationInboundPortURI.get(i), this)) ;
+			this.addPort(this.rnipList.get(i)) ;
+			this.rnipList.get(i).publishPort() ;
+		}
 		
 		this.addOfferedInterface(RequestSubmissionI.class) ;
 		this.rsip = new RequestSubmissionInboundPort(requestSubmissionInboundPortURI, this) ;
@@ -130,9 +134,9 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI{
             
             if (this.rsip.connected()) 
             	this.rsip.doDisconnection();
-            
-            if (this.rnip.connected()) 
-            	this.rnip.doDisconnection();
+            for( RequestNotificationInboundPort rnip: this.rnipList)
+	            if (rnip.connected()) 
+	            	rnip.doDisconnection();
         }
         catch (Exception e) {
             throw new ComponentShutdownException(e);
