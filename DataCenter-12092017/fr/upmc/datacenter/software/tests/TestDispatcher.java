@@ -80,6 +80,7 @@ extends AbstractCVM{
 	protected Dispatcher						    ds ;
 	/** Port connected to the AVM component to allocate it cores.			*/
 	protected ApplicationVMManagementOutboundPort	avmPort ;
+	protected ApplicationVMManagementOutboundPort	avmPort2 ;
 	/** Port connected to the request generator component to manage its
 	 *  execution (starting and stopping the request generation).			*/
 	protected RequestGeneratorManagementOutboundPort	rgmop ;
@@ -165,18 +166,18 @@ extends AbstractCVM{
 		// --------------------------------------------------------------------
 		// Create an Application VM component
 		// --------------------------------------------------------------------
-		this.vm = new ApplicationVM("vm0",	// application vm component URI
+		this.vm = new ApplicationVM("vm1",	// application vm component URI
 								    ApplicationVMManagementInboundPortURI,
 								    VmRequestSubmissionInboundPortURI,
 								    VmRequestNotificationOutboundPortURI) ;
 		this.addDeployedComponent(this.vm) ;
 
 		// Create a mock up port to manage the AVM component (allocate cores).
-		this.avmPort = new ApplicationVMManagementOutboundPort(
+		this.avmPort2 = new ApplicationVMManagementOutboundPort(
 				ApplicationVMManagementOutboundPortURI,
 				new AbstractComponent(0, 0) {}) ;
-		this.avmPort.publishPort() ;
-		this.avmPort.
+		this.avmPort2.publishPort() ;
+		this.avmPort2.
 		doConnection(
 				ApplicationVMManagementInboundPortURI,
 				ApplicationVMManagementConnector.class.getCanonicalName()) ;
@@ -186,7 +187,7 @@ extends AbstractCVM{
 		this.vm.toggleTracing() ;
 		this.vm.toggleLogging() ;
 		
-		this.vm2 = new ApplicationVM("vm1",	// application vm component URI
+		this.vm2 = new ApplicationVM("vm2",	// application vm component URI
 			    ApplicationVMManagementInboundPortURI,
 			    VmRequestSubmissionInboundPortURI2,
 			    VmRequestNotificationOutboundPortURI2) ;
@@ -311,8 +312,11 @@ extends AbstractCVM{
 
 		// Allocate the 4 cores of the computer to the application virtual
 		// machine.
-		AllocatedCore[] ac = this.csPort.allocateCores(4) ;
+		AllocatedCore[] ac = this.csPort.allocateCores(2) ;
 		this.avmPort.allocateCores(ac) ;
+		
+		AllocatedCore[] ac2 = this.csPort.allocateCores(2) ;
+		this.avmPort2.allocateCores(ac2) ;
 	}
 
 	/**
