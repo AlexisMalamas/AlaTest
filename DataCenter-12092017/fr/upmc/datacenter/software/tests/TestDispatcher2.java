@@ -210,7 +210,7 @@ extends AbstractComponent{
 		// --------------------------------------------------------------------
 		
 		this.darg.createComponent(
-				URIProvider.class.getCanonicalName(),
+				RequestGenerator.class.getCanonicalName(),
 				new Object[]{RG_COMPONENT_URI, new Double(500.0), new Long(6000000000L),
 						RequestGeneratorManagementInboundPortURI,
 						GeneratorRequestSubmissionOutboundPortURI,

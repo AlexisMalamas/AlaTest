@@ -3,15 +3,11 @@ package fr.upmc.datacenterclient.application.interfaces;
 import fr.upmc.components.interfaces.OfferedI;
 import fr.upmc.components.interfaces.RequiredI;
 
-/**
- * 
- * @author Kevin GESNOUIN et Alexis MALAMAS
- *
- */
-
-public interface ApplicationSubmissionI
+public interface ApplicationManagementI 
 extends OfferedI, RequiredI{
 
-	public String[] submissionApplication() throws Exception;
 	
+	public void submissionApplication() throws Exception;
+
+    public void stopApplication() throws Exception;
 }

@@ -26,8 +26,8 @@ implements ApplicationSubmissionI{
 	}
 
 	@Override
-	public void submissionApplication() {
-		// TODO Auto-generated method stub
+	public String[] submissionApplication() throws Exception{
+		return  ( ( ApplicationSubmissionI ) this.connector ).submissionApplication();
 		
 	}
 
