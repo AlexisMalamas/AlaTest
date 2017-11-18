@@ -19,6 +19,7 @@ import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
 import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
 import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
+import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
 import fr.upmc.datacenterclient.requestgenerator.connectors.RequestGeneratorManagementConnector;
 import fr.upmc.datacenterclient.requestgenerator.interfaces.RequestGeneratorManagementI;
 import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
@@ -118,10 +119,10 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	{
 		Double meanTime = 500.0;
 		Long meanNumberInstructions = 6000000000L;
-
+		
 		// create request Generator
 		this.portToRequestGeneratorJVM.createComponent(
-			ApplicationVM.class.getCanonicalName(),
+			RequestGenerator.class.getCanonicalName(),
 			new Object[] {
 					this.requestGeneratorUri,			// generator component URI
 					meanTime,			// mean time between two requests

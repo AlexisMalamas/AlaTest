@@ -17,14 +17,7 @@ import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
-import fr.upmc.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
 import fr.upmc.datacenter.hardware.processors.Processor;
-import fr.upmc.datacenter.hardware.tests.ComputerMonitor;
-import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
-import fr.upmc.datacenter.software.applicationvm.ports.ApplicationVMManagementOutboundPort;
-import fr.upmc.datacenter.software.dispatcher.Dispatcher;
-import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
-import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
 
 public class Test extends AbstractCVM{
 	public static final String	ComputerServicesInboundPortURI = "cs-ibp" ;
