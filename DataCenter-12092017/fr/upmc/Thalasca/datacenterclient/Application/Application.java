@@ -29,11 +29,11 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	
 	protected final String requestGeneratorUri = "rg";
 	
-	public static final String	GeneratorRequestSubmissionOutboundPortURI = "grsop" ;
-	public static final String	GeneratorRequestNotificationInboundPortURI = "grnip" ;
+	protected final String	GeneratorRequestSubmissionOutboundPortURI = "grsop" ;
+	protected final String	GeneratorRequestNotificationInboundPortURI = "grnip" ;
 	
 	protected final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
-	public static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
+	protected final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
 	
 	protected final String RequestGeneratorJvmUri = "";
 	
@@ -118,7 +118,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	{
 		Double meanTime = 500.0;
 		Long meanNumberInstructions = 6000000000L;
-		
+
 		// create request Generator
 		this.portToRequestGeneratorJVM.createComponent(
 			ApplicationVM.class.getCanonicalName(),
@@ -129,8 +129,9 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 					RequestGeneratorManagementInboundPortURI,
 					GeneratorRequestSubmissionOutboundPortURI,
 					GeneratorRequestNotificationInboundPortURI});
-		
 		// connect request Generator
+		
+		System.out.println("test");
 		rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
 		rop.localPublishPort();
@@ -174,6 +175,8 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		System.out.println("Submit Application");
 		
 		createDynamicGeneratorRequestForApplication();
+		
+		System.out.println("Request generator created");
 		
 		this.asnop.submitApplicationNotification(this.applicationUri);
 		

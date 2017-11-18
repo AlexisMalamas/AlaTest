@@ -27,60 +27,32 @@ import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
 import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
 
 public class Test extends AbstractCVM{
-
-	// ------------------------------------------------------------------------
-		// Constants and instance variables
-		// ------------------------------------------------------------------------
-
-		// Predefined URI of the different ports visible at the component assembly
-		// level.
-		public static final String	ComputerServicesInboundPortURI = "cs-ibp" ;
-		public static final String	ComputerServicesOutboundPortURI = "cs-obp" ;
-		public static final String	ComputerStaticStateDataInboundPortURI = "css-dip" ;
-		public static final String	ComputerStaticStateDataOutboundPortURI = "css-dop" ;
-		public static final String	ComputerDynamicStateDataInboundPortURI = "cds-dip" ;
-		public static final String	ComputerDynamicStateDataOutboundPortURI = "cds-dop" ;
+	public static final String	ComputerServicesInboundPortURI = "cs-ibp" ;
+	public static final String	ComputerServicesOutboundPortURI = "cs-obp" ;
+	public static final String	ComputerStaticStateDataInboundPortURI = "css-dip" ;
+	public static final String	ComputerStaticStateDataOutboundPortURI = "css-dop" ;
+	public static final String	ComputerDynamicStateDataInboundPortURI = "cds-dip" ;
+	public static final String	ComputerDynamicStateDataOutboundPortURI = "cds-dop" ;
 
 
-		public static final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
-		public static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
-		
-		
-		public static final String ApplicationManagementOutboundPortURI = "appmop";
-		public static final String ApplicationSubmissionNotificationInboundPortURI = "appsnip";
-		public static final String ApplicationControllerNotificationOutboundPortURI = "appcnop";
-		public static final String AdmissionControllerURI = "ac";
-		
-		public static final String ApplicationURI = "app";
-		public static final String ApplicationControllerNotificationInboundPortURI = "appcnip";
-		public static final String ApplicationManagementInboundPortURI = "appmip";
-		public static final String ApplicationSubmissionNotificationOutboundPortURI = "appsnop";
-		
-		/** Port connected to the computer component to access its services.	*/
-		protected ComputerServicesOutboundPort			csPort ;
-		/** 	Computer monitor component.										*/
-		protected ComputerMonitor						cm ;
-		/** 	Application virtual machine component.							*/
-		protected ApplicationVM							vm ;
-		protected ApplicationVM							vm2 ;
-		/** 	Request generator component.										*/
-		protected RequestGenerator						rg ;
-		/** Dispatcher			*/
-		protected Dispatcher						    ds ;
-		/** Port connected to the AVM component to allocate it cores.			*/
-		protected ApplicationVMManagementOutboundPort	avmPort ;
-		protected ApplicationVMManagementOutboundPort	avmPort2 ;
-		/** Port connected to the request generator component to manage its
-		 *  execution (starting and stopping the request generation).			*/
-		protected RequestGeneratorManagementOutboundPort	rgmop ;
-		
-		protected AdmissionController ac;
-
-		protected Application app;
-
-		protected ApplicationManagementOutBoundPort appmop;
-		
-		protected AbstractCVM	cvm ;
+	public static final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
+	public static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
+	
+	
+	public static final String ApplicationManagementOutboundPortURI = "appmop";
+	public static final String ApplicationSubmissionNotificationInboundPortURI = "appsnip";
+	public static final String ApplicationControllerNotificationOutboundPortURI = "appcnop";
+	public static final String AdmissionControllerURI = "ac";
+	
+	public static final String ApplicationURI = "app";
+	public static final String ApplicationControllerNotificationInboundPortURI = "appcnip";
+	public static final String ApplicationManagementInboundPortURI = "appmip";
+	public static final String ApplicationSubmissionNotificationOutboundPortURI = "appsnop";
+	
+	protected AdmissionController ac;
+	protected Application app;
+	protected ApplicationManagementOutBoundPort appmop;
+	
 	
 	public Test() throws Exception {
 		super();
@@ -92,11 +64,8 @@ public class Test extends AbstractCVM{
 		AbstractComponent.configureLogging("", "", 0, '|') ;
 		Processor.DEBUG = true ;
 
-		// --------------------------------------------------------------------
-		// Create and deploy a computer component with its 2 processors and
-		// each with 2 cores.
-		// --------------------------------------------------------------------
-		String computerURI = "computer0" ;
+		// create and deploy computer
+		String computerURI = "computer" ;
 		int numberOfProcessors = 2 ;
 		int numberOfCores = 2 ;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>() ;
@@ -150,7 +119,8 @@ public class Test extends AbstractCVM{
 				ComputerDynamicStateDataOutboundPortURI,
 				ComputerDynamicStateDataInboundPortURI,
 				ControlledDataConnector.class.getCanonicalName());			
-		// --------------------------------------------------------------------
+		
+		// create application
 		this.app = new Application(				
 				ApplicationURI,
 				ApplicationControllerNotificationInboundPortURI,
@@ -177,7 +147,7 @@ public class Test extends AbstractCVM{
 				ApplicationManagementInboundPortURI,
 				ApplicationManagementConnector.class.getCanonicalName());
 		
-		// --------------------------------------------------------------------
+		
 		this.appmop = new ApplicationManagementOutBoundPort(				
 				ApplicationManagementOutboundPortURI,
 				new AbstractComponent(0, 0) {});
@@ -187,7 +157,7 @@ public class Test extends AbstractCVM{
 		this.appmop.doConnection(
 				ApplicationManagementInboundPortURI,
 				ApplicationManagementConnector.class.getCanonicalName());
-		// --------------------------------------------------------------------
+		
 		super.deploy();
 	}
 	
@@ -209,14 +179,7 @@ public class Test extends AbstractCVM{
 		super.shutdown();
 	}
 	
-	public void testScenario() throws Exception {
-		
-		//application.dynamicDeploy() ;
-		//application.dynamicStart() ;
-		
-		
-		
-		
+	public void testScenario1() throws Exception {
 		this.appmop.submitApplicationToAdmissionController();				
 	}
 	
@@ -233,7 +196,7 @@ public class Test extends AbstractCVM{
 				@Override
 				public void run() {
 					try {
-						test.testScenario();
+						test.testScenario1();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
