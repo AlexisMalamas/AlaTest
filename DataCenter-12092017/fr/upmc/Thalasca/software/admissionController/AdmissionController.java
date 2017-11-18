@@ -22,10 +22,19 @@ import fr.upmc.datacenter.software.applicationvm.ports.ApplicationVMManagementOu
 import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
 import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.Dispatcher;
+import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationControllerNotificationI;
 import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationManagementI;
+import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationRequestI;
+import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationSubmissionNotificationI;
+import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationControllerNotificationOutboundPort;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementOutBoundPort;
+import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationInboundPort;
 
-public class AdmissionController extends AbstractComponent {
+public class AdmissionController 
+extends AbstractComponent
+implements ApplicationRequestI{
+	
+	public static final int NB_CORES=2;
 	
 	public static final String	DispatcherRequestSubmissionInboundPortURI = "drsip" ;
 	public static final String	DispatcherRequestSubmissionOutboundPortURI = "drsop" ;
@@ -41,8 +50,8 @@ public class AdmissionController extends AbstractComponent {
 	public static final String	GeneratorRequestNotificationInboundPortURI = "grnip" ;
 	
 	
-	protected final String ApplicationVmURI = "avmuri";
-	protected final String DispatcherURI = "duri";
+	protected final String ApplicationVmURI = "";
+	protected final String DispatcherURI = "";
 	
 	protected DynamicComponentCreationOutboundPort portApplicationVM;
 	protected DynamicComponentCreationOutboundPort portDispatcher;
@@ -50,14 +59,18 @@ public class AdmissionController extends AbstractComponent {
 	protected ComputerServicesOutboundPort csop;
 	protected ComputerStaticStateDataOutboundPort cssdop;
 	protected ComputerDynamicStateDataOutboundPort cdsdop;
-	protected ApplicationManagementOutBoundPort amop;
+	protected ApplicationManagementOutBoundPort appmop;
 	protected ApplicationVMManagementOutboundPort avmOutBoundPort;
+	protected ApplicationControllerNotificationOutboundPort appcnop;
+	protected ApplicationSubmissionNotificationInboundPort appsnip;
 	
 	public AdmissionController(
 			String computerServicesOutboundPortURI,
 			String computerStaticStateDataOutboundPortURI,
 			String computerDynamicStateDataOutboundPortURI,
 			String applicationManagementOutboundPortURI, 
+			String applicationSubmissionNotificationInboundPortURI,
+			String applicationControllerNotificationOutboundPortURI,
 			String computerURI) throws Exception
 	{
 		super(1, 1);
@@ -80,9 +93,19 @@ public class AdmissionController extends AbstractComponent {
 		this.cdsdop.publishPort();
 				
 		this.addRequiredInterface(ApplicationManagementI.class);
-		this.amop = new ApplicationManagementOutBoundPort(applicationManagementOutboundPortURI, this);
-		this.addPort(this.amop);
-		this.amop.publishPort();										
+		this.appmop = new ApplicationManagementOutBoundPort(applicationManagementOutboundPortURI, this);
+		this.addPort(this.appmop);
+		this.appmop.publishPort();										
+		
+		this.addOfferedInterface(ApplicationSubmissionNotificationI.class);
+		this.appsnip = new ApplicationSubmissionNotificationInboundPort(applicationSubmissionNotificationInboundPortURI, this);
+		this.addPort(this.appsnip);
+		this.appsnip.publishPort();
+		
+		this.addRequiredInterface(ApplicationControllerNotificationI.class);
+		this.appcnop = new ApplicationControllerNotificationOutboundPort(applicationControllerNotificationOutboundPortURI, this);
+		this.addPort(this.appcnop);
+		this.appcnop.publishPort();
 		
 		this.addRequiredInterface(DynamicComponentCreationI.class);
 	}
@@ -96,6 +119,7 @@ public class AdmissionController extends AbstractComponent {
 			this.portApplicationVM = new DynamicComponentCreationOutboundPort(this);
 			this.portApplicationVM.localPublishPort();
 			this.addPort(this.portApplicationVM);
+			
 			this.portApplicationVM.doConnection(					
 					this.ApplicationVmURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());
@@ -109,7 +133,7 @@ public class AdmissionController extends AbstractComponent {
 		
 			// start the pushing of dynamic state information from the computer;
 			// here only one push of information is planned after one second.
-			this.cdsdop.startUnlimitedPushing(1000);
+			//this.cdsdop.startUnlimitedPushing(1000);
 			//this.cdsdop.startLimitedPushing(1000, 25);
 													
 		} catch (Exception e) {
@@ -130,8 +154,8 @@ public class AdmissionController extends AbstractComponent {
 			if (this.cdsdop.connected()) {
 				this.cdsdop.doDisconnection();
 			}
-			if (this.amop.connected()) {
-				this.amop.doDisconnection();
+			if (this.appmop.connected()) {
+				this.appmop.doDisconnection();
 			}
 			if (this.portDispatcher.connected()) {
 				this.portDispatcher.doDisconnection();
@@ -144,18 +168,6 @@ public class AdmissionController extends AbstractComponent {
 		}
 
 		super.shutdown();
-	}
-	
-	public void acceptApplication(String applicationUri, int nbCoresForApplication) throws Exception {
-		System.out.println("Accept application " + applicationUri);
-		deployDynamicComponentsForApplication(applicationUri);
-		
-		AllocatedCore[] ac = this.csop.allocateCores(nbCoresForApplication);
-		this.avmOutBoundPort.allocateCores(ac);
-	}
-	
-	public void rejectApplication(String appUri) {
-		System.out.println("Application rejected");	
 	}
 	
 	public void deployDynamicComponentsForApplication(String applicationUri) throws Exception {						 			
@@ -201,9 +213,9 @@ public class AdmissionController extends AbstractComponent {
 		rop.toggleTracing();
 		
 		
-		this.amop.connectionDispatcherWithRequestGeneratorForSubmission(DispatcherRequestSubmissionInboundPortURI);
+		this.appmop.connectionDispatcherWithRequestGeneratorForSubmission(DispatcherRequestSubmissionInboundPortURI);
 		
-		this.amop.connectionDispatcherWithRequestGeneratorForNotification(rop, DispatcherRequestNotificationOutboundPortURI);		
+		this.appmop.connectionDispatcherWithRequestGeneratorForNotification(rop, DispatcherRequestNotificationOutboundPortURI);		
 		
 		// connect dispatcher to VM
 		rop.doPortConnection(
@@ -225,5 +237,22 @@ public class AdmissionController extends AbstractComponent {
 				RequestNotificationConnector.class.getCanonicalName());
 		
 		rop.doDisconnection();
+	}
+
+	@Override
+	public void receiveApplicationToAdmissionController(String applicationURI) throws Exception {
+		
+		AllocatedCore[] allocatedCore = csop.allocateCores(NB_CORES);
+		
+		if (allocatedCore.length!=0) {
+			System.out.println("Accept application " + applicationURI);
+			deployDynamicComponentsForApplication(applicationURI);
+			this.appcnop.responseFromApplicationController(true);
+			
+		} else {
+			System.out.println("Application rejected");	
+			this.appcnop.responseFromApplicationController(false);
+		}	
+		
 	}
 }

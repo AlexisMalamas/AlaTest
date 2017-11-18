@@ -81,18 +81,5 @@ public class ApplicationManagementInboundPort extends AbstractInboundPort implem
 			
 		}
 
-		@Override
-		public void requestApplicationToAdmissionController(String application) throws Exception {
-			final ApplicationRequestI app = (ApplicationRequestI) this.owner;
-			
-			this.owner.handleRequestAsync(
-					new ComponentI.ComponentService<Void>() {
-						@Override
-						public Void call() throws Exception {
-							app.receiveApplicationToAdmissionController(application);
-							return null;
-						}
-					});
-			
-		}
+		
 }

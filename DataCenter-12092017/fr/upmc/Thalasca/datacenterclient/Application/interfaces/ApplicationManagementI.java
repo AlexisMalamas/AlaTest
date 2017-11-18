@@ -15,5 +15,5 @@ extends OfferedI, RequiredI{
 	
 	public void submitApplicationToAdmissionController() throws Exception;
 	
-	public void requestApplicationToAdmissionController(String application) throws Exception;
+	
 }

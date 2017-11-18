@@ -1,6 +1,12 @@
 package fr.upmc.Thalasca.datacenterclient.Application;
 
+import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationAcceptNotificationI;
+import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationControllerNotificationI;
 import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationManagementI;
+import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationSubmissionNotificationI;
+import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationControllerNotificationInboundPort;
+import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementInboundPort;
+import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationOutboundPort;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.components.cvm.pre.dcc.connectors.DynamicComponentCreationConnector;
@@ -11,13 +17,15 @@ import fr.upmc.components.exceptions.ComponentStartException;
 import fr.upmc.components.pre.reflection.connectors.ReflectionConnector;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
+import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
+import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
 import fr.upmc.datacenterclient.requestgenerator.connectors.RequestGeneratorManagementConnector;
 import fr.upmc.datacenterclient.requestgenerator.interfaces.RequestGeneratorManagementI;
 import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
 
 public class Application 
 extends AbstractComponent
-implements ApplicationManagementI{
+implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	
 	protected final String requestGeneratorUri = "rg";
 	
@@ -27,15 +35,25 @@ implements ApplicationManagementI{
 	protected final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
 	public static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
 	
-	protected final String RequestGeneratorJvmUri = "rgjvmuri";
+	protected final String RequestGeneratorJvmUri = "";
 	
 	protected DynamicComponentCreationOutboundPort portToRequestGeneratorJVM;
 	protected RequestGeneratorManagementOutboundPort rgmop;
 	protected ReflectionOutboundPort rop;
 	
+	protected ApplicationManagementInboundPort appmip;
+	protected ApplicationSubmissionNotificationOutboundPort appsnop;
+	protected ApplicationControllerNotificationInboundPort appcnip;
+	
 	private String applicationUri;
+	
+	public ApplicationSubmissionNotificationOutboundPort asnop;
 
-	public Application(String applicationUri) throws Exception 
+	public Application(String applicationUri,
+			String applicationControllerNotificationInboundPortURI,
+			String applicationManagementInboundPortURI,
+			String applicationSubmissionNotificationOutboundPortURI
+			) throws Exception 
 	{
 		super(1,1);
 		this.applicationUri = applicationUri;
@@ -44,6 +62,21 @@ implements ApplicationManagementI{
 		this.rgmop = new RequestGeneratorManagementOutboundPort(this);
 		this.addPort(this.rgmop);
 		this.rgmop.publishPort();
+		
+		this.addOfferedInterface(ApplicationControllerNotificationI.class);
+		this.appcnip = new ApplicationControllerNotificationInboundPort(applicationControllerNotificationInboundPortURI, this);
+		this.addPort(this.appcnip);
+		this.appcnip.publishPort();
+		
+		this.addOfferedInterface(ApplicationManagementI.class);
+		this.appmip = new ApplicationManagementInboundPort(applicationManagementInboundPortURI, this);
+		this.addPort(this.appmip);
+		this.appmip.publishPort();
+		
+		this.addRequiredInterface(ApplicationSubmissionNotificationI.class);
+		this.appsnop = new ApplicationSubmissionNotificationOutboundPort(applicationSubmissionNotificationOutboundPortURI, this);
+		this.addPort(this.appsnop);
+		this.appsnop.publishPort();	
 		
 		this.addRequiredInterface(DynamicComponentCreationI.class);
 		
@@ -120,14 +153,20 @@ implements ApplicationManagementI{
 	public void connectionDispatcherWithRequestGeneratorForSubmission(String DispatcherRequestSubmissionInboundPortURI)
 			throws Exception {
 		
-		
+		rop.doPortConnection(
+				this.GeneratorRequestSubmissionOutboundPortURI,
+				DispatcherRequestSubmissionInboundPortURI,
+				RequestSubmissionConnector.class.getCanonicalName());
 	}
 
 	@Override
 	public void connectionDispatcherWithRequestGeneratorForNotification(ReflectionOutboundPort ropDispatcher,
 			String DispatcherRequestSubmissionInboundPortURI) throws Exception {
 		
-		
+		ropDispatcher.doPortConnection(
+				DispatcherRequestSubmissionInboundPortURI,
+				GeneratorRequestNotificationInboundPortURI,
+				RequestNotificationConnector.class.getCanonicalName());
 	}
 
 	@Override
@@ -136,14 +175,20 @@ implements ApplicationManagementI{
 		
 		createDynamicGeneratorRequestForApplication();
 		
-		this.asop.requestApplicationToAdmissionController(this.applicationUri);
+		this.asnop.submitApplicationNotification(this.applicationUri);
 		
 	}
 
 	@Override
-	public void requestApplicationToAdmissionController(String application) throws Exception {
-		// TODO Auto-generated method stub
+	public void acceptResponseFromApplicationController(boolean response) throws Exception {
+		
+		System.out.println("Response from AdmissionController "+response );
+		
+		if (response) {				
+			launch();					
+		}
 		
 	}
+
 
 }

@@ -24,5 +24,11 @@ implements ApplicationManagementI{
 		((ApplicationManagementI)this.offering).connectionDispatcherWithRequestGeneratorForNotification(ropDispatcher, 
 				DispatcherRequestSubmissionInboundPortURI);
 	}
+
+	@Override
+	public void submitApplicationToAdmissionController() throws Exception {
+		((ApplicationManagementI)this.offering).submitApplicationToAdmissionController();
+		
+	}
 	
 }

@@ -47,9 +47,4 @@ public class ApplicationManagementOutBoundPort extends AbstractOutboundPort impl
 			submitApplicationToAdmissionController();
 		}
 
-		@Override
-		public void requestApplicationToAdmissionController(String application) throws Exception {
-			((ApplicationManagementI)this.connector).
-			requestApplicationToAdmissionController(application);
-		}
 }
