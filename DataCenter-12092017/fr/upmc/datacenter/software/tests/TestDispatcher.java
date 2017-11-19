@@ -223,7 +223,7 @@ extends AbstractCVM{
 		// --------------------------------------------------------------------
 
 
-		/*this.rg = new RequestGenerator(
+		this.rg = new RequestGenerator(
 					"rg",			// generator component URI
 					500.0,			// mean time between two requests
 					6000000000L,	// mean number of instructions in requests
@@ -236,24 +236,8 @@ extends AbstractCVM{
 		// follow the submission and end of execution notification of
 		// individual requests.
 		this.rg.toggleTracing() ;
-		this.rg.toggleLogging() ;*/
+		this.rg.toggleLogging() ;
 
-
-		DynamicComponentCreationConnector dccc = new DynamicComponentCreationConnector();
-
-		Object[] list = new Object[8];
-		list[0]="rg";
-		list[1]=500.0;
-		list[2]=6000000000L;
-		list[3]=RequestGeneratorManagementInboundPortURI;
-		list[4]=GeneratorRequestSubmissionOutboundPortURI;
-		list[5]=GeneratorRequestNotificationInboundPortURI;
-
-
-		dccc.createComponent("requestgenerator", list);
-
-		this.darg =  new DynamicAssembler(this, "rg" ,"ds", GeneratorRequestSubmissionOutboundPortURI, DispatcherRequestSubmissionInboundPortURI);
-		this.addDeployedComponent(this.darg) ;
 
 		// --------------------------------------------------------------------
 		// Creating the dispatcher component.
