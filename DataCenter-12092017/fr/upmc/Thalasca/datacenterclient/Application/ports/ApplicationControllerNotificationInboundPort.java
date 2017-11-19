@@ -28,13 +28,13 @@ implements ApplicationControllerNotificationI{
 	@Override
 	public void responseFromApplicationController(boolean response) throws Exception {
 		
-		final ApplicationAcceptNotificationI app = (ApplicationAcceptNotificationI) this.owner;
+		final ApplicationAcceptNotificationI application = (ApplicationAcceptNotificationI) this.owner;
 		
 		this.owner.handleRequestAsync(
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						app.acceptResponseFromApplicationController(response);
+						application.acceptResponseFromApplicationController(response);
 						return null;
 					}
 				});		

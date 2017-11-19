@@ -32,14 +32,14 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	protected static final String	GeneratorRequestSubmissionOutboundPortURI = "grsop" ;
 	protected static final String	GeneratorRequestNotificationInboundPortURI = "grnip" ;
 	
-	protected final String  RequestGeneratorJvmUri = "";
+	protected static final String  RequestGeneratorJvmUri = "";
 	protected static final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
 	protected final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
 	
 	protected final Double meanTime = 500.0;
 	protected final Long meanNumberInstructions = 6000000000L;
 	
-	protected DynamicComponentCreationOutboundPort portToRequestGeneratorJVM;
+	protected DynamicComponentCreationOutboundPort portToRequestGenerator;
 	protected RequestGeneratorManagementOutboundPort rgmop;
 	protected ReflectionOutboundPort rop;
 	
@@ -89,11 +89,11 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	public void start() throws ComponentStartException {
 		
 		try {
-			this.portToRequestGeneratorJVM = new DynamicComponentCreationOutboundPort(this);
-			this.portToRequestGeneratorJVM.localPublishPort();
-			this.addPort(this.portToRequestGeneratorJVM);
-			this.portToRequestGeneratorJVM.doConnection(					
-					this.RequestGeneratorJvmUri + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
+			this.portToRequestGenerator = new DynamicComponentCreationOutboundPort(this);
+			this.portToRequestGenerator.localPublishPort();
+			this.addPort(this.portToRequestGenerator);
+			this.portToRequestGenerator.doConnection(					
+					RequestGeneratorJvmUri + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());
 		} catch (Exception e) {
 			throw new ComponentStartException(e);
@@ -106,8 +106,8 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	public void shutdown() throws ComponentShutdownException {	
 
 		try {
-			if(this.portToRequestGeneratorJVM.connected()) {
-				this.portToRequestGeneratorJVM.doDisconnection();
+			if(this.portToRequestGenerator.connected()) {
+				this.portToRequestGenerator.doDisconnection();
 			}
 		} catch (Exception e) {
 			throw new ComponentShutdownException(e);
@@ -116,11 +116,14 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		super.shutdown();
 	}	
 
-	public void createDynamicGeneratorRequestForApplication() throws Exception
+	/**
+	 * 
+	 * Create dynamically request generator of application
+	 * 
+	 * */
+	public void createDynamicRequestGenerator() throws Exception
 	{	
-		System.out.println("test1");
-		// create request Generator
-		this.portToRequestGeneratorJVM.createComponent(
+		this.portToRequestGenerator.createComponent(
 			RequestGenerator.class.getCanonicalName(),
 			new Object[] {
 					this.requestGeneratorUri,			// generator component URI
@@ -130,8 +133,8 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 					GeneratorRequestSubmissionOutboundPortURI,
 					GeneratorRequestNotificationInboundPortURI});
 		
-		// connect request Generator
-		System.out.println("test2");
+		
+		
 		rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
 		rop.localPublishPort();
@@ -145,7 +148,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 			throws Exception {
 		
 		rop.doPortConnection(
-				this.GeneratorRequestSubmissionOutboundPortURI,
+				GeneratorRequestSubmissionOutboundPortURI,
 				DispatcherRequestSubmissionInboundPortURI,
 				RequestSubmissionConnector.class.getCanonicalName());
 	}
@@ -164,7 +167,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	public void submitApplicationToAdmissionController() throws Exception {
 		System.out.println("Submit Application");
 		
-		createDynamicGeneratorRequestForApplication();
+		createDynamicRequestGenerator();
 		
 		System.out.println("Request generator created");
 		
@@ -179,7 +182,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		
 		if (response) {				
 			this.rgmop.doConnection(
-					this.RequestGeneratorManagementInboundPortURI,
+					RequestGeneratorManagementInboundPortURI,
 					RequestGeneratorManagementConnector.class.getCanonicalName());			
 										
 			this.rgmop.startGeneration();

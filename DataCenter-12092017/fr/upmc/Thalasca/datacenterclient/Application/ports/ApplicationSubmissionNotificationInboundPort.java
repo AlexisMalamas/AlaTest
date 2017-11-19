@@ -12,7 +12,7 @@ implements ApplicationSubmissionNotificationI{
 	
 	private static final long serialVersionUID = 1L;
 
-	public				ApplicationSubmissionNotificationInboundPort(
+	public ApplicationSubmissionNotificationInboundPort(
 			ComponentI owner
 			) throws Exception
 		{
@@ -21,15 +21,15 @@ implements ApplicationSubmissionNotificationI{
 			assert	owner != null && owner instanceof ApplicationRequestI ;
 		}
 
-		public				ApplicationSubmissionNotificationInboundPort(
-			String uri,
-			ComponentI owner
-			) throws Exception
-		{
-			super(uri, ApplicationSubmissionNotificationI.class, owner);
+	public ApplicationSubmissionNotificationInboundPort(
+		String uri,
+		ComponentI owner
+		) throws Exception
+	{
+		super(uri, ApplicationSubmissionNotificationI.class, owner);
 
-			assert	owner != null && owner instanceof ApplicationRequestI ;
-		}
+		assert	owner != null && owner instanceof ApplicationRequestI ;
+	}
 	
 	@Override
 	public void submitApplicationNotification(String application) throws Exception {

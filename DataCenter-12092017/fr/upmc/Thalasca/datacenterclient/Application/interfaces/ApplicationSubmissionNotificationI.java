@@ -5,7 +5,5 @@ import fr.upmc.components.interfaces.RequiredI;
 
 public interface ApplicationSubmissionNotificationI
 extends OfferedI, RequiredI{
-
-	
 	public void submitApplicationNotification(String application) throws Exception;
 }

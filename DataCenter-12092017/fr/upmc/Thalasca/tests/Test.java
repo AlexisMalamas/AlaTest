@@ -168,7 +168,6 @@ public class Test extends AbstractCVM{
 		try {
 			final Test test = new Test();
 			test.deploy();
-			
 			System.out.println("starting...");
 			test.start();
 			
