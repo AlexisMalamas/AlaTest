@@ -55,7 +55,6 @@ public class Test extends AbstractCVM{
 	public void deploy() throws Exception {
 		
 		AbstractComponent.configureLogging("", "", 0, '|') ;
-		Processor.DEBUG = true ;
 
 		// create and deploy computer
 		String computerURI = "computer" ;
@@ -156,19 +155,7 @@ public class Test extends AbstractCVM{
 	
 	@Override
 	public void shutdown() throws Exception {
-				
-		/*this.admissionController.doPortDisconnection(AC_SERVICES_OUT_PORT_URI);
-		this.admissionController.doPortDisconnection(AC_STATIC_STATE_DATA_OUT_PORT_URI);
-		this.admissionController.doPortDisconnection(AC_DYNAMIC_STATE_DATA_OUT_PORT_URI);
-		this.admissionController.doPortDisconnection(AC_APPLICATION_MANAGEMENT_OUT_PORT_URI);
-		this.admissionController.doPortDisconnection(AC_APPLICATION_NOTIFICATION_OUT_PORT_URI);	
-		this.asMockUpOutPort.doDisconnection();*/
-
-		// print logs on files, if activated
-		/*this.applicationVM.printExecutionLogOnFile("applicationVM");
-		this.requestDispatcher.printExecutionLogOnFile("requestDispatcher");
-		this.requestGenerator.printExecutionLogOnFile("requestGenerator");*/
-		
+		this.appmop.doDisconnection();
 		super.shutdown();
 	}
 	

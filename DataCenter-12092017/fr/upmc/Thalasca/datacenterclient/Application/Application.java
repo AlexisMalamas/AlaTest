@@ -16,7 +16,6 @@ import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.components.exceptions.ComponentStartException;
 import fr.upmc.components.pre.reflection.connectors.ReflectionConnector;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
-import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
 import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
 import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
 import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
@@ -35,8 +34,10 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	
 	protected final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
 	protected final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
+	protected final String  RequestGeneratorJvmUri = "";
 	
-	protected final String RequestGeneratorJvmUri = "";
+	protected final Double meanTime = 500.0;
+	protected final Long meanNumberInstructions = 6000000000L;
 	
 	protected DynamicComponentCreationOutboundPort portToRequestGeneratorJVM;
 	protected RequestGeneratorManagementOutboundPort rgmop;
@@ -57,6 +58,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 			) throws Exception 
 	{
 		super(1,1);
+		
 		this.applicationUri = applicationUri;
 		
 		this.addRequiredInterface(RequestGeneratorManagementI.class);
@@ -92,8 +94,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 			this.addPort(this.portToRequestGeneratorJVM);
 			this.portToRequestGeneratorJVM.doConnection(					
 					this.RequestGeneratorJvmUri + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
-					DynamicComponentCreationConnector.class.getCanonicalName());								
-			
+					DynamicComponentCreationConnector.class.getCanonicalName());
 		} catch (Exception e) {
 			throw new ComponentStartException(e);
 		}
@@ -116,22 +117,19 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	}	
 
 	public void createDynamicGeneratorRequestForApplication() throws Exception
-	{
-		Double meanTime = 500.0;
-		Long meanNumberInstructions = 6000000000L;
-		
+	{	
 		// create request Generator
 		this.portToRequestGeneratorJVM.createComponent(
 			RequestGenerator.class.getCanonicalName(),
 			new Object[] {
 					this.requestGeneratorUri,			// generator component URI
-					meanTime,			// mean time between two requests
-					meanNumberInstructions,	// mean number of instructions in requests
+					this.meanTime,						// mean time between two requests
+					this.meanNumberInstructions,		// mean number of instructions in requests
 					RequestGeneratorManagementInboundPortURI,
 					GeneratorRequestSubmissionOutboundPortURI,
 					GeneratorRequestNotificationInboundPortURI});
-		// connect request Generator
 		
+		// connect request Generator
 		System.out.println("test");
 		rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
@@ -141,16 +139,6 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		rop.toggleTracing();
 	}
 	
-	public void	launch() throws Exception {				
-		this.rgmop.doConnection(
-				this.RequestGeneratorManagementInboundPortURI,
-				RequestGeneratorManagementConnector.class.getCanonicalName());			
-									
-		this.rgmop.startGeneration();
-		Thread.sleep(20000L);		
-		this.rgmop.stopGeneration();
-	}
-
 	@Override
 	public void connectionDispatcherWithRequestGeneratorForSubmission(String DispatcherRequestSubmissionInboundPortURI)
 			throws Exception {
@@ -189,8 +177,16 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		System.out.println("Response from AdmissionController "+response );
 		
 		if (response) {				
-			launch();					
+			this.rgmop.doConnection(
+					this.RequestGeneratorManagementInboundPortURI,
+					RequestGeneratorManagementConnector.class.getCanonicalName());			
+										
+			this.rgmop.startGeneration();
+			Thread.sleep(20000L);		
+			this.rgmop.stopGeneration();					
 		}
+		else
+			System.out.println("Reponse negative from admission Controller");
 		
 	}
 
