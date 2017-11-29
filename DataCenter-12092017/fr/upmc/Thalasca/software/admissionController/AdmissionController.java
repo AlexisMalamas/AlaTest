@@ -137,10 +137,6 @@ implements ApplicationRequestI{
 					this.DispatcherURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());
 		
-			// start the pushing of dynamic state information from the computer;
-			// here only one push of information is planned after one second.
-			//this.cdsdop.startUnlimitedPushing(1000);
-			//this.cdsdop.startLimitedPushing(1000, 25);
 													
 		} catch (Exception e) {
 			throw new ComponentStartException("Error start AdmissionController", e);
@@ -227,11 +223,7 @@ implements ApplicationRequestI{
 		rop.toggleLogging();
 		rop.toggleTracing();
 		
-		System.out.println("doconnection reflection");
-		
 		this.appmop.connectionDispatcherWithRequestGeneratorForSubmission(DispatcherRequestSubmissionInboundPortURI);
-		
-		System.out.println("first port");
 		
 		this.appmop.connectionDispatcherWithRequestGeneratorForNotification(rop, DispatcherRequestNotificationOutboundPortURI);		
 		
@@ -245,11 +237,15 @@ implements ApplicationRequestI{
 		
 		rop.doDisconnection();
 		
+		System.out.println("connect dispatcher vm");
+		
 		// connect applicationVM
 		rop.doConnection("applicationVM", ReflectionConnector.class.getCanonicalName());
 
 		rop.toggleTracing();
 		rop.toggleLogging();
+		
+		System.out.println("connection app vm");
 		
 		rop.doPortConnection(
 				VmRequestNotificationOutboundPortURI,
