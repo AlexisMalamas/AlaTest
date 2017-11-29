@@ -148,7 +148,7 @@ implements	RequestNotificationHandlerI
 		String requestNotificationInboundPortURI
 		) throws Exception
 	{
-		super(1, 1) ;
+		super(rgURI,1, 1) ;
 
 		// preconditions check
 		assert	meanInterArrivalTime > 0.0 && meanNumberOfInstructions > 0 ;

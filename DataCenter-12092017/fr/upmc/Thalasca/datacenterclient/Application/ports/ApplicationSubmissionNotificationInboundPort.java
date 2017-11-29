@@ -34,7 +34,7 @@ implements ApplicationSubmissionNotificationI{
 	@Override
 	public void submitApplicationNotification(String application) throws Exception {
 		final ApplicationRequestI app = (ApplicationRequestI) this.owner;
-		
+				
 		this.owner.handleRequestAsync(
 				new ComponentI.ComponentService<Void>() {
 					@Override

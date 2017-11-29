@@ -90,6 +90,7 @@ public class Test extends AbstractCVM{
 				ApplicationManagementOutboundPortURI,
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationControllerNotificationOutboundPortURI,
+				computerURI,
 				AdmissionControllerURI);
 		
 		this.addDeployedComponent(this.ac);

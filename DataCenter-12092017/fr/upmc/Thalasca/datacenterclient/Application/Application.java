@@ -10,7 +10,6 @@ import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmission
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.components.cvm.pre.dcc.connectors.DynamicComponentCreationConnector;
-import fr.upmc.components.cvm.pre.dcc.interfaces.DynamicComponentCreationI;
 import fr.upmc.components.cvm.pre.dcc.ports.DynamicComponentCreationOutboundPort;
 import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.components.exceptions.ComponentStartException;
@@ -29,17 +28,16 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	
 	protected final String requestGeneratorUri = "rg";
 	
-	protected static final String	GeneratorRequestSubmissionOutboundPortURI = "grsop" ;
-	protected static final String	GeneratorRequestNotificationInboundPortURI = "grnip" ;
-	
-	protected static final String  RequestGeneratorJvmUri = "";
+	protected String  RequestGeneratorJvmUri = "";
 	protected static final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
-	protected final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
+	protected static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
+	protected static final String	GeneratorRequestSubmissionOutboundPortURI = "grsop" ;
+	protected static final String	GeneratorRequestNotificationInboundPortURI = "grnip" ;	
 	
 	protected final Double meanTime = 500.0;
 	protected final Long meanNumberInstructions = 6000000000L;
 	
-	protected DynamicComponentCreationOutboundPort portToRequestGenerator;
+	protected DynamicComponentCreationOutboundPort portRequestGenerator;
 	protected RequestGeneratorManagementOutboundPort rgmop;
 	protected ReflectionOutboundPort rop;
 	
@@ -49,8 +47,6 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	
 	private String applicationUri;
 	
-	public ApplicationSubmissionNotificationOutboundPort asnop;
-
 	public Application(String applicationUri,
 			String applicationControllerNotificationInboundPortURI,
 			String applicationManagementInboundPortURI,
@@ -79,21 +75,18 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		this.addRequiredInterface(ApplicationSubmissionNotificationI.class);
 		this.appsnop = new ApplicationSubmissionNotificationOutboundPort(applicationSubmissionNotificationOutboundPortURI, this);
 		this.addPort(this.appsnop);
-		this.appsnop.publishPort();	
-		
-		this.addRequiredInterface(DynamicComponentCreationI.class);
-		
+		this.appsnop.publishPort();
 	}
 	
 	@Override
 	public void start() throws ComponentStartException {
 		
 		try {
-			this.portToRequestGenerator = new DynamicComponentCreationOutboundPort(this);
-			this.portToRequestGenerator.localPublishPort();
-			this.addPort(this.portToRequestGenerator);
-			this.portToRequestGenerator.doConnection(					
-					RequestGeneratorJvmUri + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
+			this.portRequestGenerator = new DynamicComponentCreationOutboundPort(this);
+			this.portRequestGenerator.localPublishPort();
+			this.addPort(this.portRequestGenerator);
+			this.portRequestGenerator.doConnection(					
+					this.RequestGeneratorJvmUri + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());
 		} catch (Exception e) {
 			throw new ComponentStartException(e);
@@ -106,8 +99,8 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	public void shutdown() throws ComponentShutdownException {	
 
 		try {
-			if(this.portToRequestGenerator.connected()) {
-				this.portToRequestGenerator.doDisconnection();
+			if(this.portRequestGenerator.connected()) {
+				this.portRequestGenerator.doDisconnection();
 			}
 		} catch (Exception e) {
 			throw new ComponentShutdownException(e);
@@ -123,7 +116,9 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	 * */
 	public void createDynamicRequestGenerator() throws Exception
 	{	
-		this.portToRequestGenerator.createComponent(
+		// create request generator
+		System.out.println("Start creation of request generator");
+		this.portRequestGenerator.createComponent(
 			RequestGenerator.class.getCanonicalName(),
 			new Object[] {
 					this.requestGeneratorUri,			// generator component URI
@@ -133,7 +128,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 					GeneratorRequestSubmissionOutboundPortURI,
 					GeneratorRequestNotificationInboundPortURI});
 		
-		
+		System.out.println("Request generator requested");
 		
 		rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
@@ -171,7 +166,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		
 		System.out.println("Request generator created");
 		
-		this.asnop.submitApplicationNotification(this.applicationUri);
+		this.appsnop.submitApplicationNotification(this.applicationUri);
 		
 	}
 

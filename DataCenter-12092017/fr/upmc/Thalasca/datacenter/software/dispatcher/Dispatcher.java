@@ -51,7 +51,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI{
 			ArrayList<String> requestNotificationInboundPortURI
 			) throws Exception
 	{
-		super(1, 1);
+		super(dispatcherURI,1, 1);
 		
 		// preconditions check
 		assert  requestSubmissionInboundPortURI != null ;
