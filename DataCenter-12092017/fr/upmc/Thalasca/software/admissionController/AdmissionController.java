@@ -37,7 +37,7 @@ public class AdmissionController
 extends AbstractComponent
 implements ApplicationRequestI{
 	
-	public static final int NB_CORES=2;
+	public static final int NB_CORES=19;
 	
 	public static final String	DispatcherRequestSubmissionInboundPortURI = "drsip" ;
 	public static final String	DispatcherRequestSubmissionOutboundPortURI = "drsop" ;
@@ -131,7 +131,7 @@ implements ApplicationRequestI{
 					DynamicComponentCreationConnector.class.getCanonicalName());
 			
 			this.portDispatcher = new DynamicComponentCreationOutboundPort(this);
-			this.portDispatcher.localPublishPort();
+			this.portDispatcher.publishPort();
 			this.addPort(this.portDispatcher);
 			this.portDispatcher.doConnection(					
 					this.DispatcherURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
@@ -172,7 +172,7 @@ implements ApplicationRequestI{
 		super.shutdown();
 	}
 	
-	public void deployDynamicComponentsForApplication(String applicationUri) throws Exception {						 			
+	public void deployDynamicComponentsForApplication(String applicationUri, AllocatedCore[] ac) throws Exception {						 			
 		System.out.println("Deploy dynamic components for " + applicationUri);
 		
 		//create applicationVM for accepted application
@@ -212,6 +212,8 @@ implements ApplicationRequestI{
 				ApplicationVMManagementInboundPortURI,
 				ApplicationVMManagementConnector.class.getCanonicalName());			
 		
+		this.avmOutBoundPort.allocateCores(ac) ;
+		
 		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
 		rop.localPublishPort();		
@@ -235,7 +237,7 @@ implements ApplicationRequestI{
 				VmRequestSubmissionInboundPortURI,
 				RequestSubmissionConnector.class.getCanonicalName());
 		
-		rop.doDisconnection();
+		//rop.doDisconnection();
 		
 		System.out.println("connect dispatcher vm");
 		
@@ -252,7 +254,7 @@ implements ApplicationRequestI{
 				DispatcherRequestNotificationInboundPortURI,
 				RequestNotificationConnector.class.getCanonicalName());
 		
-		rop.doDisconnection();
+		//rop.doDisconnection();
 		
 		System.out.println("finish creation");
 	}
@@ -266,7 +268,7 @@ implements ApplicationRequestI{
 		
 		if (allocatedCore.length!=0) {
 			System.out.println("Accept application " + applicationURI);
-			deployDynamicComponentsForApplication(applicationURI);
+			deployDynamicComponentsForApplication(applicationURI, allocatedCore);
 			this.appcnop.responseFromApplicationController(true);
 			
 		} else {

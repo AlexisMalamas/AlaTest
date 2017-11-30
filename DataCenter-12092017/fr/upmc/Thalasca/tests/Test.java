@@ -55,7 +55,8 @@ public class Test extends AbstractCVM{
 	public void deploy() throws Exception {
 		
 		AbstractComponent.configureLogging("", "", 0, '|') ;
-
+		Processor.DEBUG = true ;
+		
 		// create and deploy computer
 		String computerURI = "computer" ;
 		int numberOfProcessors = 2 ;
@@ -165,6 +166,7 @@ public class Test extends AbstractCVM{
 	}
 	
 	public static void main(String[] args) {
+		
 		
 		try {
 			final Test test = new Test();
