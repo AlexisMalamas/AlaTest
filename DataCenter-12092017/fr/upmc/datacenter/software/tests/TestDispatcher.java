@@ -7,10 +7,8 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.upmc.components.AbstractComponent;
-import fr.upmc.components.ComponentI;
 import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.cvm.AbstractCVM;
-import fr.upmc.components.cvm.pre.dcc.connectors.DynamicComponentCreationConnector;
 import fr.upmc.components.examples.ddeployment_cs.components.DynamicAssembler;
 import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
@@ -247,12 +245,8 @@ extends AbstractCVM{
 		dispatcherOutboundPortList.add(DispatcherRequestSubmissionOutboundPortURI);
 		dispatcherOutboundPortList.add(DispatcherRequestSubmissionOutboundPortURI2);
 
-		ArrayList<String> dispatcherRequestNotificationInboundPortList = new ArrayList<String>();
-		dispatcherRequestNotificationInboundPortList.add(DispatcherRequestNotificationInboundPortURI);
-		dispatcherRequestNotificationInboundPortList.add(DispatcherRequestNotificationInboundPortURI2);
-
 		this.ds = new Dispatcher("ds", DispatcherRequestSubmissionInboundPortURI, dispatcherOutboundPortList,
-				DispatcherRequestNotificationOutboundPortURI, dispatcherRequestNotificationInboundPortList);
+				DispatcherRequestNotificationOutboundPortURI, DispatcherRequestNotificationInboundPortURI);
 		this.addDeployedComponent(ds) ;
 
 		this.ds.toggleTracing() ;
@@ -298,10 +292,6 @@ extends AbstractCVM{
 				VmRequestSubmissionInboundPortURI2,
 				RequestSubmissionConnector.class.getCanonicalName()) ;
 
-		this.vm2.doPortConnection(
-				VmRequestNotificationOutboundPortURI2,
-				DispatcherRequestNotificationInboundPortURI2,
-				RequestNotificationConnector.class.getCanonicalName()) ;
 
 		// Create a mock up port to manage to request generator component
 		// (starting and stopping the generation).
