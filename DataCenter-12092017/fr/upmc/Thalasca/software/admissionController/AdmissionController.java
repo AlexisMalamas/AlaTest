@@ -278,7 +278,7 @@ implements ApplicationRequestI{
 				DispatcherManagementInboundPortURI+dispatcherList.size(),
 				DispatcherManagementConnector.class.getCanonicalName());
 
-
+		// modify for multiple vm
 		for(int i=0; i<vmList.size();i++){
 			this.dmop.addVirtualMachine(vmList.get(i));
 		}
@@ -297,7 +297,7 @@ implements ApplicationRequestI{
 				VmRequestNotificationOutboundPortURI+"0",
 				DispatcherRequestNotificationInboundPortURI+dispatcherList.size(),
 				RequestNotificationConnector.class.getCanonicalName());
-		
+
 		// connect applicationVM
 		rop.doConnection("VM"+"1", ReflectionConnector.class.getCanonicalName());
 
@@ -310,7 +310,7 @@ implements ApplicationRequestI{
 				RequestNotificationConnector.class.getCanonicalName());
 
 		System.out.println("connection app vm");
-		
+
 		//rop.doDisconnection();
 
 		System.out.println("finish creation");
@@ -323,8 +323,19 @@ implements ApplicationRequestI{
 
 		AllocatedCore[] allocatedCore1 = csop.allocateCores(NB_CORES);
 		AllocatedCore[] allocatedCore2 = csop.allocateCores(NB_CORES);
+		
+		System.out.println("allocated core 1");
+		for(int i=0; i<allocatedCore1.length; i++){
+			System.out.println(allocatedCore1[i]);
+		}
 
-		if (allocatedCore1.length!=0 && allocatedCore2.length!=0) {
+		System.out.println("allocated core 2");
+		for(int i=0; i<allocatedCore2.length; i++){
+			System.out.println(allocatedCore2[i]);
+		}
+
+		
+		if (allocatedCore1.length==NB_CORES && allocatedCore2.length==NB_CORES) {
 			System.out.println("Accept application " + applicationURI);
 			deployDynamicComponentsForApplication(applicationURI, allocatedCore1, allocatedCore2);
 			this.appcnop.responseFromApplicationController(true);
