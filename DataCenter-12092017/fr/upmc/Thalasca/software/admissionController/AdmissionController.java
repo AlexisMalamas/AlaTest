@@ -56,8 +56,6 @@ implements ApplicationRequestI{
 
 	public static final String DispatcherManagementInboundPortURI = "dmip";
 
-	protected ArrayList<String> DispatcherRequestSubmissionOutboundPortList = new ArrayList<String>();
-
 	protected final String ApplicationVmURI = "";
 	protected final String DispatcherURI = "";
 
@@ -191,39 +189,37 @@ implements ApplicationRequestI{
 		this.portApplicationVM.createComponent(
 				ApplicationVM.class.getCanonicalName(),
 				new Object[] {
-						"VM"+vmList.size(),
-						ApplicationVMManagementInboundPortURI+vmList.size(),
-						VmRequestSubmissionInboundPortURI+vmList.size(),
-						VmRequestNotificationOutboundPortURI+vmList.size()
+						applicationUri+"_VM"+0,
+						applicationUri+"_"+ApplicationVMManagementInboundPortURI+0,
+						applicationUri+"_"+VmRequestSubmissionInboundPortURI+0,
+						applicationUri+"_"+VmRequestNotificationOutboundPortURI+0
 				});
 
 
-		vmList.add(VmRequestSubmissionInboundPortURI+vmList.size());
+		vmList.add(applicationUri+"_"+VmRequestSubmissionInboundPortURI+0);
 
 		this.portApplicationVM.createComponent(
 				ApplicationVM.class.getCanonicalName(),
 				new Object[] {
-						"VM"+vmList.size(),
-						ApplicationVMManagementInboundPortURI+vmList.size(),
-						VmRequestSubmissionInboundPortURI+vmList.size(),
-						VmRequestNotificationOutboundPortURI+vmList.size()
+						applicationUri+"_VM"+1,
+						applicationUri+"_"+ApplicationVMManagementInboundPortURI+1,
+						applicationUri+"_"+VmRequestSubmissionInboundPortURI+1,
+						applicationUri+"_"+VmRequestNotificationOutboundPortURI+1
 				});
 
-		vmList.add(VmRequestSubmissionInboundPortURI+vmList.size());
+		vmList.add(applicationUri+"_"+VmRequestSubmissionInboundPortURI+1);
 
 		System.out.println("finish create component application vm");
-
-		DispatcherRequestSubmissionOutboundPortList.add(DispatcherRequestSubmissionOutboundPortURI);
 
 		// create dispatcher for accepted application
 		this.portDispatcher.createComponent(
 				Dispatcher.class.getCanonicalName(),
 				new Object[] {
-						"dispatcher"+dispatcherList.size(),
-						DispatcherRequestSubmissionInboundPortURI+dispatcherList.size(),
-						DispatcherManagementInboundPortURI+dispatcherList.size(),
-						DispatcherRequestNotificationOutboundPortURI+dispatcherList.size(),
-						DispatcherRequestNotificationInboundPortURI+dispatcherList.size()
+						applicationUri+"_dispatcher",
+						applicationUri+"_"+DispatcherRequestSubmissionInboundPortURI,
+						applicationUri+"_"+DispatcherManagementInboundPortURI,
+						applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI,
+						applicationUri+"_"+DispatcherRequestNotificationInboundPortURI
 				});					
 
 
@@ -236,7 +232,7 @@ implements ApplicationRequestI{
 				new AbstractComponent(0, 0) {});
 		this.avmOutBoundPort1.publishPort();
 		this.avmOutBoundPort1.doConnection(
-				ApplicationVMManagementInboundPortURI+"0",
+				applicationUri+"_"+ApplicationVMManagementInboundPortURI+"0",
 				ApplicationVMManagementConnector.class.getCanonicalName());			
 
 		this.avmOutBoundPort1.allocateCores(ac1) ;
@@ -247,7 +243,7 @@ implements ApplicationRequestI{
 				new AbstractComponent(0, 0) {});
 		this.avmOutBoundPort2.publishPort();
 		this.avmOutBoundPort2.doConnection(
-				ApplicationVMManagementInboundPortURI+"1",
+				applicationUri+"_"+ApplicationVMManagementInboundPortURI+"1",
 				ApplicationVMManagementConnector.class.getCanonicalName());			
 
 		this.avmOutBoundPort2.allocateCores(ac2) ;
@@ -259,13 +255,13 @@ implements ApplicationRequestI{
 
 		System.out.println("finish create component app management");
 		// connect dispatcher
-		rop.doConnection("dispatcher"+dispatcherList.size(), ReflectionConnector.class.getCanonicalName());
+		rop.doConnection(applicationUri+"_"+"dispatcher", ReflectionConnector.class.getCanonicalName());
 		rop.toggleLogging();
 		rop.toggleTracing();
 
-		this.appmop.connectionDispatcherWithRequestGeneratorForSubmission(DispatcherRequestSubmissionInboundPortURI+dispatcherList.size());
+		this.appmop.connectionDispatcherWithRequestGeneratorForSubmission(applicationUri+"_"+DispatcherRequestSubmissionInboundPortURI);
 
-		this.appmop.connectionDispatcherWithRequestGeneratorForNotification(rop, DispatcherRequestNotificationOutboundPortURI+dispatcherList.size());		
+		this.appmop.connectionDispatcherWithRequestGeneratorForNotification(rop, applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI);		
 
 		System.out.println("connection with the request generator done");
 
@@ -275,38 +271,38 @@ implements ApplicationRequestI{
 		this.addPort(dmop);
 		this.dmop.publishPort();
 		this.dmop.doConnection(
-				DispatcherManagementInboundPortURI+dispatcherList.size(),
+				applicationUri+"_"+DispatcherManagementInboundPortURI,
 				DispatcherManagementConnector.class.getCanonicalName());
 
 		// modify for multiple vm
-		for(int i=0; i<vmList.size();i++){
-			this.dmop.addVirtualMachine(vmList.get(i));
-		}
 
+		this.dmop.addVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+0);
+
+		this.dmop.addVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+1);
 		//rop.doDisconnection();
 
 		System.out.println("connect dispatcher to the vm");
 
 		// connect applicationVM
-		rop.doConnection("VM"+"0", ReflectionConnector.class.getCanonicalName());
+		rop.doConnection(applicationUri+"_VM"+0, ReflectionConnector.class.getCanonicalName());
 
 		rop.toggleTracing();
 		rop.toggleLogging();
 
 		rop.doPortConnection(
-				VmRequestNotificationOutboundPortURI+"0",
-				DispatcherRequestNotificationInboundPortURI+dispatcherList.size(),
+				applicationUri+"_"+VmRequestNotificationOutboundPortURI+"0",
+				applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
 				RequestNotificationConnector.class.getCanonicalName());
 
 		// connect applicationVM
-		rop.doConnection("VM"+"1", ReflectionConnector.class.getCanonicalName());
+		rop.doConnection(applicationUri+"_VM"+1, ReflectionConnector.class.getCanonicalName());
 
 		rop.toggleTracing();
 		rop.toggleLogging();
 
 		rop.doPortConnection(
-				VmRequestNotificationOutboundPortURI+"1",
-				DispatcherRequestNotificationInboundPortURI+dispatcherList.size(),
+				applicationUri+"_"+VmRequestNotificationOutboundPortURI+"1",
+				applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
 				RequestNotificationConnector.class.getCanonicalName());
 
 		System.out.println("connection app vm");
@@ -323,7 +319,7 @@ implements ApplicationRequestI{
 
 		AllocatedCore[] allocatedCore1 = csop.allocateCores(NB_CORES);
 		AllocatedCore[] allocatedCore2 = csop.allocateCores(NB_CORES);
-		
+
 		System.out.println("allocated core 1");
 		for(int i=0; i<allocatedCore1.length; i++){
 			System.out.println(allocatedCore1[i]);
@@ -334,7 +330,7 @@ implements ApplicationRequestI{
 			System.out.println(allocatedCore2[i]);
 		}
 
-		
+
 		if (allocatedCore1.length==NB_CORES && allocatedCore2.length==NB_CORES) {
 			System.out.println("Accept application " + applicationURI);
 			deployDynamicComponentsForApplication(applicationURI, allocatedCore1, allocatedCore2);
