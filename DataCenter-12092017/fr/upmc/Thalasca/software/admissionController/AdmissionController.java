@@ -320,17 +320,6 @@ implements ApplicationRequestI{
 		AllocatedCore[] allocatedCore1 = csop.allocateCores(NB_CORES);
 		AllocatedCore[] allocatedCore2 = csop.allocateCores(NB_CORES);
 
-		System.out.println("allocated core 1");
-		for(int i=0; i<allocatedCore1.length; i++){
-			System.out.println(allocatedCore1[i]);
-		}
-
-		System.out.println("allocated core 2");
-		for(int i=0; i<allocatedCore2.length; i++){
-			System.out.println(allocatedCore2[i]);
-		}
-
-
 		if (allocatedCore1.length==NB_CORES && allocatedCore2.length==NB_CORES) {
 			System.out.println("Accept application " + applicationURI);
 			deployDynamicComponentsForApplication(applicationURI, allocatedCore1, allocatedCore2);

@@ -8,12 +8,9 @@ import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationController
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementInboundPort;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationOutboundPort;
 import fr.upmc.components.AbstractComponent;
-import fr.upmc.components.cvm.AbstractCVM;
-import fr.upmc.components.cvm.pre.dcc.connectors.DynamicComponentCreationConnector;
 import fr.upmc.components.cvm.pre.dcc.ports.DynamicComponentCreationOutboundPort;
 import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.components.exceptions.ComponentStartException;
-import fr.upmc.components.pre.reflection.connectors.ReflectionConnector;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
 import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
@@ -140,12 +137,12 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		rop.toggleTracing();*/
 
 		 this.rg = new RequestGenerator(
-				"rg",			// generator component URI
+				applicationUri+"_rg",			// generator component URI
 				500.0,			// mean time between two requests
 				6000000000L,	// mean number of instructions in requests
-				RequestGeneratorManagementInboundPortURI,
-				GeneratorRequestSubmissionOutboundPortURI,
-				GeneratorRequestNotificationInboundPortURI) ;
+				applicationUri+"_"+RequestGeneratorManagementInboundPortURI,
+				applicationUri+"_"+GeneratorRequestSubmissionOutboundPortURI,
+				applicationUri+"_"+GeneratorRequestNotificationInboundPortURI) ;
 		//this.addDeployedComponent(rg) ;
 
 		// Toggle on tracing and logging in the request generator to
@@ -160,7 +157,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 			throws Exception {
 
 		this.rg.doPortConnection(
-				GeneratorRequestSubmissionOutboundPortURI,
+				applicationUri+"_"+GeneratorRequestSubmissionOutboundPortURI,
 				DispatcherRequestSubmissionInboundPortURI,
 				RequestSubmissionConnector.class.getCanonicalName());
 	}
@@ -171,7 +168,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 
 		ropDispatcher.doPortConnection(
 				DispatcherRequestSubmissionInboundPortURI,
-				GeneratorRequestNotificationInboundPortURI,
+				applicationUri+"_"+GeneratorRequestNotificationInboundPortURI,
 				RequestNotificationConnector.class.getCanonicalName());
 	}
 
@@ -192,9 +189,9 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 
 		System.out.println("Response from AdmissionController "+response );
 
-		if (response) {				
+		if (response) {	
 			this.rgmop.doConnection(
-					RequestGeneratorManagementInboundPortURI,
+					applicationUri+"_"+RequestGeneratorManagementInboundPortURI,
 					RequestGeneratorManagementConnector.class.getCanonicalName());			
 
 			this.rgmop.startGeneration();
