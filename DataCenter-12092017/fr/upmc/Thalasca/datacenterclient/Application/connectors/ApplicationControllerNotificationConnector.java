@@ -8,8 +8,8 @@ extends AbstractConnector
 implements ApplicationControllerNotificationI{
 
 	@Override
-	public void responseFromApplicationController(boolean response) throws Exception {
-		((ApplicationControllerNotificationI)this.offering).responseFromApplicationController(response);
+	public void responseFromApplicationController(boolean response, String applicationUri) throws Exception {
+		((ApplicationControllerNotificationI)this.offering).responseFromApplicationController(response, applicationUri);
 		
 	}
 

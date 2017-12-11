@@ -21,7 +21,7 @@ public ApplicationControllerNotificationOutboundPort(ComponentI owner) throws Ex
 	}
 	
 	@Override
-	public void responseFromApplicationController(boolean response) throws Exception {
-		((ApplicationControllerNotificationI)this.connector).responseFromApplicationController(response);			
+	public void responseFromApplicationController(boolean response, String applicationUri) throws Exception {
+		((ApplicationControllerNotificationI)this.connector).responseFromApplicationController(response, applicationUri);			
 	}
 }

@@ -44,7 +44,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	protected ApplicationSubmissionNotificationOutboundPort appsnop;
 	protected ApplicationControllerNotificationInboundPort appcnip;
 
-	private String applicationUri;
+	private String applicationURI;
 
 	public Application(String applicationUri,
 			String applicationControllerNotificationInboundPortURI,
@@ -54,7 +54,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	{
 		super(applicationUri, 1, 1);
 
-		this.applicationUri = applicationUri;
+		this.applicationURI = applicationUri;
 
 		this.addRequiredInterface(RequestGeneratorManagementI.class);
 		this.rgmop = new RequestGeneratorManagementOutboundPort(this);
@@ -113,7 +113,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	 * Create dynamically request generator of application
 	 * 
 	 * */
-	public void createDynamicRequestGenerator() throws Exception
+	public void createDynamicRequestGenerator(String applicationUri) throws Exception
 	{	
 		// create request generator
 		/*System.out.println("Start creation of request generator");
@@ -153,9 +153,11 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	}
 
 	@Override
-	public void connectionDispatcherWithRequestGeneratorForSubmission(String DispatcherRequestSubmissionInboundPortURI)
+	public void connectionDispatcherWithRequestGeneratorForSubmission(String DispatcherRequestSubmissionInboundPortURI, String applicationUri)
 			throws Exception {
 
+		System.out.println("TTTT: "+this.rg.toString());
+		
 		this.rg.doPortConnection(
 				applicationUri+"_"+GeneratorRequestSubmissionOutboundPortURI,
 				DispatcherRequestSubmissionInboundPortURI,
@@ -164,7 +166,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 
 	@Override
 	public void connectionDispatcherWithRequestGeneratorForNotification(ReflectionOutboundPort ropDispatcher,
-			String DispatcherRequestSubmissionInboundPortURI) throws Exception {
+			String DispatcherRequestSubmissionInboundPortURI, String applicationUri) throws Exception {
 
 		ropDispatcher.doPortConnection(
 				DispatcherRequestSubmissionInboundPortURI,
@@ -173,21 +175,21 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	}
 
 	@Override
-	public void submitApplicationToAdmissionController() throws Exception {
-		System.out.println("Submit Application");
+	public void submitApplicationToAdmissionController(String applicationUri) throws Exception {
+		System.out.println("Submit Application "+applicationUri);
 
-		createDynamicRequestGenerator();
+		createDynamicRequestGenerator(applicationUri);
 
 		System.out.println("Request generator created");
 
-		this.appsnop.submitApplicationNotification(this.applicationUri);
+		this.appsnop.submitApplicationNotification(applicationUri);
 
 	}
 
 	@Override
-	public void acceptResponseFromApplicationController(boolean response) throws Exception {
+	public void acceptResponseFromApplicationController(boolean response, String applicationUri) throws Exception {
 
-		System.out.println("Response from AdmissionController "+response );
+		System.out.println("Response from AdmissionController "+response+" " );
 
 		if (response) {	
 			this.rgmop.doConnection(

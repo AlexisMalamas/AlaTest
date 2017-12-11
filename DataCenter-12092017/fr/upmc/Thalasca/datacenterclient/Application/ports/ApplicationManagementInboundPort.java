@@ -32,16 +32,15 @@ public class ApplicationManagementInboundPort extends AbstractInboundPort implem
 
 		@Override
 		public void connectionDispatcherWithRequestGeneratorForSubmission(
-				String DispatcherRequestSubmissionInboundPortURI) throws Exception {
+				String DispatcherRequestSubmissionInboundPortURI, String applicationUri) throws Exception {
 			
 			final Application application = (Application) this.owner;
-			
 			this.owner.handleRequestAsync(
 					new ComponentI.ComponentService<Void>() {
 						@Override
 						public Void call() throws Exception {
 							application.connectionDispatcherWithRequestGeneratorForSubmission(
-									DispatcherRequestSubmissionInboundPortURI);
+									DispatcherRequestSubmissionInboundPortURI, applicationUri);
 							return null;
 						}
 					});	
@@ -50,7 +49,7 @@ public class ApplicationManagementInboundPort extends AbstractInboundPort implem
 
 		@Override
 		public void connectionDispatcherWithRequestGeneratorForNotification(ReflectionOutboundPort ropDispatcher,
-				String DispatcherRequestSubmissionInboundPortURI) throws Exception {
+				String DispatcherRequestSubmissionInboundPortURI, String applicationUri) throws Exception {
 			final Application application = (Application) this.owner;
 			
 			this.owner.handleRequestAsync(
@@ -58,7 +57,7 @@ public class ApplicationManagementInboundPort extends AbstractInboundPort implem
 						@Override
 						public Void call() throws Exception {
 							application.connectionDispatcherWithRequestGeneratorForNotification(ropDispatcher, 
-									DispatcherRequestSubmissionInboundPortURI);
+									DispatcherRequestSubmissionInboundPortURI, applicationUri);
 							return null;
 						}
 					});
@@ -66,7 +65,7 @@ public class ApplicationManagementInboundPort extends AbstractInboundPort implem
 		}
 
 		@Override
-		public void submitApplicationToAdmissionController() throws Exception {
+		public void submitApplicationToAdmissionController(String applicationUri) throws Exception {
 			
 			final Application application = (Application) this.owner;
 			
@@ -74,7 +73,7 @@ public class ApplicationManagementInboundPort extends AbstractInboundPort implem
 					new ComponentI.ComponentService<Void>() {
 						@Override
 						public Void call() throws Exception {
-							application.submitApplicationToAdmissionController();
+							application.submitApplicationToAdmissionController(applicationUri);
 							return null;
 						}
 					});	

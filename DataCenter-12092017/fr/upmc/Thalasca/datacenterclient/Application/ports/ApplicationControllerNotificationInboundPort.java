@@ -26,7 +26,7 @@ implements ApplicationControllerNotificationI{
 	}
 	
 	@Override
-	public void responseFromApplicationController(boolean response) throws Exception {
+	public void responseFromApplicationController(boolean response, String applicationUri) throws Exception {
 		
 		final ApplicationAcceptNotificationI application = (ApplicationAcceptNotificationI) this.owner;
 		
@@ -34,7 +34,7 @@ implements ApplicationControllerNotificationI{
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						application.acceptResponseFromApplicationController(response);
+						application.acceptResponseFromApplicationController(response, applicationUri);
 						return null;
 					}
 				});		

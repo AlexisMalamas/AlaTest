@@ -9,25 +9,25 @@ extends AbstractConnector
 implements ApplicationManagementI{
 
 	@Override
-	public void connectionDispatcherWithRequestGeneratorForSubmission(String DispatcherRequestSubmissionInboundPortURI)
+	public void connectionDispatcherWithRequestGeneratorForSubmission(String DispatcherRequestSubmissionInboundPortURI, String applicationUri)
 			throws Exception {
 		
 		((ApplicationManagementI)this.offering).
-		connectionDispatcherWithRequestGeneratorForSubmission(DispatcherRequestSubmissionInboundPortURI);
+		connectionDispatcherWithRequestGeneratorForSubmission(DispatcherRequestSubmissionInboundPortURI, applicationUri);
 		
 	}
 
 	@Override
 	public void connectionDispatcherWithRequestGeneratorForNotification(ReflectionOutboundPort ropDispatcher,
-			String DispatcherRequestSubmissionInboundPortURI) throws Exception {
+			String DispatcherRequestSubmissionInboundPortURI, String applicationUri) throws Exception {
 		
 		((ApplicationManagementI)this.offering).connectionDispatcherWithRequestGeneratorForNotification(ropDispatcher, 
-				DispatcherRequestSubmissionInboundPortURI);
+				DispatcherRequestSubmissionInboundPortURI, applicationUri);
 	}
 
 	@Override
-	public void submitApplicationToAdmissionController() throws Exception {
-		((ApplicationManagementI)this.offering).submitApplicationToAdmissionController();
+	public void submitApplicationToAdmissionController(String applicationUri) throws Exception {
+		((ApplicationManagementI)this.offering).submitApplicationToAdmissionController(applicationUri);
 		
 	}
 	

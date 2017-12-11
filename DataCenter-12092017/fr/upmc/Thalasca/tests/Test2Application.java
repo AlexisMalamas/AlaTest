@@ -42,17 +42,17 @@ public class Test2Application extends AbstractCVM{
 	public static final String ApplicationManagementInboundPortURI = "appmip";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI = "appsnop";
 
-	
+
 	public static final String ApplicationManagementOutboundPortURI2 = "appmop2";
 	public static final String ApplicationURI2 = "app2";
 	public static final String ApplicationControllerNotificationInboundPortURI2 = "appcnip2";
 	public static final String ApplicationManagementInboundPortURI2 = "appmip2";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI2= "appsnop2";
-	
+
 	protected AdmissionController ac;
 	protected Application app;
 	protected ApplicationManagementOutBoundPort appmop;
-	
+
 	protected Application app2;
 	protected ApplicationManagementOutBoundPort appmop2;
 
@@ -69,7 +69,7 @@ public class Test2Application extends AbstractCVM{
 
 		// create and deploy computer
 		String computerURI = "computer" ;
-		int numberOfProcessors = 4 ;
+		int numberOfProcessors = 2 ;
 		int numberOfCores = 4 ;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>() ;
 		admissibleFrequencies.add(1500) ;	// Cores can run at 1,5 GHz
@@ -167,7 +167,7 @@ public class Test2Application extends AbstractCVM{
 		this.app2 = new Application(				
 				ApplicationURI2,
 				ApplicationControllerNotificationInboundPortURI2,
-				ApplicationManagementInboundPortURI2,
+				ApplicationManagementInboundPortURI,
 				ApplicationSubmissionNotificationOutboundPortURI2);
 
 		this.addDeployedComponent(app2);
@@ -179,9 +179,7 @@ public class Test2Application extends AbstractCVM{
 				ApplicationSubmissionNotificationOutboundPortURI2,
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationSubmissionNotificationConnector.class.getCanonicalName());
-		
-		//this connection bug
-/*
+
 		this.ac.doPortConnection(				
 				ApplicationControllerNotificationOutboundPortURI,
 				ApplicationControllerNotificationInboundPortURI2,
@@ -189,7 +187,7 @@ public class Test2Application extends AbstractCVM{
 
 		this.ac.doPortConnection(				
 				ApplicationManagementOutboundPortURI,
-				ApplicationManagementInboundPortURI2,
+				ApplicationManagementInboundPortURI,
 				ApplicationManagementConnector.class.getCanonicalName());
 
 
@@ -200,33 +198,30 @@ public class Test2Application extends AbstractCVM{
 		this.appmop2.publishPort();
 
 		this.appmop2.doConnection(
-				ApplicationManagementInboundPortURI2,
+				ApplicationManagementInboundPortURI,
 				ApplicationManagementConnector.class.getCanonicalName());
 
-		
-		this.appmop2.submitApplicationToAdmissionController();
-		*/
 		super.deploy();
 	}
 
 	@Override
 	public void shutdown() throws Exception {
 		this.appmop.doDisconnection();
-		
-		//this.appmop2.doDisconnection();
-		
+
+		this.appmop2.doDisconnection();
+
 		super.shutdown();
 	}
 
 	public void testScenario1() throws Exception {
-		this.appmop.submitApplicationToAdmissionController();	
-			
+		this.appmop.submitApplicationToAdmissionController(ApplicationURI);	
+
 	}
 
 	public void testScenario2() throws Exception{
-		//this.appmop2.submitApplicationToAdmissionController();
+		this.appmop2.submitApplicationToAdmissionController(ApplicationURI2);
 	}
-	
+
 	public static void main(String[] args) {
 
 
@@ -240,14 +235,16 @@ public class Test2Application extends AbstractCVM{
 				@Override
 				public void run() {
 					try {
-						test.testScenario1();
-						Thread.sleep(2000);
 						test.testScenario2();
+
+						Thread.sleep(1000);
+
+						test.testScenario1();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
 				}
-			}).start();
+			}).start();			
 
 			Thread.sleep(900000L);
 

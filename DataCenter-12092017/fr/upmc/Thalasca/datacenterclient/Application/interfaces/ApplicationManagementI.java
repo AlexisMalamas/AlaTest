@@ -8,12 +8,13 @@ public interface ApplicationManagementI
 extends OfferedI, RequiredI{
 	
 	public void connectionDispatcherWithRequestGeneratorForSubmission(
-			String DispatcherRequestSubmissionInboundPortURI) throws Exception;
+			String DispatcherRequestSubmissionInboundPortURI, String applicationUri) throws Exception;
+	
 	public void connectionDispatcherWithRequestGeneratorForNotification(
 			ReflectionOutboundPort ropDispatcher,
-			String DispatcherRequestSubmissionInboundPortURI) throws Exception;
+			String DispatcherRequestSubmissionInboundPortURI, String applicationUri) throws Exception;
 	
-	public void submitApplicationToAdmissionController() throws Exception;
+	public void submitApplicationToAdmissionController(String applicationUri) throws Exception;
 	
 	
 }

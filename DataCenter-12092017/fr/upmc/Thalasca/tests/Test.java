@@ -162,7 +162,7 @@ public class Test extends AbstractCVM{
 	}
 	
 	public void testScenario1() throws Exception {
-		this.appmop.submitApplicationToAdmissionController();				
+		this.appmop.submitApplicationToAdmissionController(ApplicationURI);				
 	}
 	
 	public static void main(String[] args) {

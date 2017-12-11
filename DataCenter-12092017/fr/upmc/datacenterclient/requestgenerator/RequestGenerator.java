@@ -344,7 +344,9 @@ implements	RequestNotificationHandlerI
 														interArrivalDelay) +
 			" with number of instructions " + noi) ;
 		}
-
+		System.out.println("test");
+		
+		System.out.println(this.rsop.getConnector().toString());
 		// submit the current request.
 		this.rsop.submitRequestAndNotify(r) ;
 		// schedule the next request generation.

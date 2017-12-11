@@ -27,24 +27,24 @@ public class ApplicationManagementOutBoundPort extends AbstractOutboundPort impl
 
 		@Override
 		public void connectionDispatcherWithRequestGeneratorForSubmission(
-				String DispatcherRequestSubmissionInboundPortURI) throws Exception {
+				String DispatcherRequestSubmissionInboundPortURI,String applicationUri) throws Exception {
 			((ApplicationManagementI)this.connector).
-			connectionDispatcherWithRequestGeneratorForSubmission(DispatcherRequestSubmissionInboundPortURI);
+			connectionDispatcherWithRequestGeneratorForSubmission(DispatcherRequestSubmissionInboundPortURI,applicationUri);
 			
 		}
 
 		@Override
 		public void connectionDispatcherWithRequestGeneratorForNotification(ReflectionOutboundPort ropDispatcher,
-				String DispatcherRequestSubmissionInboundPortURI) throws Exception {
+				String DispatcherRequestSubmissionInboundPortURI,String applicationUri) throws Exception {
 			((ApplicationManagementI)this.connector).
-			connectionDispatcherWithRequestGeneratorForNotification(ropDispatcher, DispatcherRequestSubmissionInboundPortURI);
+			connectionDispatcherWithRequestGeneratorForNotification(ropDispatcher, DispatcherRequestSubmissionInboundPortURI,applicationUri);
 			
 		}
 
 		@Override
-		public void submitApplicationToAdmissionController() throws Exception {
+		public void submitApplicationToAdmissionController(String applicationUri) throws Exception {
 			((ApplicationManagementI)this.connector).
-			submitApplicationToAdmissionController();
+			submitApplicationToAdmissionController(applicationUri);
 		}
 
 }
