@@ -167,7 +167,7 @@ public class Test2Application extends AbstractCVM{
 		this.app2 = new Application(				
 				ApplicationURI2,
 				ApplicationControllerNotificationInboundPortURI2,
-				ApplicationManagementInboundPortURI,
+				ApplicationManagementInboundPortURI2,
 				ApplicationSubmissionNotificationOutboundPortURI2);
 
 		this.addDeployedComponent(app2);
@@ -187,7 +187,7 @@ public class Test2Application extends AbstractCVM{
 
 		this.ac.doPortConnection(				
 				ApplicationManagementOutboundPortURI,
-				ApplicationManagementInboundPortURI,
+				ApplicationManagementInboundPortURI2,
 				ApplicationManagementConnector.class.getCanonicalName());
 
 
@@ -235,11 +235,11 @@ public class Test2Application extends AbstractCVM{
 				@Override
 				public void run() {
 					try {
-						test.testScenario2();
-
-						Thread.sleep(1000);
-
 						test.testScenario1();
+
+						Thread.sleep(5000);
+
+						test.testScenario2();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
