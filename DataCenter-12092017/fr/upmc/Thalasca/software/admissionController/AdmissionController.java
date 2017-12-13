@@ -65,7 +65,7 @@ implements ApplicationRequestI{
 	protected ComputerServicesOutboundPort csop;
 	protected ComputerStaticStateDataOutboundPort cssdop;
 	protected ComputerDynamicStateDataOutboundPort cdsdop;
-	protected ApplicationManagementOutBoundPort appmop;
+	//protected ApplicationManagementOutBoundPort appmop;
 	protected ApplicationVMManagementOutboundPort avmOutBoundPort1;
 	protected ApplicationVMManagementOutboundPort avmOutBoundPort2;
 	
@@ -84,7 +84,7 @@ implements ApplicationRequestI{
 			String computerServicesOutboundPortURI,
 			String computerStaticStateDataOutboundPortURI,
 			String computerDynamicStateDataOutboundPortURI,
-			String applicationManagementOutboundPortURI, 
+			/*String applicationManagementOutboundPortURI, */
 			String applicationSubmissionNotificationInboundPortURI,
 			String applicationControllerNotificationOutboundPortURI,
 			String computerURI,
@@ -98,7 +98,6 @@ implements ApplicationRequestI{
 		this.csop.publishPort();
 
 		this.addOfferedInterface(ComputerStaticStateDataI.class);
-
 		this.cssdop = new ComputerStaticStateDataOutboundPort(computerStaticStateDataOutboundPortURI, this, computerURI);
 		this.addPort(this.cssdop);
 		this.cssdop.publishPort();
@@ -107,11 +106,6 @@ implements ApplicationRequestI{
 		this.cdsdop = new ComputerDynamicStateDataOutboundPort(computerDynamicStateDataOutboundPortURI, this, computerURI);
 		this.addPort(this.cdsdop);
 		this.cdsdop.publishPort();
-
-		this.addRequiredInterface(ApplicationManagementI.class);
-		this.appmop = new ApplicationManagementOutBoundPort(applicationManagementOutboundPortURI, this);
-		this.addPort(this.appmop);
-		this.appmop.publishPort();										
 
 		this.addOfferedInterface(ApplicationSubmissionNotificationI.class);
 		this.appsnip = new ApplicationSubmissionNotificationInboundPort(applicationSubmissionNotificationInboundPortURI, this);
@@ -171,9 +165,7 @@ implements ApplicationRequestI{
 			if (this.cdsdop.connected()) {
 				this.cdsdop.doDisconnection();
 			}
-			if (this.appmop.connected()) {
-				this.appmop.doDisconnection();
-			}
+
 			if (this.portDispatcher.connected()) {
 				this.portDispatcher.doDisconnection();
 			}
@@ -187,7 +179,7 @@ implements ApplicationRequestI{
 		super.shutdown();
 	}
 
-	public void deployDynamicComponentsForApplication(String applicationUri, AllocatedCore[] ac1, AllocatedCore[] ac2) throws Exception {						 			
+	public void deployDynamicComponentsForApplication(String applicationUri, AllocatedCore[] ac1, AllocatedCore[] ac2, ApplicationManagementOutBoundPort appmop) throws Exception {						 			
 		System.out.println("Deploy dynamic components for " + applicationUri);
 
 		//create applicationVM for accepted application
@@ -259,11 +251,10 @@ implements ApplicationRequestI{
 		rop.toggleLogging();
 		rop.toggleTracing();
 
-		System.out.println(this.appmop.getConnector());
 		
-		this.appmop.connectionDispatcherWithRequestGeneratorForSubmission(applicationUri+"_"+DispatcherRequestSubmissionInboundPortURI, applicationUri);
+		appmop.connectionDispatcherWithRequestGeneratorForSubmission(applicationUri+"_"+DispatcherRequestSubmissionInboundPortURI, applicationUri);
 
-		this.appmop.connectionDispatcherWithRequestGeneratorForNotification(rop, applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI, applicationUri);		
+		appmop.connectionDispatcherWithRequestGeneratorForNotification(rop, applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI, applicationUri);		
 
 
 		// connect dispatcher to VM
@@ -310,7 +301,7 @@ implements ApplicationRequestI{
 	}
 
 	@Override
-	public void receiveApplicationToAdmissionController(String applicationURI) throws Exception {
+	public void receiveApplicationToAdmissionController(String applicationURI, ApplicationManagementOutBoundPort appmop) throws Exception {
 
 		System.out.println("Application reçue "+applicationURI);
 
@@ -319,7 +310,7 @@ implements ApplicationRequestI{
 
 		if (allocatedCore1.length==NB_CORES && allocatedCore2.length==NB_CORES) {
 			System.out.println("Accept application " + applicationURI);
-			deployDynamicComponentsForApplication(applicationURI, allocatedCore1, allocatedCore2);
+			deployDynamicComponentsForApplication(applicationURI, allocatedCore1, allocatedCore2, appmop);
 			this.appcnop.responseFromApplicationController(true, applicationURI);
 
 		} else {

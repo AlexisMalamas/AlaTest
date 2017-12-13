@@ -6,6 +6,7 @@ import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationManag
 import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationSubmissionNotificationI;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationControllerNotificationInboundPort;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementInboundPort;
+import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementOutBoundPort;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationOutboundPort;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.cvm.pre.dcc.ports.DynamicComponentCreationOutboundPort;
@@ -44,11 +45,14 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	protected ApplicationSubmissionNotificationOutboundPort appsnop;
 	protected ApplicationControllerNotificationInboundPort appcnip;
 
+	protected ApplicationManagementOutBoundPort appmop;
+	
 	private String applicationURI;
 
 	public Application(String applicationUri,
 			String applicationControllerNotificationInboundPortURI,
 			String applicationManagementInboundPortURI,
+			String applicationManagementOutboundPortURI,
 			String applicationSubmissionNotificationOutboundPortURI
 			) throws Exception 
 	{
@@ -71,6 +75,11 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		this.addPort(this.appmip);
 		this.appmip.publishPort();
 
+		this.addRequiredInterface(ApplicationManagementI.class);
+		this.appmop = new ApplicationManagementOutBoundPort(applicationManagementOutboundPortURI, this);
+		this.addPort(this.appmop);
+		this.appmop.publishPort();	
+		
 		this.addRequiredInterface(ApplicationSubmissionNotificationI.class);
 		this.appsnop = new ApplicationSubmissionNotificationOutboundPort(applicationSubmissionNotificationOutboundPortURI, this);
 		this.addPort(this.appsnop);
@@ -100,6 +109,21 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		try {
 			if(this.portRequestGenerator.connected()) {
 				this.portRequestGenerator.doDisconnection();
+			}
+			if (this.appmop.connected()) {
+				this.appmop.doDisconnection();
+			}
+			if (this.appmip.connected()) {
+				this.appmip.doDisconnection();
+			}
+			if (this.rgmop.connected()) {
+				this.rgmop.doDisconnection();
+			}
+			if (this.appcnip.connected()) {
+				this.appcnip.doDisconnection();
+			}
+			if (this.appsnop.connected()) {
+				this.appsnop.doDisconnection();
 			}
 		} catch (Exception e) {
 			throw new ComponentShutdownException(e);
@@ -156,8 +180,6 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	public void connectionDispatcherWithRequestGeneratorForSubmission(String DispatcherRequestSubmissionInboundPortURI, String applicationUri)
 			throws Exception {
 
-		System.out.println("TTTT: "+this.rg.toString());
-		
 		this.rg.doPortConnection(
 				applicationUri+"_"+GeneratorRequestSubmissionOutboundPortURI,
 				DispatcherRequestSubmissionInboundPortURI,
@@ -181,8 +203,8 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		createDynamicRequestGenerator(applicationUri);
 
 		System.out.println("Request generator created");
-
-		this.appsnop.submitApplicationNotification(applicationUri);
+		
+		this.appsnop.submitApplicationNotification(applicationUri,this.appmop);
 
 	}
 

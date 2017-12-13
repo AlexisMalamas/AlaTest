@@ -98,7 +98,7 @@ public class Test2Application extends AbstractCVM{
 				ComputerServicesOutboundPortURI,
 				ComputerStaticStateDataOutboundPortURI,
 				ComputerDynamicStateDataOutboundPortURI, 
-				ApplicationManagementOutboundPortURI,
+				/*ApplicationManagementOutboundPortURI,*/
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationControllerNotificationOutboundPortURI,
 				computerURI,
@@ -129,6 +129,7 @@ public class Test2Application extends AbstractCVM{
 				ApplicationURI,
 				ApplicationControllerNotificationInboundPortURI,
 				ApplicationManagementInboundPortURI,
+				ApplicationManagementOutboundPortURI,
 				ApplicationSubmissionNotificationOutboundPortURI);
 
 		this.addDeployedComponent(app);
@@ -146,7 +147,7 @@ public class Test2Application extends AbstractCVM{
 				ApplicationControllerNotificationInboundPortURI,
 				ApplicationControllerNotificationConnector.class.getCanonicalName());
 
-		this.ac.doPortConnection(				
+		this.app.doPortConnection(				
 				ApplicationManagementOutboundPortURI,
 				ApplicationManagementInboundPortURI,
 				ApplicationManagementConnector.class.getCanonicalName());
@@ -168,6 +169,7 @@ public class Test2Application extends AbstractCVM{
 				ApplicationURI2,
 				ApplicationControllerNotificationInboundPortURI2,
 				ApplicationManagementInboundPortURI2,
+				ApplicationManagementOutboundPortURI2,
 				ApplicationSubmissionNotificationOutboundPortURI2);
 
 		this.addDeployedComponent(app2);
@@ -185,20 +187,20 @@ public class Test2Application extends AbstractCVM{
 				ApplicationControllerNotificationInboundPortURI2,
 				ApplicationControllerNotificationConnector.class.getCanonicalName());
 
-		this.ac.doPortConnection(				
-				ApplicationManagementOutboundPortURI,
+		this.app2.doPortConnection(				
+				ApplicationManagementOutboundPortURI2,
 				ApplicationManagementInboundPortURI2,
 				ApplicationManagementConnector.class.getCanonicalName());
 
 
 		this.appmop2 = new ApplicationManagementOutBoundPort(				
-				ApplicationManagementOutboundPortURI,
+				ApplicationManagementOutboundPortURI2,
 				new AbstractComponent(0, 0) {});
 
 		this.appmop2.publishPort();
 
 		this.appmop2.doConnection(
-				ApplicationManagementInboundPortURI,
+				ApplicationManagementInboundPortURI2,
 				ApplicationManagementConnector.class.getCanonicalName());
 
 		super.deploy();
@@ -236,8 +238,6 @@ public class Test2Application extends AbstractCVM{
 				public void run() {
 					try {
 						test.testScenario1();
-
-						Thread.sleep(5000);
 
 						test.testScenario2();
 					} catch (Exception e) {
