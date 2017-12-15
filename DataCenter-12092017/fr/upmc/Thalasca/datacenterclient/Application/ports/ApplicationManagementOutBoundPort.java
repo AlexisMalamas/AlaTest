@@ -42,9 +42,9 @@ public class ApplicationManagementOutBoundPort extends AbstractOutboundPort impl
 		}
 
 		@Override
-		public void submitApplicationToAdmissionController(String applicationUri) throws Exception {
+		public void submitApplicationToAdmissionController(String applicationUri, int nombreVM) throws Exception {
 			((ApplicationManagementI)this.connector).
-			submitApplicationToAdmissionController(applicationUri);
+			submitApplicationToAdmissionController(applicationUri,nombreVM);
 		}
 
 }

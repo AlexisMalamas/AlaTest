@@ -197,14 +197,14 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	}
 
 	@Override
-	public void submitApplicationToAdmissionController(String applicationUri) throws Exception {
+	public void submitApplicationToAdmissionController(String applicationUri, int nombreVM) throws Exception {
 		System.out.println("Submit Application "+applicationUri);
 
 		createDynamicRequestGenerator(applicationUri);
 
 		System.out.println("Request generator created");
 		
-		this.appsnop.submitApplicationNotification(applicationUri,this.appmop);
+		this.appsnop.submitApplicationNotification(applicationUri,this.appmop, nombreVM);
 
 	}
 

@@ -42,6 +42,8 @@ public class Test extends AbstractCVM{
 	public static final String ApplicationManagementInboundPortURI = "appmip";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI = "appsnop";
 	
+	public static final int nombreVM = 3;
+	
 	protected AdmissionController ac;
 	protected Application app;
 	protected ApplicationManagementOutBoundPort appmop;
@@ -60,7 +62,7 @@ public class Test extends AbstractCVM{
 		// create and deploy computer
 		String computerURI = "computer" ;
 		int numberOfProcessors = 2 ;
-		int numberOfCores = 2 ;
+		int numberOfCores = 4 ;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>() ;
 		admissibleFrequencies.add(1500) ;	// Cores can run at 1,5 GHz
 		admissibleFrequencies.add(3000) ;	// and at 3 GHz
@@ -163,7 +165,7 @@ public class Test extends AbstractCVM{
 	}
 	
 	public void testScenario1() throws Exception {
-		this.appmop.submitApplicationToAdmissionController(ApplicationURI);				
+		this.appmop.submitApplicationToAdmissionController(ApplicationURI, nombreVM);				
 	}
 	
 	public static void main(String[] args) {

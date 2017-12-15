@@ -65,7 +65,7 @@ public class ApplicationManagementInboundPort extends AbstractInboundPort implem
 		}
 
 		@Override
-		public void submitApplicationToAdmissionController(String applicationUri) throws Exception {
+		public void submitApplicationToAdmissionController(String applicationUri, int nombreVM) throws Exception {
 			
 			final Application application = (Application) this.owner;
 			
@@ -73,7 +73,7 @@ public class ApplicationManagementInboundPort extends AbstractInboundPort implem
 					new ComponentI.ComponentService<Void>() {
 						@Override
 						public Void call() throws Exception {
-							application.submitApplicationToAdmissionController(applicationUri);
+							application.submitApplicationToAdmissionController(applicationUri, nombreVM);
 							return null;
 						}
 					});	

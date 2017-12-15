@@ -22,9 +22,9 @@ implements ApplicationSubmissionNotificationI{
 	}
 	
 	@Override
-	public void submitApplicationNotification(String application, ApplicationManagementOutBoundPort appmop) throws Exception {
+	public void submitApplicationNotification(String application, ApplicationManagementOutBoundPort appmop, int nombreVM) throws Exception {
 		((ApplicationSubmissionNotificationI)this.connector).
-		submitApplicationNotification(application, appmop);
+		submitApplicationNotification(application, appmop, nombreVM);
 	}
 
 }

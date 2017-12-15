@@ -9,8 +9,8 @@ extends AbstractConnector
 implements ApplicationSubmissionNotificationI{
 
 	@Override
-	public void submitApplicationNotification(String application, ApplicationManagementOutBoundPort appmop) throws Exception {
-		((ApplicationSubmissionNotificationI)this.offering).submitApplicationNotification(application, appmop);
+	public void submitApplicationNotification(String application, ApplicationManagementOutBoundPort appmop, int nombreVM) throws Exception {
+		((ApplicationSubmissionNotificationI)this.offering).submitApplicationNotification(application, appmop, nombreVM);
 		
 	}
 

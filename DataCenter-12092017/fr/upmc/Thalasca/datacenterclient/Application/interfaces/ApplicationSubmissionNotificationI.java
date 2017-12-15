@@ -6,5 +6,5 @@ import fr.upmc.components.interfaces.RequiredI;
 
 public interface ApplicationSubmissionNotificationI
 extends OfferedI, RequiredI{
-	public void submitApplicationNotification(String application, ApplicationManagementOutBoundPort appmop) throws Exception;
+	public void submitApplicationNotification(String application, ApplicationManagementOutBoundPort appmop, int nombreVM) throws Exception;
 }

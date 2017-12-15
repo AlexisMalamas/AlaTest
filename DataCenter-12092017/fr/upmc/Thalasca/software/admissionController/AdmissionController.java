@@ -68,9 +68,9 @@ implements ApplicationRequestI{
 	//protected ApplicationManagementOutBoundPort appmop;
 	protected ApplicationVMManagementOutboundPort avmOutBoundPort1;
 	protected ApplicationVMManagementOutboundPort avmOutBoundPort2;
-	
+
 	protected ArrayList<ApplicationVMManagementOutboundPort> avmOutBoundPortList;
-	
+
 	protected ApplicationControllerNotificationOutboundPort appcnop;
 	protected ApplicationSubmissionNotificationInboundPort appsnip;
 
@@ -120,8 +120,8 @@ implements ApplicationRequestI{
 		this.vmList = new ArrayList<String>();
 		this.dispatcherList = new ArrayList<String>();
 		this.avmOutBoundPortList = new ArrayList<ApplicationVMManagementOutboundPort>();
-		
-		
+
+
 		this.addRequiredInterface(DynamicComponentCreationI.class);
 	}
 
@@ -179,32 +179,24 @@ implements ApplicationRequestI{
 		super.shutdown();
 	}
 
-	public void deployDynamicComponentsForApplication(String applicationUri, AllocatedCore[] ac1, AllocatedCore[] ac2, ApplicationManagementOutBoundPort appmop) throws Exception {						 			
+	public void deployDynamicComponentsForApplication(String applicationUri, ArrayList<AllocatedCore[]> ac, ApplicationManagementOutBoundPort appmop, int nombreVM) throws Exception {						 			
 		System.out.println("Deploy dynamic components for " + applicationUri);
 
 		//create applicationVM for accepted application
-		this.portApplicationVM.createComponent(
-				ApplicationVM.class.getCanonicalName(),
-				new Object[] {
-						applicationUri+"_VM"+0,
-						applicationUri+"_"+ApplicationVMManagementInboundPortURI+0,
-						applicationUri+"_"+VmRequestSubmissionInboundPortURI+0,
-						applicationUri+"_"+VmRequestNotificationOutboundPortURI+0
-				});
+		for(int i=0; i<nombreVM; i++){
+
+			this.portApplicationVM.createComponent(
+					ApplicationVM.class.getCanonicalName(),
+					new Object[] {
+							applicationUri+"_VM"+i,
+							applicationUri+"_"+ApplicationVMManagementInboundPortURI+i,
+							applicationUri+"_"+VmRequestSubmissionInboundPortURI+i,
+							applicationUri+"_"+VmRequestNotificationOutboundPortURI+i
+					});
 
 
-		vmList.add(applicationUri+"_"+VmRequestSubmissionInboundPortURI+0);
-
-		this.portApplicationVM.createComponent(
-				ApplicationVM.class.getCanonicalName(),
-				new Object[] {
-						applicationUri+"_VM"+1,
-						applicationUri+"_"+ApplicationVMManagementInboundPortURI+1,
-						applicationUri+"_"+VmRequestSubmissionInboundPortURI+1,
-						applicationUri+"_"+VmRequestNotificationOutboundPortURI+1
-				});
-
-		vmList.add(applicationUri+"_"+VmRequestSubmissionInboundPortURI+1);
+			vmList.add(applicationUri+"_"+VmRequestSubmissionInboundPortURI+i);
+		}
 
 		// create dispatcher for accepted application
 		this.portDispatcher.createComponent(
@@ -217,29 +209,20 @@ implements ApplicationRequestI{
 						applicationUri+"_"+DispatcherRequestNotificationInboundPortURI
 				});					
 
-		//changer avmOutboundPort en tableau
-		
-		// create ApplicationVMManagementOutboundPort 
-		this.avmOutBoundPortList.add(new ApplicationVMManagementOutboundPort(
-				applicationUri+"_"+ApplicationVMManagementOutboundPortURI+0,
-				new AbstractComponent(0, 0) {}));
-		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).publishPort();
-		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).doConnection(
-				applicationUri+"_"+ApplicationVMManagementInboundPortURI+"0",
-				ApplicationVMManagementConnector.class.getCanonicalName());			
-
-		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).allocateCores(ac1) ;
 
 		// create ApplicationVMManagementOutboundPort 
-		this.avmOutBoundPortList.add(new ApplicationVMManagementOutboundPort(
-				applicationUri+"_"+ApplicationVMManagementOutboundPortURI+1,
-				new AbstractComponent(0, 0) {}));
-		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).publishPort();
-		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).doConnection(
-				applicationUri+"_"+ApplicationVMManagementInboundPortURI+"1",
-				ApplicationVMManagementConnector.class.getCanonicalName());			
 
-		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).allocateCores(ac2) ;
+		for(int i=0; i<nombreVM; i++){
+			this.avmOutBoundPortList.add(new ApplicationVMManagementOutboundPort(
+					applicationUri+"_"+ApplicationVMManagementOutboundPortURI+i,
+					new AbstractComponent(0, 0) {}));
+			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).publishPort();
+			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).doConnection(
+					applicationUri+"_"+ApplicationVMManagementInboundPortURI+i,
+					ApplicationVMManagementConnector.class.getCanonicalName());			
+
+			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).allocateCores(ac.get(i)) ;
+		}
 
 		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
@@ -251,7 +234,7 @@ implements ApplicationRequestI{
 		rop.toggleLogging();
 		rop.toggleTracing();
 
-		
+
 		appmop.connectionDispatcherWithRequestGeneratorForSubmission(applicationUri+"_"+DispatcherRequestSubmissionInboundPortURI, applicationUri);
 
 		appmop.connectionDispatcherWithRequestGeneratorForNotification(rop, applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI, applicationUri);		
@@ -266,51 +249,46 @@ implements ApplicationRequestI{
 				applicationUri+"_"+DispatcherManagementInboundPortURI,
 				DispatcherManagementConnector.class.getCanonicalName());
 
-		// modify for multiple vm
 
-		this.dmop.addVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+0);
+		for(int i=0; i<nombreVM; i++){
+			this.dmop.addVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+i);
 
-		this.dmop.addVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+1);
-		//rop.doDisconnection();
+			this.dmop.addVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+i);
+			//rop.doDisconnection();
 
-		// connect applicationVM
-		rop.doConnection(applicationUri+"_VM"+0, ReflectionConnector.class.getCanonicalName());
+			// connect applicationVM
+			rop.doConnection(applicationUri+"_VM"+i, ReflectionConnector.class.getCanonicalName());
 
-		rop.toggleTracing();
-		rop.toggleLogging();
+			rop.toggleTracing();
+			rop.toggleLogging();
 
-		rop.doPortConnection(
-				applicationUri+"_"+VmRequestNotificationOutboundPortURI+"0",
-				applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
-				RequestNotificationConnector.class.getCanonicalName());
-
-		// connect applicationVM
-		rop.doConnection(applicationUri+"_VM"+1, ReflectionConnector.class.getCanonicalName());
-
-		rop.toggleTracing();
-		rop.toggleLogging();
-
-		rop.doPortConnection(
-				applicationUri+"_"+VmRequestNotificationOutboundPortURI+"1",
-				applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
-				RequestNotificationConnector.class.getCanonicalName());
-
-		//rop.doDisconnection();
+			rop.doPortConnection(
+					applicationUri+"_"+VmRequestNotificationOutboundPortURI+i,
+					applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
+					RequestNotificationConnector.class.getCanonicalName());
+		}
 
 		System.out.println("finish creation ressources for the application "+applicationUri);
 	}
 
 	@Override
-	public void receiveApplicationToAdmissionController(String applicationURI, ApplicationManagementOutBoundPort appmop) throws Exception {
+	public void receiveApplicationToAdmissionController(String applicationURI, ApplicationManagementOutBoundPort appmop, int nombreVM) throws Exception {
 
-		System.out.println("Application reçue "+applicationURI);
+		System.out.println("Application reçue :"+applicationURI);
 
-		AllocatedCore[] allocatedCore1 = csop.allocateCores(NB_CORES);
-		AllocatedCore[] allocatedCore2 = csop.allocateCores(NB_CORES);
+		ArrayList<AllocatedCore[]> allocatedCore = new ArrayList<>();
+		boolean ressourcesAvailable = true;
 
-		if (allocatedCore1.length==NB_CORES && allocatedCore2.length==NB_CORES) {
+		for(int i=0; i<nombreVM; i++){
+			allocatedCore.add(csop.allocateCores(NB_CORES));
+
+			if(allocatedCore.get(i).length!=NB_CORES)
+				ressourcesAvailable=false;
+		}
+
+		if (ressourcesAvailable) {
 			System.out.println("Accept application " + applicationURI);
-			deployDynamicComponentsForApplication(applicationURI, allocatedCore1, allocatedCore2, appmop);
+			deployDynamicComponentsForApplication(applicationURI, allocatedCore, appmop, nombreVM);
 			this.appcnop.responseFromApplicationController(true, applicationURI);
 
 		} else {

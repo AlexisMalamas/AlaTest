@@ -49,6 +49,8 @@ public class Test2Application extends AbstractCVM{
 	public static final String ApplicationManagementInboundPortURI2 = "appmip2";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI2= "appsnop2";
 
+	public static final int nombreVM = 3;
+	
 	protected AdmissionController ac;
 	protected Application app;
 	protected ApplicationManagementOutBoundPort appmop;
@@ -216,12 +218,12 @@ public class Test2Application extends AbstractCVM{
 	}
 
 	public void testScenario1() throws Exception {
-		this.appmop.submitApplicationToAdmissionController(ApplicationURI);	
+		this.appmop.submitApplicationToAdmissionController(ApplicationURI, nombreVM);	
 
 	}
 
 	public void testScenario2() throws Exception{
-		this.appmop2.submitApplicationToAdmissionController(ApplicationURI2);
+		this.appmop2.submitApplicationToAdmissionController(ApplicationURI2, nombreVM);
 	}
 
 	public static void main(String[] args) {

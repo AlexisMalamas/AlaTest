@@ -26,8 +26,8 @@ implements ApplicationManagementI{
 	}
 
 	@Override
-	public void submitApplicationToAdmissionController(String applicationUri) throws Exception {
-		((ApplicationManagementI)this.offering).submitApplicationToAdmissionController(applicationUri);
+	public void submitApplicationToAdmissionController(String applicationUri, int nombreVM) throws Exception {
+		((ApplicationManagementI)this.offering).submitApplicationToAdmissionController(applicationUri, nombreVM);
 		
 	}
 	

@@ -14,7 +14,7 @@ extends OfferedI, RequiredI{
 			ReflectionOutboundPort ropDispatcher,
 			String DispatcherRequestSubmissionInboundPortURI, String applicationUri) throws Exception;
 	
-	public void submitApplicationToAdmissionController(String applicationUri) throws Exception;
+	public void submitApplicationToAdmissionController(String applicationUri, int nombreVM) throws Exception;
 	
 	
 }

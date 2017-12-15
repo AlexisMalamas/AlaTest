@@ -11,6 +11,6 @@ import fr.upmc.components.interfaces.RequiredI;
 public interface ApplicationRequestI 
 extends OfferedI, RequiredI{
 	
-	public void receiveApplicationToAdmissionController(String applicationURI, ApplicationManagementOutBoundPort appmop) throws Exception;
+	public void receiveApplicationToAdmissionController(String applicationURI, ApplicationManagementOutBoundPort appmop, int nombreVM) throws Exception;
 
 }

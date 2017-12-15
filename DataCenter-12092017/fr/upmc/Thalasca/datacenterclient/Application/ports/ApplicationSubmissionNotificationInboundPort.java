@@ -32,14 +32,14 @@ implements ApplicationSubmissionNotificationI{
 	}
 	
 	@Override
-	public void submitApplicationNotification(String application, ApplicationManagementOutBoundPort appmop) throws Exception {
+	public void submitApplicationNotification(String application, ApplicationManagementOutBoundPort appmop, int nombreVM) throws Exception {
 		final ApplicationRequestI app = (ApplicationRequestI) this.owner;
 				
 		this.owner.handleRequestAsync(
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						app.receiveApplicationToAdmissionController(application, appmop);
+						app.receiveApplicationToAdmissionController(application, appmop, nombreVM);
 						return null;
 					}
 				});
