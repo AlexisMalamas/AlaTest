@@ -13,14 +13,8 @@ import fr.upmc.Thalasca.datacenterclient.Application.connectors.ApplicationSubmi
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementOutBoundPort;
 import fr.upmc.Thalasca.software.admissionController.AdmissionController;
 import fr.upmc.components.AbstractComponent;
-import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.cvm.AbstractCVM;
-import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
-import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
-import fr.upmc.datacenter.hardware.computers.interfaces.ComputerServicesI;
-import fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateDataI;
-import fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateI;
 import fr.upmc.datacenter.hardware.processors.Processor;
 
 public class Test extends AbstractCVM{
