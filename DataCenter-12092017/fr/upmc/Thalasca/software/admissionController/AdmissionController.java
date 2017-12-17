@@ -7,13 +7,13 @@ import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherMana
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementOutboundport;
 import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationControllerNotificationI;
-import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationManagementI;
 import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationRequestI;
 import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationSubmissionNotificationI;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationControllerNotificationOutboundPort;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementOutBoundPort;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationInboundPort;
 import fr.upmc.components.AbstractComponent;
+import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.components.cvm.pre.dcc.connectors.DynamicComponentCreationConnector;
 import fr.upmc.components.cvm.pre.dcc.interfaces.DynamicComponentCreationI;
@@ -22,13 +22,15 @@ import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.components.exceptions.ComponentStartException;
 import fr.upmc.components.pre.reflection.connectors.ReflectionConnector;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
+import fr.upmc.datacenter.connectors.ControlledDataConnector;
+import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
+import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
 import fr.upmc.datacenter.hardware.computers.interfaces.ComputerServicesI;
-import fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateDataI;
+import fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateI;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerDynamicStateDataOutboundPort;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerStaticStateDataOutboundPort;
-import fr.upmc.datacenter.interfaces.ControlledDataRequiredI;
 import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
 import fr.upmc.datacenter.software.applicationvm.connectors.ApplicationVMManagementConnector;
 import fr.upmc.datacenter.software.applicationvm.ports.ApplicationVMManagementOutboundPort;
@@ -56,16 +58,20 @@ implements ApplicationRequestI{
 
 	public static final String DispatcherManagementInboundPortURI = "dmip";
 
+	public static final String	ComputerServicesOutboundPortURI = "cs-obp" ;
+	public static final String	ComputerStaticStateDataOutboundPortURI = "css-dop" ;
+	public static final String	ComputerDynamicStateDataOutboundPortURI = "cds-dop" ;
+
 	protected final String ApplicationVmURI = "";
 	protected final String DispatcherURI = "";
 
 	protected DynamicComponentCreationOutboundPort portApplicationVM;
 	protected DynamicComponentCreationOutboundPort portDispatcher;
 
-	protected ComputerServicesOutboundPort csop;
-	protected ComputerStaticStateDataOutboundPort cssdop;
-	protected ComputerDynamicStateDataOutboundPort cdsdop;
-	//protected ApplicationManagementOutBoundPort appmop;
+	protected ArrayList<ComputerServicesOutboundPort> csopList;
+	protected ArrayList<ComputerStaticStateDataOutboundPort> cssdopList;
+	protected ArrayList<ComputerDynamicStateDataOutboundPort> cdsdopList;
+
 	protected ApplicationVMManagementOutboundPort avmOutBoundPort1;
 	protected ApplicationVMManagementOutboundPort avmOutBoundPort2;
 
@@ -80,32 +86,18 @@ implements ApplicationRequestI{
 	protected ArrayList<String> dispatcherList;
 	protected ArrayList<RequestSubmissionInboundPort> rsipList;
 
+	protected ArrayList<String> computerURIList;
+
 	public AdmissionController(
-			String computerServicesOutboundPortURI,
-			String computerStaticStateDataOutboundPortURI,
-			String computerDynamicStateDataOutboundPortURI,
-			/*String applicationManagementOutboundPortURI, */
+			ArrayList<String> computerServicesOutboundPortURI,
+			ArrayList<String> computerStaticStateDataOutboundPortURI,
+			ArrayList<String> computerDynamicStateDataOutboundPortURI,
 			String applicationSubmissionNotificationInboundPortURI,
 			String applicationControllerNotificationOutboundPortURI,
-			String computerURI,
+			ArrayList<String> computerURI,
 			String admissionControllerURI) throws Exception
 	{
 		super(admissionControllerURI, 1, 1);
-
-		this.addRequiredInterface(ComputerServicesI.class);
-		this.csop = new ComputerServicesOutboundPort(computerServicesOutboundPortURI, this);
-		this.addPort(this.csop);
-		this.csop.publishPort();
-
-		this.addOfferedInterface(ComputerStaticStateDataI.class);
-		this.cssdop = new ComputerStaticStateDataOutboundPort(computerStaticStateDataOutboundPortURI, this, computerURI);
-		this.addPort(this.cssdop);
-		this.cssdop.publishPort();
-
-		this.addRequiredInterface(ControlledDataRequiredI.ControlledPullI.class);
-		this.cdsdop = new ComputerDynamicStateDataOutboundPort(computerDynamicStateDataOutboundPortURI, this, computerURI);
-		this.addPort(this.cdsdop);
-		this.cdsdop.publishPort();
 
 		this.addOfferedInterface(ApplicationSubmissionNotificationI.class);
 		this.appsnip = new ApplicationSubmissionNotificationInboundPort(applicationSubmissionNotificationInboundPortURI, this);
@@ -117,10 +109,43 @@ implements ApplicationRequestI{
 		this.addPort(this.appcnop);
 		this.appcnop.publishPort();
 
+		this.computerURIList=computerURI;
+
 		this.vmList = new ArrayList<String>();
 		this.dispatcherList = new ArrayList<String>();
 		this.avmOutBoundPortList = new ArrayList<ApplicationVMManagementOutboundPort>();
+		this.csopList = new ArrayList<ComputerServicesOutboundPort>();
+		this.cssdopList = new ArrayList<ComputerStaticStateDataOutboundPort>();
+		this.cdsdopList = new ArrayList<ComputerDynamicStateDataOutboundPort>();
 
+		for(int i=0; i<this.computerURIList.size(); i++){
+			this.csopList.add(new ComputerServicesOutboundPort(ComputerServicesOutboundPortURI+i, this));
+			this.addPort(this.csopList.get(this.csopList.size()-1));
+			this.csopList.get(this.csopList.size()-1).publishPort();
+
+			this.cssdopList.add(new ComputerStaticStateDataOutboundPort(ComputerStaticStateDataOutboundPortURI+i, this, this.computerURIList.get(i)));
+			this.addPort(this.cssdopList.get(this.cssdopList.size()-1));
+			this.cssdopList.get(this.cssdopList.size()-1).publishPort();
+
+			this.cdsdopList.add(new ComputerDynamicStateDataOutboundPort(ComputerDynamicStateDataOutboundPortURI+i, this, this.computerURIList.get(i)));
+			this.addPort(this.cdsdopList.get(this.cdsdopList.size()-1));
+			this.cdsdopList.get(this.cdsdopList.size()-1).publishPort();
+
+			this.doPortConnection(				
+					ComputerServicesOutboundPortURI+i,
+					computerServicesOutboundPortURI.get(i),
+					ComputerServicesConnector.class.getCanonicalName());
+
+			this.doPortConnection(
+					ComputerStaticStateDataOutboundPortURI+i,
+					computerStaticStateDataOutboundPortURI.get(i),
+					DataConnector.class.getCanonicalName());
+
+			this.doPortConnection(
+					ComputerDynamicStateDataOutboundPortURI+i,
+					computerDynamicStateDataOutboundPortURI.get(i),
+					ControlledDataConnector.class.getCanonicalName());
+		}
 
 		this.addRequiredInterface(DynamicComponentCreationI.class);
 	}
@@ -155,15 +180,20 @@ implements ApplicationRequestI{
 	@Override
 	public void shutdown() throws ComponentShutdownException {
 
-		try {			
-			if (this.csop.connected()) {
-				this.csop.doDisconnection();
+		try {
+			for(ComputerServicesOutboundPort csop: this.csopList){
+				if (csop.connected()) {
+					csop.doDisconnection();
+				}
 			}
-			if (this.cssdop.connected()) {
-				this.cssdop.doDisconnection();
+			for(ComputerStaticStateDataOutboundPort cssdop: cssdopList){
+				if (cssdop.connected()) {
+					cssdop.doDisconnection();
+				}
 			}
-			if (this.cdsdop.connected()) {
-				this.cdsdop.doDisconnection();
+			for(ComputerDynamicStateDataOutboundPort cdsdop: cdsdopList)
+			if (cdsdop.connected()) {
+				cdsdop.doDisconnection();
 			}
 
 			if (this.portDispatcher.connected()) {
@@ -253,7 +283,6 @@ implements ApplicationRequestI{
 		for(int i=0; i<nombreVM; i++){
 			this.dmop.addVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+i);
 
-			this.dmop.addVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+i);
 			//rop.doDisconnection();
 
 			// connect applicationVM
@@ -276,14 +305,23 @@ implements ApplicationRequestI{
 
 		System.out.println("Application reçue :"+applicationURI);
 
+		connectComputer();
+
 		ArrayList<AllocatedCore[]> allocatedCore = new ArrayList<>();
 		boolean ressourcesAvailable = true;
+		int currentComputer=0;
 
 		for(int i=0; i<nombreVM; i++){
-			allocatedCore.add(csop.allocateCores(NB_CORES));
+			allocatedCore.add(csopList.get(currentComputer).allocateCores(NB_CORES));
 
-			if(allocatedCore.get(i).length!=NB_CORES)
+			if(allocatedCore.get(i).length!=NB_CORES){
 				ressourcesAvailable=false;
+
+				if(currentComputer<this.computerURIList.size()-1){
+					currentComputer++;
+					ressourcesAvailable=true;
+				}
+			}
 		}
 
 		if (ressourcesAvailable) {
@@ -295,6 +333,10 @@ implements ApplicationRequestI{
 			System.out.println("Application rejected");	
 			this.appcnop.responseFromApplicationController(false, applicationURI);
 		}	
+	}
+
+	public void connectComputer() throws Exception{
+
 
 	}
 }

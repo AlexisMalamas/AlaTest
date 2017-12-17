@@ -1,5 +1,6 @@
 package fr.upmc.Thalasca.tests;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -17,6 +18,9 @@ import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
+import fr.upmc.datacenter.hardware.computers.interfaces.ComputerServicesI;
+import fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateDataI;
+import fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateI;
 import fr.upmc.datacenter.hardware.processors.Processor;
 
 public class Test extends AbstractCVM{
@@ -30,39 +34,39 @@ public class Test extends AbstractCVM{
 
 	public static final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
 	public static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
-	
-	
+
+
 	public static final String ApplicationManagementOutboundPortURI = "appmop";
 	public static final String ApplicationSubmissionNotificationInboundPortURI = "appsnip";
 	public static final String ApplicationControllerNotificationOutboundPortURI = "appcnop";
 	public static final String AdmissionControllerURI = "ac";
-	
+
 	public static final String ApplicationURI = "app";
 	public static final String ApplicationControllerNotificationInboundPortURI = "appcnip";
 	public static final String ApplicationManagementInboundPortURI = "appmip";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI = "appsnop";
-	
+
 	public static final int nombreVM = 3;
-	
+
 	protected AdmissionController ac;
 	protected Application app;
 	protected ApplicationManagementOutBoundPort appmop;
-	
-	
+
+
 	public Test() throws Exception {
 		super();
 	}
 
 	@Override
 	public void deploy() throws Exception {
-		
+
 		AbstractComponent.configureLogging("", "", 0, '|') ;
 		Processor.DEBUG = true ;
-		
+
 		// create and deploy computer
 		String computerURI = "computer" ;
 		int numberOfProcessors = 2 ;
-		int numberOfCores = 4 ;
+		int numberOfCores = 2 ;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>() ;
 		admissibleFrequencies.add(1500) ;	// Cores can run at 1,5 GHz
 		admissibleFrequencies.add(3000) ;	// and at 3 GHz
@@ -82,40 +86,34 @@ public class Test extends AbstractCVM{
 				ComputerStaticStateDataInboundPortURI,
 				ComputerDynamicStateDataInboundPortURI) ;
 		this.addDeployedComponent(c) ;
+		
+		ArrayList<String> csdip = new ArrayList<>();
+		csdip.add(ComputerServicesInboundPortURI);
 
+		ArrayList<String> cpssdip = new ArrayList<>();
+		cpssdip.add(ComputerStaticStateDataInboundPortURI);
 
+		ArrayList<String> cdsdip = new ArrayList<>();
+		cdsdip.add(ComputerDynamicStateDataInboundPortURI);
+		
+		ArrayList<String> computersURI = new ArrayList<>();
+		computersURI.add(computerURI);
 		
 		//create admission controller
 		this.ac = new AdmissionController(								
-				ComputerServicesOutboundPortURI,
-				ComputerStaticStateDataOutboundPortURI,
-				ComputerDynamicStateDataOutboundPortURI, 
-				/*ApplicationManagementOutboundPortURI,*/
+				csdip,
+				cpssdip,
+				cdsdip, 
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationControllerNotificationOutboundPortURI,
-				computerURI,
+				computersURI,
 				AdmissionControllerURI);
-		
+
 		this.addDeployedComponent(this.ac);
-		
+
 		this.ac.toggleTracing();
 		this.ac.toggleLogging();			
-		
-		this.ac.doPortConnection(				
-				ComputerServicesOutboundPortURI,
-				ComputerServicesInboundPortURI,
-				ComputerServicesConnector.class.getCanonicalName());
-		
-		this.ac.doPortConnection(
-				ComputerStaticStateDataOutboundPortURI,
-				ComputerStaticStateDataInboundPortURI,
-				DataConnector.class.getCanonicalName());
 
-		this.ac.doPortConnection(
-				ComputerDynamicStateDataOutboundPortURI,
-				ComputerDynamicStateDataInboundPortURI,
-				ControlledDataConnector.class.getCanonicalName());			
-		
 		// create application
 		this.app = new Application(				
 				ApplicationURI,
@@ -123,60 +121,60 @@ public class Test extends AbstractCVM{
 				ApplicationManagementInboundPortURI,
 				ApplicationManagementOutboundPortURI,
 				ApplicationSubmissionNotificationOutboundPortURI);
-		
+
 		this.addDeployedComponent(app);
-	
+
 		this.app.toggleTracing();
 		this.app.toggleLogging();
-	
+
 		this.app.doPortConnection(
 				ApplicationSubmissionNotificationOutboundPortURI,
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationSubmissionNotificationConnector.class.getCanonicalName());
-		
+
 		this.ac.doPortConnection(				
 				ApplicationControllerNotificationOutboundPortURI,
 				ApplicationControllerNotificationInboundPortURI,
 				ApplicationControllerNotificationConnector.class.getCanonicalName());
-		
+
 		this.app.doPortConnection(				
 				ApplicationManagementOutboundPortURI,
 				ApplicationManagementInboundPortURI,
 				ApplicationManagementConnector.class.getCanonicalName());
-		
-		
+
+
 		this.appmop = new ApplicationManagementOutBoundPort(				
 				ApplicationManagementOutboundPortURI,
 				new AbstractComponent(0, 0) {});
-		
+
 		this.appmop.publishPort();
-		
+
 		this.appmop.doConnection(
 				ApplicationManagementInboundPortURI,
 				ApplicationManagementConnector.class.getCanonicalName());
-		
+
 		super.deploy();
 	}
-	
+
 	@Override
 	public void shutdown() throws Exception {
 		this.appmop.doDisconnection();
 		super.shutdown();
 	}
-	
+
 	public void testScenario1() throws Exception {
 		this.appmop.submitApplicationToAdmissionController(ApplicationURI, nombreVM);				
 	}
-	
+
 	public static void main(String[] args) {
-		
-		
+
+
 		try {
 			final Test test = new Test();
 			test.deploy();
 			System.out.println("starting...");
 			test.start();
-			
+
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -187,15 +185,15 @@ public class Test extends AbstractCVM{
 					}
 				}
 			}).start();
-			
+
 			Thread.sleep(90000L);
-			
+
 			System.out.println("shutting down...");
 			test.shutdown();
-			
+
 			System.out.println("ending...");
 			System.exit(0);
-			
+
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

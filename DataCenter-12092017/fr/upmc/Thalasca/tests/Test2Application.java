@@ -1,5 +1,6 @@
 package fr.upmc.Thalasca.tests;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -12,11 +13,8 @@ import fr.upmc.Thalasca.datacenterclient.Application.connectors.ApplicationSubmi
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementOutBoundPort;
 import fr.upmc.Thalasca.software.admissionController.AdmissionController;
 import fr.upmc.components.AbstractComponent;
-import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.cvm.AbstractCVM;
-import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
-import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
 import fr.upmc.datacenter.hardware.processors.Processor;
 
 public class Test2Application extends AbstractCVM{
@@ -49,7 +47,7 @@ public class Test2Application extends AbstractCVM{
 	public static final String ApplicationManagementInboundPortURI2 = "appmip2";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI2= "appsnop2";
 
-	public static final int nombreVM = 3;
+	public static final int nombreVM = 2;
 	
 	protected AdmissionController ac;
 	protected Application app;
@@ -72,7 +70,7 @@ public class Test2Application extends AbstractCVM{
 		// create and deploy computer
 		String computerURI = "computer" ;
 		int numberOfProcessors = 2 ;
-		int numberOfCores = 4 ;
+		int numberOfCores = 2 ;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>() ;
 		admissibleFrequencies.add(1500) ;	// Cores can run at 1,5 GHz
 		admissibleFrequencies.add(3000) ;	// and at 3 GHz
@@ -93,38 +91,60 @@ public class Test2Application extends AbstractCVM{
 				ComputerDynamicStateDataInboundPortURI) ;
 		this.addDeployedComponent(c) ;
 
+		String computerURI2 = "computer2" ;
+		int numberOfProcessors2 = 2 ;
+		int numberOfCores2 = 2 ;
+		Set<Integer> admissibleFrequencies2 = new HashSet<Integer>() ;
+		admissibleFrequencies2.add(1500) ;	// Cores can run at 1,5 GHz
+		admissibleFrequencies2.add(3000) ;	// and at 3 GHz
+		Map<Integer,Integer> processingPower2 = new HashMap<Integer,Integer>() ;
+		processingPower2.put(1500, 1500000) ;	// 1,5 GHz executes 1,5 Mips
+		processingPower2.put(3000, 3000000) ;	// 3 GHz executes 3 Mips
+		Computer c2 = new Computer(
+				computerURI2,
+				admissibleFrequencies2,
+				processingPower2,  
+				1500,		// Test scenario 1, frequency = 1,5 GHz
+				// 3000,	// Test scenario 2, frequency = 3 GHz
+				1500,		// max frequency gap within a processor
+				numberOfProcessors2,
+				numberOfCores2,
+				ComputerServicesInboundPortURI+2,
+				ComputerStaticStateDataInboundPortURI+2,
+				ComputerDynamicStateDataInboundPortURI+2) ;
+		this.addDeployedComponent(c) ;
 
+		
+		ArrayList<String> csdip = new ArrayList<>();
+		csdip.add(ComputerServicesInboundPortURI);
+		csdip.add(ComputerServicesInboundPortURI+2);
 
+		ArrayList<String> cpssdip = new ArrayList<>();
+		cpssdip.add(ComputerStaticStateDataInboundPortURI);
+		cpssdip.add(ComputerStaticStateDataInboundPortURI+2);
+
+		ArrayList<String> cdsdip = new ArrayList<>();
+		cdsdip.add(ComputerDynamicStateDataInboundPortURI);
+		cdsdip.add(ComputerDynamicStateDataInboundPortURI+2);
+		
+		ArrayList<String> computersURI = new ArrayList<>();
+		computersURI.add(computerURI);
+		computersURI.add(computerURI2);
+		
 		//create admission controller
 		this.ac = new AdmissionController(								
-				ComputerServicesOutboundPortURI,
-				ComputerStaticStateDataOutboundPortURI,
-				ComputerDynamicStateDataOutboundPortURI, 
-				/*ApplicationManagementOutboundPortURI,*/
+				csdip,
+				cpssdip,
+				cdsdip, 
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationControllerNotificationOutboundPortURI,
-				computerURI,
+				computersURI,
 				AdmissionControllerURI);
 
 		this.addDeployedComponent(this.ac);
 
 		this.ac.toggleTracing();
 		this.ac.toggleLogging();			
-
-		this.ac.doPortConnection(				
-				ComputerServicesOutboundPortURI,
-				ComputerServicesInboundPortURI,
-				ComputerServicesConnector.class.getCanonicalName());
-
-		this.ac.doPortConnection(
-				ComputerStaticStateDataOutboundPortURI,
-				ComputerStaticStateDataInboundPortURI,
-				DataConnector.class.getCanonicalName());
-
-		this.ac.doPortConnection(
-				ComputerDynamicStateDataOutboundPortURI,
-				ComputerDynamicStateDataInboundPortURI,
-				ControlledDataConnector.class.getCanonicalName());			
 
 		// create application
 		this.app = new Application(				
