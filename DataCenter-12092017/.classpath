@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="commons-math3-3.6.1.jar"/>
 	<classpathentry kind="lib" path="DataCenter-12092017.jar"/>
 	<classpathentry kind="lib" path="jcip-annotations.jar"/>
+	<classpathentry kind="lib" path="D:/UPMC/workspace UPMC/M2/ALASCA/testJavaAssist/lib/javassist-3.18.1-GA.jar"/>
 	<classpathentry kind="output" path=""/>
 </classpath>
