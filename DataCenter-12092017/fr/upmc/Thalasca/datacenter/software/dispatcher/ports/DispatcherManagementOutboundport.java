@@ -29,4 +29,15 @@ implements	DispatcherManagementI
 		( ( DispatcherManagementI ) this.connector ).addVirtualMachine(requestSubmissionInboundPortURI);
 	}
 
+	@Override
+	public void removeVirtualMachine() throws Exception {
+		( ( DispatcherManagementI ) this.connector ).removeVirtualMachine();
+		
+	}
+
+	@Override
+	public Long getAverageExecutionTimeRequest() throws Exception {
+		return ( ( DispatcherManagementI ) this.connector ).getAverageExecutionTimeRequest();
+	}
+
 }

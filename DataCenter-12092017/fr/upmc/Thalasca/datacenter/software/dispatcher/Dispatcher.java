@@ -40,8 +40,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	private long TotalRequestExectutionTime;
 	
 	private HashMap<String, Long> startTimeRequest;
-	
-	private long averageTimeExecution;
 
 	// send request to VM
 	protected ArrayList<RequestSubmissionOutboundPort>	rsopList ;
@@ -103,18 +101,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.rnop.publishPort() ;
 	}
 
-	public void addRequestSubmissionOutboundPort(String rsop) throws Exception{
-		this.addRequiredInterface(RequestSubmissionI.class) ;
-		this.rsopList.add(new RequestSubmissionOutboundPort(rsop, this)) ;
-		this.addPort(this.rsopList.get(this.rsopList.size()-1)) ;
-		this.rsopList.get(this.rsopList.size()-1).publishPort() ;
-	}
-
-	public void removeRequestSubmissionOutboundPort(){
-		if(!this.rsopList.isEmpty())
-			this.rsopList.remove(this.rsopList.size()-1);
-	}
-
 	@Override
 	public void acceptRequestSubmission(RequestI r) throws Exception {
 		
@@ -140,12 +126,9 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
 		
 		// add for part 2
-		/*long requestTime = System.currentTimeMillis() - this.startTimeRequest.get(r.getRequestURI());
+		long requestTime = System.currentTimeMillis() - this.startTimeRequest.remove(r.getRequestURI());
 		this.TotalRequestExectutionTime += requestTime;
 		System.out.println("Request execute in "+requestTime+" ms");
-		this.startTimeRequest.remove(r.getRequestURI());
-		this.averageTimeExecution  = this.TotalRequestExectutionTime / this.nbTotalRequest;
-		System.out.println("Average Time Execution per request : "+this.averageTimeExecution+" ms");*/
 		
 		this.rnop.notifyRequestTermination(r) ;
 	}
@@ -190,12 +173,28 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 				RequestSubmissionConnector.class.getCanonicalName());
 	}
 
+	@Override
+	public void removeVirtualMachine() throws Exception {
+		if(!this.rsopList.isEmpty())
+			if (rsopList.get(rsopList.size()-1).connected()) {
+				rsopList.get(rsopList.size()-1).doDisconnection();
+			}
+	}
+
 	public int getNbTotalRequest() {
 		return nbTotalRequest;
 	}
 
 	public long getTotalRequestExectutionTime() {
 		return TotalRequestExectutionTime;
+	}
+
+	@Override
+	public Long getAverageExecutionTimeRequest() throws Exception {
+		if(nbTotalRequest!=0)
+			return TotalRequestExectutionTime/nbTotalRequest;
+		else
+			return 0L;
 	}
 
 }

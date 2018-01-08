@@ -11,4 +11,15 @@ implements	DispatcherManagementI
 	public void addVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
 		( ( DispatcherManagementI ) this.offering ).addVirtualMachine(requestSubmissionInboundPortURI);
 	}
+
+	@Override
+	public void removeVirtualMachine() throws Exception {
+		( ( DispatcherManagementI ) this.offering ).removeVirtualMachine();
+		
+	}
+
+	@Override
+	public Long getAverageExecutionTimeRequest() throws Exception {
+		return ( ( DispatcherManagementI ) this.offering ).getAverageExecutionTimeRequest();
+	}
 }

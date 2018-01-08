@@ -84,6 +84,8 @@ implements ApplicationRequestI{
 	protected ArrayList<RequestSubmissionInboundPort> rsipList;
 
 	protected ArrayList<String> computerURIList;
+	
+	private boolean shutdown = false;
 
 	public AdmissionController(
 			ArrayList<String> computerServicesOutboundPortURI,
@@ -176,7 +178,7 @@ implements ApplicationRequestI{
 
 	@Override
 	public void shutdown() throws ComponentShutdownException {
-
+		this.shutdown = true;
 		try {
 			for(ComputerServicesOutboundPort csop: this.csopList){
 				if (csop.connected()) {
@@ -329,11 +331,38 @@ implements ApplicationRequestI{
 		} else {
 			System.out.println("Application rejected");	
 			this.appcnop.responseFromApplicationController(false, applicationURI);
-		}	
+		}
+		
+		displayAverageExecutionTimeRequest();
 	}
 
 	public void connectComputer() throws Exception{
 
 
+	}
+	
+	public void displayAverageExecutionTimeRequest()
+	{
+		final DispatcherManagementOutboundport dmop = this.dmop;
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Long lastTime = 0L;
+					while(!shutdown)
+					{
+						if(System.currentTimeMillis()-lastTime>=1000) // every second
+						{
+							lastTime = System.currentTimeMillis();
+							System.out.println("Average Execution Time Request : "+ dmop.getAverageExecutionTimeRequest()+" ms");
+							
+						}
+					}
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}).start();
+		
 	}
 }
