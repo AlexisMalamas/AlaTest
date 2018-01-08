@@ -1,6 +1,7 @@
 package fr.upmc.Thalasca.datacenter.software.dispatcher;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementInboundport;
@@ -32,6 +33,15 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 	// current VM
 	private int currentVm;
+	
+	// add for part 2
+	private int nbTotalRequest;
+	
+	private long TotalRequestExectutionTime;
+	
+	private HashMap<String, Long> startTimeRequest;
+	
+	private long averageTimeExecution;
 
 	// send request to VM
 	protected ArrayList<RequestSubmissionOutboundPort>	rsopList ;
@@ -65,7 +75,9 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 		this.dispatcherURI = dispatcherURI;
 		this.currentVm = 0;
-
+		this.TotalRequestExectutionTime = 0;
+		this.nbTotalRequest = 0;
+		this.startTimeRequest = new HashMap<String, Long>();
 		this.addRequiredInterface(DispatcherManagementI.class) ;
 		this.dmip =new DispatcherManagementInboundport(dispatcherManagementInboundPortURI,this) ;
 		this.addPort(this.dmip) ;
@@ -105,6 +117,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 	@Override
 	public void acceptRequestSubmission(RequestI r) throws Exception {
+		
 		this.rsopList.get(this.currentVm).submitRequest(r) ;
 		this.currentVm += 1;
 		this.currentVm %= this.rsopList.size();
@@ -115,10 +128,25 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.rsopList.get(this.currentVm).submitRequestAndNotify(r) ;
 		this.currentVm += 1;
 		this.currentVm %= this.rsopList.size();
+		
+		// add for part 2
+		this.nbTotalRequest++;
+		this.startTimeRequest.put(r.getRequestURI(), System.currentTimeMillis());
+		
+		
 	}
 
 	@Override
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
+		
+		// add for part 2
+		/*long requestTime = System.currentTimeMillis() - this.startTimeRequest.get(r.getRequestURI());
+		this.TotalRequestExectutionTime += requestTime;
+		System.out.println("Request execute in "+requestTime+" ms");
+		this.startTimeRequest.remove(r.getRequestURI());
+		this.averageTimeExecution  = this.TotalRequestExectutionTime / this.nbTotalRequest;
+		System.out.println("Average Time Execution per request : "+this.averageTimeExecution+" ms");*/
+		
 		this.rnop.notifyRequestTermination(r) ;
 	}
 
@@ -160,6 +188,14 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 				port.getPortURI(),
 				requestSubmissionInboundPortURI,
 				RequestSubmissionConnector.class.getCanonicalName());
+	}
+
+	public int getNbTotalRequest() {
+		return nbTotalRequest;
+	}
+
+	public long getTotalRequestExectutionTime() {
+		return TotalRequestExectutionTime;
 	}
 
 }
