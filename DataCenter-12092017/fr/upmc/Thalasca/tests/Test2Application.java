@@ -112,7 +112,7 @@ public class Test2Application extends AbstractCVM{
 				ComputerServicesInboundPortURI+2,
 				ComputerStaticStateDataInboundPortURI+2,
 				ComputerDynamicStateDataInboundPortURI+2) ;
-		this.addDeployedComponent(c) ;
+		this.addDeployedComponent(c2) ;
 
 		
 		ArrayList<String> csdip = new ArrayList<>();

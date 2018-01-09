@@ -87,21 +87,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	}
 
 	@Override
-	public void start() throws ComponentStartException {
-
-		/*try {
-			this.portRequestGenerator = new DynamicComponentCreationOutboundPort(this);
-			this.portRequestGenerator.localPublishPort();
-			this.addPort(this.portRequestGenerator);
-			this.portRequestGenerator.doConnection(					
-					this.RequestGeneratorJvmUri + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
-					DynamicComponentCreationConnector.class.getCanonicalName());
-		} catch (Exception e) {
-			throw new ComponentStartException(e);
-		}
-
-		super.start();*/
-	}
+	public void start() throws ComponentStartException {}
 
 	@Override
 	public void shutdown() throws ComponentShutdownException {	
@@ -140,26 +126,6 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	public void createDynamicRequestGenerator(String applicationUri) throws Exception
 	{	
 		// create request generator
-		/*System.out.println("Start creation of request generator");
-		this.portRequestGenerator.createComponent(
-			RequestGenerator.class.getCanonicalName(),
-			new Object[] {
-					this.requestGeneratorUri,			// generator component URI
-					this.meanTime,						// mean time between two requests
-					this.meanNumberInstructions,		// mean number of instructions in requests
-					RequestGeneratorManagementInboundPortURI,
-					GeneratorRequestSubmissionOutboundPortURI,
-					GeneratorRequestNotificationInboundPortURI});
-
-		System.out.println("Request generator requested");
-
-		rop = new ReflectionOutboundPort(this);
-		this.addPort(rop);
-		rop.localPublishPort();
-		rop.doConnection(this.requestGeneratorUri, ReflectionConnector.class.getCanonicalName());
-		rop.toggleLogging();
-		rop.toggleTracing();*/
-
 		 this.rg = new RequestGenerator(
 				applicationUri+"_rg",			// generator component URI
 				500.0,			// mean time between two requests
@@ -167,7 +133,6 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 				applicationUri+"_"+RequestGeneratorManagementInboundPortURI,
 				applicationUri+"_"+GeneratorRequestSubmissionOutboundPortURI,
 				applicationUri+"_"+GeneratorRequestNotificationInboundPortURI) ;
-		//this.addDeployedComponent(rg) ;
 
 		// Toggle on tracing and logging in the request generator to
 		// follow the submission and end of execution notification of

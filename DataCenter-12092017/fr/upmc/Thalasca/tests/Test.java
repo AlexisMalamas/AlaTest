@@ -35,7 +35,7 @@ public class Test extends AbstractCVM{
 	public static final String ApplicationControllerNotificationOutboundPortURI = "appcnop";
 	public static final String AdmissionControllerURI = "ac";
 
-	public static final String ApplicationURI = "app";
+	public static final String ApplicationURI = "ThalascaEnterprise";
 	public static final String ApplicationControllerNotificationInboundPortURI = "appcnip";
 	public static final String ApplicationManagementInboundPortURI = "appmip";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI = "appsnop";

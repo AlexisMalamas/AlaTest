@@ -12,6 +12,7 @@ import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationSubmi
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationControllerNotificationOutboundPort;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementOutBoundPort;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationInboundPort;
+import fr.upmc.Thalasca.software.performanceController.PerformanceController;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.cvm.AbstractCVM;
@@ -61,10 +62,12 @@ implements ApplicationRequestI{
 
 	protected final String ApplicationVmURI = "";
 	protected final String DispatcherURI = "";
+	protected final String PerformanceControllerURI = "";
 
 	protected DynamicComponentCreationOutboundPort portApplicationVM;
 	protected DynamicComponentCreationOutboundPort portDispatcher;
-
+	protected ArrayList<DynamicComponentCreationOutboundPort> portPerformanceController;
+	
 	protected ArrayList<ComputerServicesOutboundPort> csopList;
 	protected ArrayList<ComputerStaticStateDataOutboundPort> cssdopList;
 	protected ArrayList<ComputerDynamicStateDataOutboundPort> cdsdopList;
@@ -84,8 +87,6 @@ implements ApplicationRequestI{
 	protected ArrayList<RequestSubmissionInboundPort> rsipList;
 
 	protected ArrayList<String> computerURIList;
-	
-	private boolean shutdown = false;
 
 	public AdmissionController(
 			ArrayList<String> computerServicesOutboundPortURI,
@@ -97,6 +98,8 @@ implements ApplicationRequestI{
 			String admissionControllerURI) throws Exception
 	{
 		super(admissionControllerURI, 1, 1);
+		
+		portPerformanceController = new ArrayList<DynamicComponentCreationOutboundPort>();
 
 		this.addOfferedInterface(ApplicationSubmissionNotificationI.class);
 		this.appsnip = new ApplicationSubmissionNotificationInboundPort(applicationSubmissionNotificationInboundPortURI, this);
@@ -178,7 +181,6 @@ implements ApplicationRequestI{
 
 	@Override
 	public void shutdown() throws ComponentShutdownException {
-		this.shutdown = true;
 		try {
 			for(ComputerServicesOutboundPort csop: this.csopList){
 				if (csop.connected()) {
@@ -201,6 +203,14 @@ implements ApplicationRequestI{
 			if (this.portApplicationVM.connected()) {
 				this.portApplicationVM.doDisconnection();
 			}
+			
+			for(DynamicComponentCreationOutboundPort dc: this.portPerformanceController){
+				if (dc.connected()) {
+					dc.doDisconnection();
+				}
+			}
+			
+			
 		} catch (Exception e) {
 			throw new ComponentShutdownException("Error shutdown AdmissionController", e);
 		}
@@ -295,6 +305,23 @@ implements ApplicationRequestI{
 					applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
 					RequestNotificationConnector.class.getCanonicalName());
 		}
+		
+		
+		// create performanceController for application
+		portPerformanceController.add(new DynamicComponentCreationOutboundPort(this));
+		this.portPerformanceController.get(this.portPerformanceController.size()-1).publishPort();
+		this.addPort(this.portPerformanceController.get(this.portPerformanceController.size()-1));
+		this.portPerformanceController.get(this.portPerformanceController.size()-1).doConnection(					
+				this.PerformanceControllerURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
+				DynamicComponentCreationConnector.class.getCanonicalName());
+		this.portPerformanceController.get(this.portPerformanceController.size()-1).createComponent(
+				PerformanceController.class.getCanonicalName(),
+				new Object[] {
+						applicationUri+"_performanceController",
+						applicationUri+"_"+DispatcherManagementInboundPortURI
+				});				
+		
+		
 
 		System.out.println("finish creation ressources for the application "+applicationUri);
 	}
@@ -303,8 +330,6 @@ implements ApplicationRequestI{
 	public void receiveApplicationToAdmissionController(String applicationURI, ApplicationManagementOutBoundPort appmop, int nombreVM) throws Exception {
 
 		System.out.println("Application reçue :"+applicationURI);
-
-		connectComputer();
 
 		ArrayList<AllocatedCore[]> allocatedCore = new ArrayList<>();
 		boolean ressourcesAvailable = true;
@@ -332,37 +357,5 @@ implements ApplicationRequestI{
 			System.out.println("Application rejected");	
 			this.appcnop.responseFromApplicationController(false, applicationURI);
 		}
-		
-		displayAverageExecutionTimeRequest();
-	}
-
-	public void connectComputer() throws Exception{
-
-
-	}
-	
-	public void displayAverageExecutionTimeRequest()
-	{
-		final DispatcherManagementOutboundport dmop = this.dmop;
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Long lastTime = 0L;
-					while(!shutdown)
-					{
-						if(System.currentTimeMillis()-lastTime>=1000) // every second
-						{
-							lastTime = System.currentTimeMillis();
-							System.out.println("Average Execution Time Request : "+ dmop.getAverageExecutionTimeRequest()+" ms");
-							
-						}
-					}
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}).start();
-		
 	}
 }

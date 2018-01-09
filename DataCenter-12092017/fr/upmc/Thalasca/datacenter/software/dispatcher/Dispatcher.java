@@ -36,7 +36,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	
 	// add for part 2
 	private int nbTotalRequest;
-	
 	private long TotalRequestExectutionTime;
 	
 	private HashMap<String, Long> startTimeRequest;
@@ -58,7 +57,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	public Dispatcher(String dispatcherURI,
 			String requestSubmissionInboundPortURI,
 			String dispatcherManagementInboundPortURI,
-			/*ArrayList<String> requestSubmissionOutboundPortURI,*/
 			String requestNotificationOutboundPortURI,
 			String requestNotificationInboundPortURI
 			) throws Exception
@@ -67,7 +65,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 		// preconditions check
 		assert  requestSubmissionInboundPortURI != null ;
-		//assert	requestSubmissionOutboundPortURI != null ;
 		assert	requestNotificationInboundPortURI != null ;
 		assert  requestNotificationOutboundPortURI != null ;
 
@@ -176,9 +173,8 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	@Override
 	public void removeVirtualMachine() throws Exception {
 		if(!this.rsopList.isEmpty())
-			if (rsopList.get(rsopList.size()-1).connected()) {
+			if (rsopList.get(rsopList.size()-1).connected())
 				rsopList.get(rsopList.size()-1).doDisconnection();
-			}
 	}
 
 	public int getNbTotalRequest() {
