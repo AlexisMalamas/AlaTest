@@ -25,19 +25,29 @@ implements	DispatcherManagementI
 	}
 	
 	@Override
-	public void addVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
-		( ( DispatcherManagementI ) this.connector ).addVirtualMachine(requestSubmissionInboundPortURI);
+	public void connectToVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
+		( ( DispatcherManagementI ) this.connector ).connectToVirtualMachine(requestSubmissionInboundPortURI);
 	}
 
 	@Override
-	public void removeVirtualMachine() throws Exception {
-		( ( DispatcherManagementI ) this.connector ).removeVirtualMachine();
+	public void disconnectVirtualMachine() throws Exception {
+		( ( DispatcherManagementI ) this.connector ).disconnectVirtualMachine();
 		
 	}
 
 	@Override
 	public Long getAverageExecutionTimeRequest() throws Exception {
 		return ( ( DispatcherManagementI ) this.connector ).getAverageExecutionTimeRequest();
+	}
+
+	@Override
+	public Long getAverageExecutionTimeRequest(int vm) throws Exception {
+		return ( ( DispatcherManagementI ) this.connector ).getAverageExecutionTimeRequest(vm);
+	}
+
+	@Override
+	public int getNbConnectedVM() throws Exception {
+		return ( ( DispatcherManagementI ) this.connector ).getNbConnectedVM();
 	}
 
 }

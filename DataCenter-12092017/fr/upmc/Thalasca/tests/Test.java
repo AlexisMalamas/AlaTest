@@ -40,7 +40,7 @@ public class Test extends AbstractCVM{
 	public static final String ApplicationManagementInboundPortURI = "appmip";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI = "appsnop";
 
-	public static final int nombreVM = 2;
+	public static final int nbVMatStart = 2;
 
 	protected AdmissionController ac;
 	protected Application app;
@@ -157,7 +157,7 @@ public class Test extends AbstractCVM{
 	}
 
 	public void testScenario1() throws Exception {
-		this.appmop.submitApplicationToAdmissionController(ApplicationURI, nombreVM);				
+		this.appmop.submitApplicationToAdmissionController(ApplicationURI, nbVMatStart);				
 	}
 
 	public static void main(String[] args) {

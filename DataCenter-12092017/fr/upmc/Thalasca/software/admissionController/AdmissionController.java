@@ -290,9 +290,7 @@ implements ApplicationRequestI{
 
 
 		for(int i=0; i<nombreVM; i++){
-			this.dmop.addVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+i);
-
-			//rop.doDisconnection();
+			this.dmop.connectToVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+i);
 
 			// connect applicationVM
 			rop.doConnection(applicationUri+"_VM"+i, ReflectionConnector.class.getCanonicalName());

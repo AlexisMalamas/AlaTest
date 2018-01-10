@@ -31,7 +31,7 @@ implements DispatcherManagementI{
 	}
 
 	@Override
-	public void addVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
+	public void connectToVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
 
 		final DispatcherManagementI dm = ( DispatcherManagementI ) this.owner;
 
@@ -39,21 +39,21 @@ implements DispatcherManagementI{
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						dm.addVirtualMachine(requestSubmissionInboundPortURI) ;
+						dm.connectToVirtualMachine(requestSubmissionInboundPortURI) ;
 						return null;
 					}
 				}) ;
 	}
 
 	@Override
-	public void removeVirtualMachine() throws Exception {
+	public void disconnectVirtualMachine() throws Exception {
 		final DispatcherManagementI dm = ( DispatcherManagementI ) this.owner;
 
 		this.owner.handleRequestSync(
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						dm.removeVirtualMachine();
+						dm.disconnectVirtualMachine();
 						return null;
 					}
 				}) ;
@@ -67,6 +67,32 @@ implements DispatcherManagementI{
 					@Override
 					public Long call() throws Exception {
 						return dm.getAverageExecutionTimeRequest();
+						
+					}
+				}) ;
+	}
+
+	@Override
+	public Long getAverageExecutionTimeRequest(int vm) throws Exception {
+		final DispatcherManagementI dm = ( DispatcherManagementI ) this.owner;
+		return this.owner.handleRequestSync(
+				new ComponentI.ComponentService<Long>() {
+					@Override
+					public Long call() throws Exception {
+						return dm.getAverageExecutionTimeRequest(vm);
+						
+					}
+				}) ;
+	}
+
+	@Override
+	public int getNbConnectedVM() throws Exception {
+		final DispatcherManagementI dm = ( DispatcherManagementI ) this.owner;
+		return this.owner.handleRequestSync(
+				new ComponentI.ComponentService<Integer>() {
+					@Override
+					public Integer call() throws Exception {
+						return dm.getNbConnectedVM();
 						
 					}
 				}) ;

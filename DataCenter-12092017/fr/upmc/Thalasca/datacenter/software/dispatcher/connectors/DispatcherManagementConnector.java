@@ -8,18 +8,28 @@ extends AbstractConnector
 implements	DispatcherManagementI
 {
 	@Override
-	public void addVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
-		( ( DispatcherManagementI ) this.offering ).addVirtualMachine(requestSubmissionInboundPortURI);
+	public void connectToVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
+		( ( DispatcherManagementI ) this.offering ).connectToVirtualMachine(requestSubmissionInboundPortURI);
 	}
 
 	@Override
-	public void removeVirtualMachine() throws Exception {
-		( ( DispatcherManagementI ) this.offering ).removeVirtualMachine();
+	public void disconnectVirtualMachine() throws Exception {
+		( ( DispatcherManagementI ) this.offering ).disconnectVirtualMachine();
 		
 	}
 
 	@Override
 	public Long getAverageExecutionTimeRequest() throws Exception {
 		return ( ( DispatcherManagementI ) this.offering ).getAverageExecutionTimeRequest();
+	}
+
+	@Override
+	public Long getAverageExecutionTimeRequest(int vm) throws Exception {
+		return ( ( DispatcherManagementI ) this.offering ).getAverageExecutionTimeRequest(vm);
+	}
+
+	@Override
+	public int getNbConnectedVM() throws Exception{
+		return ( ( DispatcherManagementI ) this.offering ).getNbConnectedVM();
 	}
 }

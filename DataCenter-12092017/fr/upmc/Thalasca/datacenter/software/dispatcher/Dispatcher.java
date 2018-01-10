@@ -35,10 +35,12 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	private int currentVm;
 	
 	// add for part 2
-	private int nbTotalRequest;
+	private int nbTotalRequest; // for all vm
 	private long TotalRequestExectutionTime;
-	
-	private HashMap<String, Long> startTimeRequest;
+	private ArrayList<Long> TotalRequestExectutionTimeVM;
+	private ArrayList<Integer> nbTotalRequestVM;
+	private HashMap<String, Integer> nameRequestToVm; // to know which VM excute a request
+	private HashMap<String, Long> startTimeRequest; // to know time excution of a request
 
 	// send request to VM
 	protected ArrayList<RequestSubmissionOutboundPort>	rsopList ;
@@ -96,11 +98,14 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.rnop = new RequestNotificationOutboundPort(requestNotificationOutboundPortURI, this) ;
 		this.addPort(this.rnop) ;
 		this.rnop.publishPort() ;
+		
+		this.TotalRequestExectutionTimeVM = new ArrayList<Long>();
+		this.nbTotalRequestVM = new ArrayList<Integer>();
+		this.nameRequestToVm = new HashMap<String, Integer>();
 	}
 
 	@Override
 	public void acceptRequestSubmission(RequestI r) throws Exception {
-		
 		this.rsopList.get(this.currentVm).submitRequest(r) ;
 		this.currentVm += 1;
 		this.currentVm %= this.rsopList.size();
@@ -115,6 +120,8 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		// add for part 2
 		this.nbTotalRequest++;
 		this.startTimeRequest.put(r.getRequestURI(), System.currentTimeMillis());
+		this.nbTotalRequestVM.set(this.currentVm, this.nbTotalRequestVM.get(this.currentVm)+1);
+		this.nameRequestToVm.put(r.getRequestURI(), this.currentVm);
 		
 		
 	}
@@ -125,7 +132,9 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		// add for part 2
 		long requestTime = System.currentTimeMillis() - this.startTimeRequest.remove(r.getRequestURI());
 		this.TotalRequestExectutionTime += requestTime;
-		System.out.println("Request execute in "+requestTime+" ms");
+		
+		int vm = this.nameRequestToVm.get(r.getRequestURI());
+		this.TotalRequestExectutionTimeVM.set(vm, this.TotalRequestExectutionTimeVM.get(vm)+requestTime);
 		
 		this.rnop.notifyRequestTermination(r) ;
 	}
@@ -156,7 +165,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 
 	@Override
-	public void addVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
+	public void connectToVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
 		String portURI = "vmPort-"+this.rsopList.size();
 		RequestSubmissionOutboundPort port = new RequestSubmissionOutboundPort( portURI, this );
 		
@@ -168,13 +177,17 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 				port.getPortURI(),
 				requestSubmissionInboundPortURI,
 				RequestSubmissionConnector.class.getCanonicalName());
+		
+		this.TotalRequestExectutionTimeVM.add(0L);
+		this.nbTotalRequestVM.add(0);
 	}
 
 	@Override
-	public void removeVirtualMachine() throws Exception {
+	public void disconnectVirtualMachine() throws Exception {
 		if(!this.rsopList.isEmpty())
-			if (rsopList.get(rsopList.size()-1).connected())
+			if (rsopList.get(rsopList.size()-1).connected()){
 				rsopList.get(rsopList.size()-1).doDisconnection();
+			}
 	}
 
 	public int getNbTotalRequest() {
@@ -191,6 +204,19 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 			return TotalRequestExectutionTime/nbTotalRequest;
 		else
 			return 0L;
+	}
+
+	@Override
+	public Long getAverageExecutionTimeRequest(int vm) throws Exception {
+		if(vm<this.rsopList.size() && nbTotalRequestVM.get(vm)!=0)
+			return TotalRequestExectutionTimeVM.get(vm)/nbTotalRequestVM.get(vm);
+		else
+			return 0L;
+	}
+
+	@Override
+	public int getNbConnectedVM() {
+		return this.rsopList.size();
 	}
 
 }

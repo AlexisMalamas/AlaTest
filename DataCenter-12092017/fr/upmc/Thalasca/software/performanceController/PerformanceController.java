@@ -5,7 +5,6 @@ import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherMana
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementOutboundport;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.exceptions.ComponentShutdownException;
-import fr.upmc.datacenter.software.ports.RequestSubmissionOutboundPort;
 
 public class PerformanceController
 extends AbstractComponent{
@@ -34,6 +33,7 @@ extends AbstractComponent{
 				DispatcherManagementConnector.class.getCanonicalName());
 		
 
+		System.out.println(this.dmop.getNbConnectedVM()+" Vm connected for "+performanceContollerUri);
 		displayAverageExecutionTimeRequest();
 		
 	}
@@ -54,6 +54,9 @@ extends AbstractComponent{
 							System.out.println("***********************************");
 							System.out.println(performanceContollerUri);
 							System.out.println("Average Execution Time Request : "+ dmop.getAverageExecutionTimeRequest()+" ms");
+							for(int i=0; i<dmop.getNbConnectedVM(); i++)
+								System.out.println("Average Execution Time Request for Vm " +(i+1)+" : "+
+								dmop.getAverageExecutionTimeRequest(i) +" ms");
 							System.out.println("***********************************");
 						}
 					}
