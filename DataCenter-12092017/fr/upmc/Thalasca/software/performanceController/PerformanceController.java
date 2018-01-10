@@ -3,6 +3,10 @@ package fr.upmc.Thalasca.software.performanceController;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementOutboundport;
+import fr.upmc.Thalasca.software.admissionController.AdmissionController;
+import fr.upmc.Thalasca.software.admissionController.connectors.AdmissionControllerConnector;
+import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
+import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerOutBoundPort;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.exceptions.ComponentShutdownException;
 
@@ -13,15 +17,17 @@ extends AbstractComponent{
 	private boolean shutdown;
 	
 	protected DispatcherManagementOutboundport dmop;
+	protected AdmissionControllerOutBoundPort acop;
 	
 	public PerformanceController(
 			String performanceContollerUri,
-			String dmopUri
+			String dmipUri,
+			String acipUri
 			) throws Exception{
-		this.performanceContollerUri = performanceContollerUri;
-		shutdown = false;
+		super(performanceContollerUri,1,1);
 		
-		System.out.println("test");
+		this.performanceContollerUri = performanceContollerUri;
+		this.shutdown = false;
 		
 		// connect PerformanceController to Dispatcher
 		this.addRequiredInterface(DispatcherManagementI.class);
@@ -29,8 +35,19 @@ extends AbstractComponent{
 		this.addPort(dmop);
 		this.dmop.publishPort();
 		this.dmop.doConnection(
-				dmopUri,
+				dmipUri,
 				DispatcherManagementConnector.class.getCanonicalName());
+		
+		// connect PerformanceController to AdmissionController
+		this.addRequiredInterface(AdmissionControllerI.class);
+		this.acop = new AdmissionControllerOutBoundPort("acop", this);
+		this.addPort(acop);
+		this.acop.publishPort();
+
+		System.out.println("tttttt");
+		this.acop.doConnection(
+				acipUri,
+				AdmissionControllerConnector.class.getCanonicalName());
 		
 
 		System.out.println(this.dmop.getNbConnectedVM()+" Vm connected for "+performanceContollerUri);
@@ -41,6 +58,7 @@ extends AbstractComponent{
 	public void displayAverageExecutionTimeRequest()
 	{
 		final DispatcherManagementOutboundport dmop = this.dmop;
+		final AdmissionControllerOutBoundPort acop = this.acop;
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -58,6 +76,8 @@ extends AbstractComponent{
 								System.out.println("Average Execution Time Request for Vm " +(i+1)+" : "+
 								dmop.getAverageExecutionTimeRequest(i) +" ms");
 							System.out.println("***********************************");
+							
+							//acop.addVirtualMachine(performanceContollerUri);
 						}
 					}
 				} catch (Exception e) {

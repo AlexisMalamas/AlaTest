@@ -75,6 +75,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.TotalRequestExectutionTime = 0;
 		this.nbTotalRequest = 0;
 		this.startTimeRequest = new HashMap<String, Long>();
+		
 		this.addRequiredInterface(DispatcherManagementI.class) ;
 		this.dmip =new DispatcherManagementInboundport(dispatcherManagementInboundPortURI,this) ;
 		this.addPort(this.dmip) ;
