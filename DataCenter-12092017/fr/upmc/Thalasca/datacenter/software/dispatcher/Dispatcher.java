@@ -114,6 +114,8 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 	@Override
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
+		System.out.println(this.dispatcherURI);
+		
 		this.rsopList.get(this.currentVm).submitRequestAndNotify(r) ;
 		this.currentVm += 1;
 		this.currentVm %= this.rsopList.size();
@@ -123,8 +125,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.startTimeRequest.put(r.getRequestURI(), System.currentTimeMillis());
 		this.nbTotalRequestVM.set(this.currentVm, this.nbTotalRequestVM.get(this.currentVm)+1);
 		this.nameRequestToVm.put(r.getRequestURI(), this.currentVm);
-		
-		
 	}
 
 	@Override

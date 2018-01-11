@@ -5,18 +5,16 @@ import java.util.ArrayList;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.Dispatcher;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
-import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementInboundport;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementOutboundport;
+import fr.upmc.Thalasca.datacenterclient.Application.connectors.ApplicationControllerNotificationConnector;
 import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationControllerNotificationI;
 import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationRequestI;
 import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationSubmissionNotificationI;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationControllerNotificationOutboundPort;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementOutBoundPort;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationInboundPort;
-import fr.upmc.Thalasca.software.admissionController.connectors.AdmissionControllerConnector;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerInBoundPort;
-import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerOutBoundPort;
 import fr.upmc.Thalasca.software.performanceController.PerformanceController;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.connectors.DataConnector;
@@ -85,6 +83,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 	protected ArrayList<ApplicationVMManagementOutboundPort> avmOutBoundPortList;
 
 	protected ApplicationControllerNotificationOutboundPort appcnop;
+	protected String appcnip;
 	protected ApplicationSubmissionNotificationInboundPort appsnip;
 
 	protected DispatcherManagementOutboundport dmop;
@@ -105,11 +104,13 @@ implements ApplicationRequestI, AdmissionControllerI{
 			String applicationSubmissionNotificationInboundPortURI,
 			String applicationControllerNotificationOutboundPortURI,
 			ArrayList<String> computerURI,
-			String admissionControllerURI) throws Exception
+			String admissionControllerURI,
+			String applicationControllerNotificationInboundPortURI) throws Exception
 	{
 		super(admissionControllerURI, 1, 1);
 		
 		portPerformanceController = new ArrayList<DynamicComponentCreationOutboundPort>();
+		appcnip = applicationControllerNotificationInboundPortURI;
 
 		this.addOfferedInterface(ApplicationSubmissionNotificationI.class);
 		this.appsnip = new ApplicationSubmissionNotificationInboundPort(applicationSubmissionNotificationInboundPortURI, this);
@@ -288,7 +289,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		appmop.connectionDispatcherWithRequestGeneratorForSubmission(
 				applicationUri+"_"+DispatcherRequestSubmissionInboundPortURI, applicationUri);
 
-		appmop.connectionDispatcherWithRequestGeneratorForNotification(rop, 				applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI, applicationUri);		
+		appmop.connectionDispatcherWithRequestGeneratorForNotification(rop, applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI, applicationUri);		
 
 		
 		
@@ -364,10 +365,11 @@ implements ApplicationRequestI, AdmissionControllerI{
 				}
 			}
 		}
-
+		this.appcnop.doConnection(applicationURI+"_"+this.appcnip, ApplicationControllerNotificationConnector.class.getCanonicalName());
 		if (ressourcesAvailable) {
 			System.out.println("Accept application " + applicationURI);
 			deployDynamicComponentsForApplication(applicationURI, allocatedCore, appmop, nombreVM);
+			System.out.println("test"+applicationURI);
 			this.appcnop.responseFromApplicationController(true, applicationURI);
 
 		} else {

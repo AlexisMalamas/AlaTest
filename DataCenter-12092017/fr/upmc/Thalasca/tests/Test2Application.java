@@ -35,17 +35,18 @@ public class Test2Application extends AbstractCVM{
 	public static final String ApplicationControllerNotificationOutboundPortURI = "appcnop";
 	public static final String AdmissionControllerURI = "ac";
 
-	public static final String ApplicationURI = "app";
-	public static final String ApplicationControllerNotificationInboundPortURI = "appcnip";
+	public static final String ApplicationURI = "ThalascaEnterprise";
 	public static final String ApplicationManagementInboundPortURI = "appmip";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI = "appsnop";
 
 
 	public static final String ApplicationManagementOutboundPortURI2 = "appmop2";
-	public static final String ApplicationURI2 = "app2";
-	public static final String ApplicationControllerNotificationInboundPortURI2 = "appcnip2";
+	public static final String ApplicationURI2 = "JavaEnterprise";
 	public static final String ApplicationManagementInboundPortURI2 = "appmip2";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI2= "appsnop2";
+	
+
+	public static final String ApplicationControllerNotificationInboundPortURI = "appcnip";
 
 	public static final int nombreVM = 2;
 	
@@ -139,7 +140,8 @@ public class Test2Application extends AbstractCVM{
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationControllerNotificationOutboundPortURI,
 				computersURI,
-				AdmissionControllerURI);
+				AdmissionControllerURI,
+				ApplicationControllerNotificationInboundPortURI);
 
 		this.addDeployedComponent(this.ac);
 
@@ -149,7 +151,7 @@ public class Test2Application extends AbstractCVM{
 		// create application
 		this.app = new Application(				
 				ApplicationURI,
-				ApplicationControllerNotificationInboundPortURI,
+				ApplicationURI+"_"+ApplicationControllerNotificationInboundPortURI,
 				ApplicationManagementInboundPortURI,
 				ApplicationManagementOutboundPortURI,
 				ApplicationSubmissionNotificationOutboundPortURI);
@@ -163,11 +165,6 @@ public class Test2Application extends AbstractCVM{
 				ApplicationSubmissionNotificationOutboundPortURI,
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationSubmissionNotificationConnector.class.getCanonicalName());
-
-		this.ac.doPortConnection(				
-				ApplicationControllerNotificationOutboundPortURI,
-				ApplicationControllerNotificationInboundPortURI,
-				ApplicationControllerNotificationConnector.class.getCanonicalName());
 
 		this.app.doPortConnection(				
 				ApplicationManagementOutboundPortURI,
@@ -189,7 +186,7 @@ public class Test2Application extends AbstractCVM{
 		// create application
 		this.app2 = new Application(				
 				ApplicationURI2,
-				ApplicationControllerNotificationInboundPortURI2,
+				ApplicationURI2+"_"+ApplicationControllerNotificationInboundPortURI,
 				ApplicationManagementInboundPortURI2,
 				ApplicationManagementOutboundPortURI2,
 				ApplicationSubmissionNotificationOutboundPortURI2);
@@ -203,11 +200,6 @@ public class Test2Application extends AbstractCVM{
 				ApplicationSubmissionNotificationOutboundPortURI2,
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationSubmissionNotificationConnector.class.getCanonicalName());
-
-		this.ac.doPortConnection(				
-				ApplicationControllerNotificationOutboundPortURI,
-				ApplicationControllerNotificationInboundPortURI2,
-				ApplicationControllerNotificationConnector.class.getCanonicalName());
 
 		this.app2.doPortConnection(				
 				ApplicationManagementOutboundPortURI2,
@@ -260,7 +252,6 @@ public class Test2Application extends AbstractCVM{
 				public void run() {
 					try {
 						test.testScenario1();
-
 						test.testScenario2();
 					} catch (Exception e) {
 						throw new RuntimeException(e);

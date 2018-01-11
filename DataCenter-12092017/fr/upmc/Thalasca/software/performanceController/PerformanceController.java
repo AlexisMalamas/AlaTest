@@ -3,7 +3,6 @@ package fr.upmc.Thalasca.software.performanceController;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementOutboundport;
-import fr.upmc.Thalasca.software.admissionController.AdmissionController;
 import fr.upmc.Thalasca.software.admissionController.connectors.AdmissionControllerConnector;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerOutBoundPort;
@@ -43,8 +42,6 @@ extends AbstractComponent{
 		this.acop = new AdmissionControllerOutBoundPort("acop", this);
 		this.addPort(acop);
 		this.acop.publishPort();
-
-		System.out.println("tttttt");
 		this.acop.doConnection(
 				acipUri,
 				AdmissionControllerConnector.class.getCanonicalName());
