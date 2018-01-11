@@ -35,7 +35,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	private int currentVm;
 	
 	// add for part 2
-	private int nbTotalRequest; // for all vm
+	private int nbTotalRequest;
 	private long TotalRequestExectutionTime;
 	private ArrayList<Long> TotalRequestExectutionTimeVM;
 	private ArrayList<Integer> nbTotalRequestVM;
@@ -52,7 +52,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	protected RequestNotificationOutboundPort rnop ;
 
 	//receive notification from VM
-	protected RequestNotificationInboundPort rnip ;
+	protected RequestNotificationInboundPort rnip ; // faire un rnip par VM
 
 	protected DispatcherManagementInboundport dmip;
 
@@ -114,8 +114,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 	@Override
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
-		System.out.println(this.dispatcherURI);
-		
 		this.rsopList.get(this.currentVm).submitRequestAndNotify(r) ;
 		this.currentVm += 1;
 		this.currentVm %= this.rsopList.size();
@@ -129,12 +127,11 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 	@Override
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
-		
 		// add for part 2
 		long requestTime = System.currentTimeMillis() - this.startTimeRequest.remove(r.getRequestURI());
 		this.TotalRequestExectutionTime += requestTime;
 		
-		int vm = this.nameRequestToVm.get(r.getRequestURI());
+		int vm = this.nameRequestToVm.remove(r.getRequestURI());
 		this.TotalRequestExectutionTimeVM.set(vm, this.TotalRequestExectutionTimeVM.get(vm)+requestTime);
 		
 		this.rnop.notifyRequestTermination(r) ;

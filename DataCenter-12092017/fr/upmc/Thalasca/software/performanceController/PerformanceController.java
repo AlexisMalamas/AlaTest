@@ -70,7 +70,7 @@ extends AbstractComponent{
 							System.out.println(performanceContollerUri);
 							System.out.println("Average Execution Time Request : "+ dmop.getAverageExecutionTimeRequest()+" ms");
 							for(int i=0; i<dmop.getNbConnectedVM(); i++)
-								System.out.println("Average Execution Time Request for Vm " +(i+1)+" : "+
+								System.out.println("Average Execution Time Request for Vm " +i+" : "+
 								dmop.getAverageExecutionTimeRequest(i) +" ms");
 							System.out.println("***********************************");
 							
