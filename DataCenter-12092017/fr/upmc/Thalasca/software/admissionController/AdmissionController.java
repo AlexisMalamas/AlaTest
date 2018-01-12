@@ -256,8 +256,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 						applicationUri+"_dispatcher",
 						applicationUri+"_"+DispatcherRequestSubmissionInboundPortURI,
 						applicationUri+"_"+DispatcherManagementInboundPortURI,
-						applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI,
-						applicationUri+"_"+DispatcherRequestNotificationInboundPortURI
+						applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI
 				});					
 
 
@@ -281,7 +280,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 
 		// connect dispatcher
-		rop.doConnection(applicationUri+"_"+"dispatcher", ReflectionConnector.class.getCanonicalName());
+		rop.doConnection(applicationUri+"_dispatcher", ReflectionConnector.class.getCanonicalName());
 		rop.toggleLogging();
 		rop.toggleTracing();
 
@@ -313,11 +312,14 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 			rop.toggleTracing();
 			rop.toggleLogging();
+			
+			this.dmop.addNotificationPortForVmInDispatcher(applicationUri+"_"+DispatcherRequestNotificationInboundPortURI+i);
 
 			rop.doPortConnection(
 					applicationUri+"_"+VmRequestNotificationOutboundPortURI+i,
-					applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
+					applicationUri+"_"+DispatcherRequestNotificationInboundPortURI+i,
 					RequestNotificationConnector.class.getCanonicalName());
+			
 		}
 		
 		// create performanceController for application
@@ -369,7 +371,6 @@ implements ApplicationRequestI, AdmissionControllerI{
 		if (ressourcesAvailable) {
 			System.out.println("Accept application " + applicationURI);
 			deployDynamicComponentsForApplication(applicationURI, allocatedCore, appmop, nombreVM);
-			System.out.println("test"+applicationURI);
 			this.appcnop.responseFromApplicationController(true, applicationURI);
 
 		} else {

@@ -7,6 +7,7 @@ public interface DispatcherManagementI
 extends OfferedI, RequiredI{
 	
 	public void connectToVirtualMachine(String requestSubmissionInboundPortURI) throws Exception;
+	public void addNotificationPortForVmInDispatcher(String requestNotificationInboundPortURI) throws Exception;
 	public void disconnectVirtualMachine() throws Exception;
 	public Long getAverageExecutionTimeRequest() throws Exception;
 	public Long getAverageExecutionTimeRequest(int vm) throws Exception;

@@ -62,18 +62,17 @@ public class Test extends AbstractCVM{
 		int numberOfProcessors = 2 ;
 		int numberOfCores = 2 ;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>() ;
-		admissibleFrequencies.add(1500) ;	// Cores can run at 1,5 GHz
-		admissibleFrequencies.add(3000) ;	// and at 3 GHz
+		admissibleFrequencies.add(1500) ;
+		admissibleFrequencies.add(3000) ;
 		Map<Integer,Integer> processingPower = new HashMap<Integer,Integer>() ;
-		processingPower.put(1500, 1500000) ;	// 1,5 GHz executes 1,5 Mips
-		processingPower.put(3000, 3000000) ;	// 3 GHz executes 3 Mips
+		processingPower.put(1500, 1500000) ;
+		processingPower.put(3000, 3000000) ;
 		Computer c = new Computer(
 				computerURI,
 				admissibleFrequencies,
 				processingPower,  
-				1500,		// Test scenario 1, frequency = 1,5 GHz
-				// 3000,	// Test scenario 2, frequency = 3 GHz
-				1500,		// max frequency gap within a processor
+				1500,
+				1500,
 				numberOfProcessors,
 				numberOfCores,
 				ComputerServicesInboundPortURI,

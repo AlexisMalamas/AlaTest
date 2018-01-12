@@ -97,4 +97,18 @@ implements DispatcherManagementI{
 					}
 				}) ;
 	}
+
+	@Override
+	public void addNotificationPortForVmInDispatcher(String requestNotificationInboundPortURI) throws Exception {
+		final DispatcherManagementI dm = ( DispatcherManagementI ) this.owner;
+
+		this.owner.handleRequestSync(
+				new ComponentI.ComponentService<Void>() {
+					@Override
+					public Void call() throws Exception {
+						dm.addNotificationPortForVmInDispatcher(requestNotificationInboundPortURI);
+						return null;
+					}
+				}) ;
+	}
 }

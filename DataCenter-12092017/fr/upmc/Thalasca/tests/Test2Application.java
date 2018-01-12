@@ -48,7 +48,7 @@ public class Test2Application extends AbstractCVM{
 
 	public static final String ApplicationControllerNotificationInboundPortURI = "appcnip";
 
-	public static final int nombreVM = 2;
+	public static final int nombreVM = 4;
 	
 	protected AdmissionController ac;
 	protected Application app;
@@ -70,21 +70,20 @@ public class Test2Application extends AbstractCVM{
 
 		// create and deploy computer
 		String computerURI = "computer" ;
-		int numberOfProcessors = 2 ;
+		int numberOfProcessors = 4 ;
 		int numberOfCores = 2 ;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>() ;
-		admissibleFrequencies.add(1500) ;	// Cores can run at 1,5 GHz
-		admissibleFrequencies.add(3000) ;	// and at 3 GHz
+		admissibleFrequencies.add(1500) ;	
+		admissibleFrequencies.add(3000) ;
 		Map<Integer,Integer> processingPower = new HashMap<Integer,Integer>() ;
-		processingPower.put(1500, 1500000) ;	// 1,5 GHz executes 1,5 Mips
-		processingPower.put(3000, 3000000) ;	// 3 GHz executes 3 Mips
+		processingPower.put(1500, 1500000) ;
+		processingPower.put(3000, 3000000) ;
 		Computer c = new Computer(
 				computerURI,
 				admissibleFrequencies,
 				processingPower,  
-				1500,		// Test scenario 1, frequency = 1,5 GHz
-				// 3000,	// Test scenario 2, frequency = 3 GHz
-				1500,		// max frequency gap within a processor
+				1500,
+				1500,
 				numberOfProcessors,
 				numberOfCores,
 				ComputerServicesInboundPortURI,
@@ -93,21 +92,20 @@ public class Test2Application extends AbstractCVM{
 		this.addDeployedComponent(c) ;
 
 		String computerURI2 = "computer2" ;
-		int numberOfProcessors2 = 2 ;
+		int numberOfProcessors2 = 4 ;
 		int numberOfCores2 = 2 ;
 		Set<Integer> admissibleFrequencies2 = new HashSet<Integer>() ;
-		admissibleFrequencies2.add(1500) ;	// Cores can run at 1,5 GHz
-		admissibleFrequencies2.add(3000) ;	// and at 3 GHz
+		admissibleFrequencies2.add(1500) ;
+		admissibleFrequencies2.add(3000) ;
 		Map<Integer,Integer> processingPower2 = new HashMap<Integer,Integer>() ;
-		processingPower2.put(1500, 1500000) ;	// 1,5 GHz executes 1,5 Mips
-		processingPower2.put(3000, 3000000) ;	// 3 GHz executes 3 Mips
+		processingPower2.put(1500, 1500000) ;
+		processingPower2.put(3000, 3000000) ;
 		Computer c2 = new Computer(
 				computerURI2,
 				admissibleFrequencies2,
 				processingPower2,  
-				1500,		// Test scenario 1, frequency = 1,5 GHz
-				// 3000,	// Test scenario 2, frequency = 3 GHz
-				1500,		// max frequency gap within a processor
+				1500,
+				1500,
 				numberOfProcessors2,
 				numberOfCores2,
 				ComputerServicesInboundPortURI+2,
