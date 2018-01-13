@@ -63,7 +63,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 	public static final String	ComputerServicesOutboundPortURI = "cs-obp" ;
 	public static final String	ComputerStaticStateDataOutboundPortURI = "css-dop" ;
 	public static final String	ComputerDynamicStateDataOutboundPortURI = "cds-dop" ;
-	
+
 	public static final String AdmissionControllerInboundPortURI = "acip";
 
 	protected final String ApplicationVmURI = "";
@@ -72,8 +72,8 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 	protected DynamicComponentCreationOutboundPort portApplicationVM;
 	protected DynamicComponentCreationOutboundPort portDispatcher;
-	protected ArrayList<DynamicComponentCreationOutboundPort> portPerformanceController;
-	
+	protected DynamicComponentCreationOutboundPort portPerformanceController;
+
 	protected ArrayList<ComputerServicesOutboundPort> csopList;
 	protected ArrayList<ComputerStaticStateDataOutboundPort> cssdopList;
 	protected ArrayList<ComputerDynamicStateDataOutboundPort> cdsdopList;
@@ -107,15 +107,14 @@ implements ApplicationRequestI, AdmissionControllerI{
 			String applicationControllerNotificationInboundPortURI) throws Exception
 	{
 		super(admissionControllerURI, 1, 1);
-		
-		portPerformanceController = new ArrayList<DynamicComponentCreationOutboundPort>();
+
 		appcnip = applicationControllerNotificationInboundPortURI;
 
 		this.addOfferedInterface(ApplicationSubmissionNotificationI.class);
 		this.appsnip = new ApplicationSubmissionNotificationInboundPort(applicationSubmissionNotificationInboundPortURI, this);
 		this.addPort(this.appsnip);
 		this.appsnip.publishPort();
-		
+
 		this.addRequiredInterface(ApplicationControllerNotificationI.class);
 		this.appcnop = new ApplicationControllerNotificationOutboundPort(applicationControllerNotificationOutboundPortURI, this);
 		this.addPort(this.appcnop);
@@ -182,6 +181,13 @@ implements ApplicationRequestI, AdmissionControllerI{
 			this.portDispatcher.doConnection(					
 					this.DispatcherURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());
+			
+			this.portPerformanceController = new DynamicComponentCreationOutboundPort(this);
+			this.portPerformanceController.publishPort();
+			this.addPort(this.portPerformanceController);
+			this.portPerformanceController.doConnection(					
+					this.PerformanceControllerURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
+					DynamicComponentCreationConnector.class.getCanonicalName());
 
 
 		} catch (Exception e) {
@@ -192,7 +198,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 	@Override
 	public void shutdown() throws ComponentShutdownException {
 		try {
-			for(ComputerServicesOutboundPort csop: this.csopList){
+			for(ComputerServicesOutboundPort csop: csopList){
 				if (csop.connected()) {
 					csop.doDisconnection();
 				}
@@ -203,9 +209,9 @@ implements ApplicationRequestI, AdmissionControllerI{
 				}
 			}
 			for(ComputerDynamicStateDataOutboundPort cdsdop: cdsdopList)
-			if (cdsdop.connected()) {
-				cdsdop.doDisconnection();
-			}
+				if (cdsdop.connected()) {
+					cdsdop.doDisconnection();
+				}
 
 			if (this.portDispatcher.connected()) {
 				this.portDispatcher.doDisconnection();
@@ -213,14 +219,13 @@ implements ApplicationRequestI, AdmissionControllerI{
 			if (this.portApplicationVM.connected()) {
 				this.portApplicationVM.doDisconnection();
 			}
-			
-			for(DynamicComponentCreationOutboundPort dc: this.portPerformanceController){
-				if (dc.connected()) {
-					dc.doDisconnection();
-				}
+
+			if (this.portPerformanceController.connected()) {
+				this.portPerformanceController.doDisconnection();
 			}
-			
-			
+
+
+
 		} catch (Exception e) {
 			throw new ComponentShutdownException("Error shutdown AdmissionController", e);
 		}
@@ -261,7 +266,6 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 
 		// create ApplicationVMManagementOutboundPort 
-
 		for(int i=0; i<nombreVM; i++){
 			this.avmOutBoundPortList.add(new ApplicationVMManagementOutboundPort(
 					applicationUri+"_"+ApplicationVMManagementOutboundPortURI+i,
@@ -290,8 +294,8 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 		appmop.connectionDispatcherWithRequestGeneratorForNotification(rop, applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI, applicationUri);		
 
-		
-		
+
+
 		// connect dispatcher to VM
 		this.addRequiredInterface(DispatcherManagementI.class);
 		this.dmop = new DispatcherManagementOutboundport(applicationUri+"_dmop", this);
@@ -300,7 +304,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		this.dmop.doConnection(
 				applicationUri+"_"+DispatcherManagementInboundPortURI,
 				DispatcherManagementConnector.class.getCanonicalName());
-		
+
 
 
 
@@ -312,28 +316,22 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 			rop.toggleTracing();
 			rop.toggleLogging();
-			
+
 			rop.doPortConnection(
 					applicationUri+"_"+VmRequestNotificationOutboundPortURI+i,
 					applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
 					RequestNotificationConnector.class.getCanonicalName());
-			
+
 		}
-		
+
 		// create performanceController for application
 
 		this.addRequiredInterface(AdmissionControllerI.class) ;
 		this.acip=new AdmissionControllerInBoundPort(applicationUri+"_"+AdmissionControllerInboundPortURI,this);
 		this.addPort(this.acip);
 		this.acip.publishPort();
-		
-		portPerformanceController.add(new DynamicComponentCreationOutboundPort(this));
-		this.portPerformanceController.get(this.portPerformanceController.size()-1).publishPort();
-		this.addPort(this.portPerformanceController.get(this.portPerformanceController.size()-1));
-		this.portPerformanceController.get(this.portPerformanceController.size()-1).doConnection(					
-				this.PerformanceControllerURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
-				DynamicComponentCreationConnector.class.getCanonicalName());
-		this.portPerformanceController.get(this.portPerformanceController.size()-1).createComponent(
+
+		this.portPerformanceController.createComponent(
 				PerformanceController.class.getCanonicalName(),
 				new Object[] {
 						applicationUri+"_performanceController",
@@ -341,7 +339,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 						applicationUri+"_"+AdmissionControllerInboundPortURI,
 						applicationUri
 				});
-		
+
 		System.out.println("finish creation ressources for the application "+applicationUri);
 	}
 
@@ -365,7 +363,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 				}
 			}
 		}
-		
+
 		this.appcnop.doConnection(applicationURI+"_"+this.appcnip, ApplicationControllerNotificationConnector.class.getCanonicalName());
 		if (ressourcesAvailable) {
 			System.out.println("Accept application " + applicationURI);
@@ -380,9 +378,9 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 	@Override
 	public boolean addVirtualMachine(String applicationUri) throws Exception {
-		
+
 		int idVm = this.vmListUri.get(applicationUri).size();
-		
+
 		// allocate core for new VM
 		AllocatedCore[] allocatedCore = new AllocatedCore[NB_CORES_BY_VM];
 		boolean ressourceAvailable = false;
@@ -396,7 +394,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		}
 		if(!ressourceAvailable)
 			return false; // not engouh core for new vm
-		
+
 		//create VM
 		this.portApplicationVM.createComponent(
 				ApplicationVM.class.getCanonicalName(),
@@ -414,15 +412,15 @@ implements ApplicationRequestI, AdmissionControllerI{
 				applicationUri+"_"+ApplicationVMManagementInboundPortURI+idVm,
 				ApplicationVMManagementConnector.class.getCanonicalName());			
 
-		
+
 		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).allocateCores(allocatedCore) ;
 
 		this.dmop.connectToVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm);
-		
+
 		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
 		rop.localPublishPort();
-		
+
 		// connect applicationVM
 		rop.doConnection(applicationUri+"_VM"+idVm, ReflectionConnector.class.getCanonicalName());
 
@@ -436,7 +434,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 
 		this.vmListUri.get(applicationUri).add(applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm);
-		
+
 		return true;
 	}
 

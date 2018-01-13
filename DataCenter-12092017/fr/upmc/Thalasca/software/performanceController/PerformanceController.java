@@ -64,15 +64,15 @@ extends AbstractComponent{
 			@Override
 			public void run() {
 				try {
-					/*System.out.println("***********************************");
+					System.out.println("***********************************");
 					System.out.println(performanceContollerUri);
 					System.out.println("Average Execution Time Request : "+ dmop.getAverageExecutionTimeRequest()+" ms");
 					for(int i=0; i<dmop.getNbConnectedVM(); i++)
 						System.out.println("Average Execution Time Request for Vm " +i+" : "+
 								dmop.getAverageExecutionTimeRequest(i) +" ms");
-					System.out.println("***********************************");*/
+					System.out.println("***********************************");
 					System.out.println("test"+applicationUri+dmop.getNbConnectedVM());
-					if(dmop.getNbConnectedVM()<5) {
+					if(dmop.getNbConnectedVM()<6) {
 						System.out.println("test");
 						acop.addVirtualMachine(applicationUri);
 					}
