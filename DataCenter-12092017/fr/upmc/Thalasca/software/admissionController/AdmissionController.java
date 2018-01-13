@@ -1,6 +1,7 @@
 package fr.upmc.Thalasca.software.admissionController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import fr.upmc.Thalasca.datacenter.software.dispatcher.Dispatcher;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
@@ -42,7 +43,7 @@ public class AdmissionController
 extends AbstractComponent
 implements ApplicationRequestI, AdmissionControllerI{
 
-	public static final int NB_CORES=2;
+	public static final int NB_CORES_BY_VM=2;
 
 	public static final String	DispatcherRequestSubmissionInboundPortURI = "drsip" ;
 	public static final String	DispatcherRequestSubmissionOutboundPortURI = "drsop" ;
@@ -89,13 +90,11 @@ implements ApplicationRequestI, AdmissionControllerI{
 	protected DispatcherManagementOutboundport dmop;
 	protected AdmissionControllerInBoundPort acip;
 
-	protected ArrayList<String> vmList;
+	protected HashMap<String, ArrayList<String>> vmListUri; // uri of all vm by application
 	protected ArrayList<String> dispatcherList;
 	protected ArrayList<RequestSubmissionInboundPort> rsipList;
 
 	protected ArrayList<String> computerURIList;
-	
-	protected int idVm;
 
 	public AdmissionController(
 			ArrayList<String> computerServicesOutboundPortURI,
@@ -124,7 +123,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 		this.computerURIList=computerURI;
 
-		this.vmList = new ArrayList<String>();
+		this.vmListUri = new HashMap<String, ArrayList<String>>();
 		this.dispatcherList = new ArrayList<String>();
 		this.avmOutBoundPortList = new ArrayList<ApplicationVMManagementOutboundPort>();
 		this.csopList = new ArrayList<ComputerServicesOutboundPort>();
@@ -232,6 +231,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 	public void deployDynamicComponentsForApplication(String applicationUri, ArrayList<AllocatedCore[]> ac, ApplicationManagementOutBoundPort appmop, int nombreVM) throws Exception {						 			
 		System.out.println("Deploy dynamic components for " + applicationUri);
 
+		this.vmListUri.put(applicationUri, new ArrayList<String>());
 		//create applicationVM for accepted application
 		for(int i=0; i<nombreVM; i++){
 
@@ -245,8 +245,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 					});
 
 
-			vmList.add(applicationUri+"_"+VmRequestSubmissionInboundPortURI+i);
-			idVm = vmList.size();
+			vmListUri.get(applicationUri).add(applicationUri+"_VM"+i);
 		}
 
 		// create dispatcher for accepted application
@@ -256,7 +255,8 @@ implements ApplicationRequestI, AdmissionControllerI{
 						applicationUri+"_dispatcher",
 						applicationUri+"_"+DispatcherRequestSubmissionInboundPortURI,
 						applicationUri+"_"+DispatcherManagementInboundPortURI,
-						applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI
+						applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI,
+						applicationUri+"_"+DispatcherRequestNotificationInboundPortURI
 				});					
 
 
@@ -294,7 +294,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		
 		// connect dispatcher to VM
 		this.addRequiredInterface(DispatcherManagementI.class);
-		this.dmop = new DispatcherManagementOutboundport("dmop", this);
+		this.dmop = new DispatcherManagementOutboundport(applicationUri+"_dmop", this);
 		this.addPort(dmop);
 		this.dmop.publishPort();
 		this.dmop.doConnection(
@@ -313,11 +313,9 @@ implements ApplicationRequestI, AdmissionControllerI{
 			rop.toggleTracing();
 			rop.toggleLogging();
 			
-			this.dmop.addNotificationPortForVmInDispatcher(applicationUri+"_"+DispatcherRequestNotificationInboundPortURI+i);
-
 			rop.doPortConnection(
 					applicationUri+"_"+VmRequestNotificationOutboundPortURI+i,
-					applicationUri+"_"+DispatcherRequestNotificationInboundPortURI+i,
+					applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
 					RequestNotificationConnector.class.getCanonicalName());
 			
 		}
@@ -340,7 +338,8 @@ implements ApplicationRequestI, AdmissionControllerI{
 				new Object[] {
 						applicationUri+"_performanceController",
 						applicationUri+"_"+DispatcherManagementInboundPortURI,
-						applicationUri+"_"+AdmissionControllerInboundPortURI
+						applicationUri+"_"+AdmissionControllerInboundPortURI,
+						applicationUri
 				});
 		
 		System.out.println("finish creation ressources for the application "+applicationUri);
@@ -354,11 +353,10 @@ implements ApplicationRequestI, AdmissionControllerI{
 		ArrayList<AllocatedCore[]> allocatedCore = new ArrayList<>();
 		boolean ressourcesAvailable = true;
 		int currentComputer=0;
-
 		for(int i=0; i<nombreVM; i++){
-			allocatedCore.add(csopList.get(currentComputer).allocateCores(NB_CORES));
+			allocatedCore.add(csopList.get(currentComputer).allocateCores(NB_CORES_BY_VM));
 
-			if(allocatedCore.get(i).length!=NB_CORES){
+			if(allocatedCore.get(i).length!=NB_CORES_BY_VM){
 				ressourcesAvailable=false;
 
 				if(currentComputer<this.computerURIList.size()-1){
@@ -367,6 +365,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 				}
 			}
 		}
+		
 		this.appcnop.doConnection(applicationURI+"_"+this.appcnip, ApplicationControllerNotificationConnector.class.getCanonicalName());
 		if (ressourcesAvailable) {
 			System.out.println("Accept application " + applicationURI);
@@ -382,6 +381,23 @@ implements ApplicationRequestI, AdmissionControllerI{
 	@Override
 	public boolean addVirtualMachine(String applicationUri) throws Exception {
 		
+		int idVm = this.vmListUri.get(applicationUri).size();
+		
+		// allocate core for new VM
+		AllocatedCore[] allocatedCore = new AllocatedCore[NB_CORES_BY_VM];
+		boolean ressourceAvailable = false;
+		for(int i=0; i<this.computerURIList.size(); i++) {
+			allocatedCore = csopList.get(i).allocateCores(NB_CORES_BY_VM);
+
+			if(allocatedCore.length==NB_CORES_BY_VM){
+				ressourceAvailable = true;
+				break;
+			}
+		}
+		if(!ressourceAvailable)
+			return false; // not engouh core for new vm
+		
+		//create VM
 		this.portApplicationVM.createComponent(
 				ApplicationVM.class.getCanonicalName(),
 				new Object[] {
@@ -390,9 +406,19 @@ implements ApplicationRequestI, AdmissionControllerI{
 						applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm,
 						applicationUri+"_"+VmRequestNotificationOutboundPortURI+idVm
 				});
-		
-		this.dmop.connectToVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm);
+		this.avmOutBoundPortList.add(new ApplicationVMManagementOutboundPort(
+				applicationUri+"_"+ApplicationVMManagementOutboundPortURI+idVm,
+				new AbstractComponent(0, 0) {}));
+		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).publishPort();
+		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).doConnection(
+				applicationUri+"_"+ApplicationVMManagementInboundPortURI+idVm,
+				ApplicationVMManagementConnector.class.getCanonicalName());			
 
+		
+		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).allocateCores(allocatedCore) ;
+
+		this.dmop.connectToVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm);
+		
 		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
 		rop.localPublishPort();
@@ -409,8 +435,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 				RequestNotificationConnector.class.getCanonicalName());
 
 
-		vmList.add(applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm);
-		idVm++;
+		this.vmListUri.get(applicationUri).add(applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm);
 		
 		return true;
 	}

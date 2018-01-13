@@ -32,9 +32,4 @@ implements	DispatcherManagementI
 	public int getNbConnectedVM() throws Exception{
 		return ( ( DispatcherManagementI ) this.offering ).getNbConnectedVM();
 	}
-
-	@Override
-	public void addNotificationPortForVmInDispatcher(String requestNotificationInboundPortURI) throws Exception {
-		( ( DispatcherManagementI ) this.offering ).addNotificationPortForVmInDispatcher(requestNotificationInboundPortURI);
-	}
 }

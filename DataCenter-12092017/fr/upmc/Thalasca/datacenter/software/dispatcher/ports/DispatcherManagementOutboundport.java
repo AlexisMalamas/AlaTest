@@ -50,10 +50,4 @@ implements	DispatcherManagementI
 		return ( ( DispatcherManagementI ) this.connector ).getNbConnectedVM();
 	}
 
-	@Override
-	public void addNotificationPortForVmInDispatcher(String requestNotificationInboundPortURI) throws Exception {
-		( ( DispatcherManagementI ) this.connector ).addNotificationPortForVmInDispatcher(requestNotificationInboundPortURI);
-		
-	}
-
 }

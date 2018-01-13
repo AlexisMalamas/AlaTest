@@ -52,14 +52,15 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	protected RequestNotificationOutboundPort rnop ;
 
 	//receive notification from VM
-	protected ArrayList<RequestNotificationInboundPort> rnipList ;
+	protected RequestNotificationInboundPort rnip ;
 
 	protected DispatcherManagementInboundport dmip;
 
 	public Dispatcher(String dispatcherURI,
 			String requestSubmissionInboundPortURI,
 			String dispatcherManagementInboundPortURI,
-			String requestNotificationOutboundPortURI
+			String requestNotificationOutboundPortURI,
+			String requestNotificationInboundPortURI
 			) throws Exception
 	{
 		super(dispatcherURI,1, 1);
@@ -82,11 +83,11 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.rsopList = new ArrayList<RequestSubmissionOutboundPort>();
 		this.addRequiredInterface(RequestSubmissionI.class) ;
 		
-		this.rnipList = new ArrayList<RequestNotificationInboundPort>();
 		this.addOfferedInterface(RequestNotificationI.class) ;
+		this.rnip = new RequestNotificationInboundPort(requestNotificationInboundPortURI, this);
+		this.addPort(this.rnip) ;
+		this.rnip.publishPort() ;
 		
-
-
 		this.addOfferedInterface(RequestSubmissionI.class) ;
 		this.rsip = new RequestSubmissionInboundPort(requestSubmissionInboundPortURI, this) ;
 		this.addPort(this.rsip) ;
@@ -131,9 +132,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		
 		int vm = this.nameRequestToVm.remove(r.getRequestURI());
 		this.TotalRequestExectutionTimeVM.set(vm, this.TotalRequestExectutionTimeVM.get(vm)+requestTime);
-		
-		System.out.println(this.dispatcherURI+"   VM: "+vm);
-		
 		this.rnop.notifyRequestTermination(r) ;
 	}
 
@@ -151,9 +149,8 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 			if (this.rsip.connected()) 
 				this.rsip.doDisconnection();
 
-			for(int i=0;i<this.rnipList.size();i++)
-			if (this.rnipList.get(i).connected()) 
-				this.rnipList.get(i).doDisconnection();
+			if (this.rnip.connected()) 
+				this.rnip.doDisconnection();
 		}
 		catch (Exception e) {
 			throw new ComponentShutdownException(e);
@@ -167,7 +164,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	public void connectToVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
 		String portURI = "vmPort-"+this.rsopList.size();
 		RequestSubmissionOutboundPort port = new RequestSubmissionOutboundPort( portURI, this );
-		
+
 		this.rsopList.add(port);
 		this.addPort( port );
 		port.publishPort();
@@ -217,13 +214,4 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	public int getNbConnectedVM() {
 		return this.rsopList.size();
 	}
-
-	@Override
-	public void addNotificationPortForVmInDispatcher(String requestNotificationInboundPortURI) throws Exception {
-		this.rnipList.add(new RequestNotificationInboundPort(requestNotificationInboundPortURI, this));
-		this.addPort(this.rnipList.get(this.rnipList.size()-1)) ;
-		this.rnipList.get(this.rnipList.size()-1).publishPort() ;
-		
-	}
-
 }
