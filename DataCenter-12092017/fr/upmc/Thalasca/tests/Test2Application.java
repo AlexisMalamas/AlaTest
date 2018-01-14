@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.upmc.Thalasca.datacenterclient.Application.Application;
-import fr.upmc.Thalasca.datacenterclient.Application.connectors.ApplicationControllerNotificationConnector;
 import fr.upmc.Thalasca.datacenterclient.Application.connectors.ApplicationManagementConnector;
 import fr.upmc.Thalasca.datacenterclient.Application.connectors.ApplicationSubmissionNotificationConnector;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementOutBoundPort;
@@ -25,28 +24,24 @@ public class Test2Application extends AbstractCVM{
 	public static final String	ComputerDynamicStateDataInboundPortURI = "cds-dip" ;
 	public static final String	ComputerDynamicStateDataOutboundPortURI = "cds-dop" ;
 
-
-	public static final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
-	public static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
-
-
-	public static final String ApplicationManagementOutboundPortURI = "appmop";
-	public static final String ApplicationSubmissionNotificationInboundPortURI = "appsnip";
-	public static final String ApplicationControllerNotificationOutboundPortURI = "appcnop";
 	public static final String AdmissionControllerURI = "ac";
+	
+	public static final String ApplicationControllerNotificationOutboundPortURI = "appcnop";
+	public static final String ApplicationControllerNotificationInboundPortURI = "appcnip";
 
 	public static final String ApplicationURI = "ThalascaEnterprise";
 	public static final String ApplicationManagementInboundPortURI = "appmip";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI = "appsnop";
+	public static final String ApplicationManagementOutboundPortURI = "appmop";
+	public static final String ApplicationSubmissionNotificationInboundPortURI = "appsnip";
 
 
-	public static final String ApplicationManagementOutboundPortURI2 = "appmop2";
 	public static final String ApplicationURI2 = "JavaEnterprise";
 	public static final String ApplicationManagementInboundPortURI2 = "appmip2";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI2= "appsnop2";
+	public static final String ApplicationManagementOutboundPortURI2 = "appmop2";
+	public static final String ApplicationSubmissionNotificationInboundPortURI2 = "appsnip2";
 	
-
-	public static final String ApplicationControllerNotificationInboundPortURI = "appcnip";
 
 	public static final int nombreVM = 4;
 	
@@ -70,8 +65,8 @@ public class Test2Application extends AbstractCVM{
 
 		// create and deploy computer
 		String computerURI = "computer" ;
-		int numberOfProcessors = 10 ;
-		int numberOfCores = 10 ;
+		int numberOfProcessors = 2 ;
+		int numberOfCores = 4 ;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>() ;
 		admissibleFrequencies.add(1500) ;	
 		admissibleFrequencies.add(3000) ;
@@ -86,14 +81,14 @@ public class Test2Application extends AbstractCVM{
 				1500,
 				numberOfProcessors,
 				numberOfCores,
-				ComputerServicesInboundPortURI,
-				ComputerStaticStateDataInboundPortURI,
-				ComputerDynamicStateDataInboundPortURI) ;
+				ComputerServicesInboundPortURI+1,
+				ComputerStaticStateDataInboundPortURI+1,
+				ComputerDynamicStateDataInboundPortURI+1) ;
 		this.addDeployedComponent(c) ;
 
 		String computerURI2 = "computer2" ;
-		int numberOfProcessors2 = 10 ;
-		int numberOfCores2 = 10 ;
+		int numberOfProcessors2 = 2 ;
+		int numberOfCores2 = 4 ;
 		Set<Integer> admissibleFrequencies2 = new HashSet<Integer>() ;
 		admissibleFrequencies2.add(1500) ;
 		admissibleFrequencies2.add(3000) ;
@@ -114,17 +109,17 @@ public class Test2Application extends AbstractCVM{
 		this.addDeployedComponent(c2) ;
 
 		
-		ArrayList<String> csdip = new ArrayList<>();
-		csdip.add(ComputerServicesInboundPortURI);
-		csdip.add(ComputerServicesInboundPortURI+2);
+		ArrayList<String> csdipList = new ArrayList<>();
+		csdipList.add(ComputerServicesInboundPortURI+1);
+		csdipList.add(ComputerServicesInboundPortURI+2);
 
-		ArrayList<String> cpssdip = new ArrayList<>();
-		cpssdip.add(ComputerStaticStateDataInboundPortURI);
-		cpssdip.add(ComputerStaticStateDataInboundPortURI+2);
+		ArrayList<String> cpssdipList = new ArrayList<>();
+		cpssdipList.add(ComputerStaticStateDataInboundPortURI+1);
+		cpssdipList.add(ComputerStaticStateDataInboundPortURI+2);
 
-		ArrayList<String> cdsdip = new ArrayList<>();
-		cdsdip.add(ComputerDynamicStateDataInboundPortURI);
-		cdsdip.add(ComputerDynamicStateDataInboundPortURI+2);
+		ArrayList<String> cdsdipList = new ArrayList<>();
+		cdsdipList.add(ComputerDynamicStateDataInboundPortURI+1);
+		cdsdipList.add(ComputerDynamicStateDataInboundPortURI+2);
 		
 		ArrayList<String> computersURI = new ArrayList<>();
 		computersURI.add(computerURI);
@@ -132,9 +127,9 @@ public class Test2Application extends AbstractCVM{
 		
 		//create admission controller
 		this.ac = new AdmissionController(								
-				csdip,
-				cpssdip,
-				cdsdip, 
+				csdipList,
+				cpssdipList,
+				cdsdipList, 
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationControllerNotificationOutboundPortURI,
 				computersURI,
@@ -146,7 +141,7 @@ public class Test2Application extends AbstractCVM{
 		this.ac.toggleTracing();
 		this.ac.toggleLogging();			
 
-		// create application
+		// create first application
 		this.app = new Application(				
 				ApplicationURI,
 				ApplicationURI+"_"+ApplicationControllerNotificationInboundPortURI,
@@ -181,7 +176,7 @@ public class Test2Application extends AbstractCVM{
 				ApplicationManagementConnector.class.getCanonicalName());
 
 
-		// create application
+		// create second application
 		this.app2 = new Application(				
 				ApplicationURI2,
 				ApplicationURI2+"_"+ApplicationControllerNotificationInboundPortURI,
@@ -204,7 +199,6 @@ public class Test2Application extends AbstractCVM{
 				ApplicationManagementInboundPortURI2,
 				ApplicationManagementConnector.class.getCanonicalName());
 
-
 		this.appmop2 = new ApplicationManagementOutBoundPort(				
 				ApplicationManagementOutboundPortURI2,
 				new AbstractComponent(0, 0) {});
@@ -221,7 +215,6 @@ public class Test2Application extends AbstractCVM{
 	@Override
 	public void shutdown() throws Exception {
 		this.appmop.doDisconnection();
-
 		this.appmop2.doDisconnection();
 
 		super.shutdown();

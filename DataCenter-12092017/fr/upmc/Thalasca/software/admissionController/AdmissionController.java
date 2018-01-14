@@ -78,9 +78,6 @@ implements ApplicationRequestI, AdmissionControllerI{
 	protected ArrayList<ComputerStaticStateDataOutboundPort> cssdopList;
 	protected ArrayList<ComputerDynamicStateDataOutboundPort> cdsdopList;
 
-	protected ApplicationVMManagementOutboundPort avmOutBoundPort1;
-	protected ApplicationVMManagementOutboundPort avmOutBoundPort2;
-
 	protected ArrayList<ApplicationVMManagementOutboundPort> avmOutBoundPortList;
 
 	protected ApplicationControllerNotificationOutboundPort appcnop;
@@ -97,9 +94,9 @@ implements ApplicationRequestI, AdmissionControllerI{
 	protected ArrayList<String> computerURIList;
 
 	public AdmissionController(
-			ArrayList<String> computerServicesOutboundPortURI,
-			ArrayList<String> computerStaticStateDataOutboundPortURI,
-			ArrayList<String> computerDynamicStateDataOutboundPortURI,
+			ArrayList<String> computerServicesInboundPortURI,
+			ArrayList<String> computerStaticStateDataInboundPortURI,
+			ArrayList<String> computerDynamicStateDataInboundPortURI,
 			String applicationSubmissionNotificationInboundPortURI,
 			String applicationControllerNotificationOutboundPortURI,
 			ArrayList<String> computerURI,
@@ -130,31 +127,32 @@ implements ApplicationRequestI, AdmissionControllerI{
 		this.cdsdopList = new ArrayList<ComputerDynamicStateDataOutboundPort>();
 
 		for(int i=0; i<this.computerURIList.size(); i++){
-			this.csopList.add(new ComputerServicesOutboundPort(ComputerServicesOutboundPortURI+i, this));
+			
+			this.csopList.add(new ComputerServicesOutboundPort(ComputerServicesOutboundPortURI+(i+1), this));
 			this.addPort(this.csopList.get(this.csopList.size()-1));
 			this.csopList.get(this.csopList.size()-1).publishPort();
 
-			this.cssdopList.add(new ComputerStaticStateDataOutboundPort(ComputerStaticStateDataOutboundPortURI+i, this, this.computerURIList.get(i)));
+			this.cssdopList.add(new ComputerStaticStateDataOutboundPort(ComputerStaticStateDataOutboundPortURI+(i+1), this, this.computerURIList.get(i)));
 			this.addPort(this.cssdopList.get(this.cssdopList.size()-1));
 			this.cssdopList.get(this.cssdopList.size()-1).publishPort();
 
-			this.cdsdopList.add(new ComputerDynamicStateDataOutboundPort(ComputerDynamicStateDataOutboundPortURI+i, this, this.computerURIList.get(i)));
+			this.cdsdopList.add(new ComputerDynamicStateDataOutboundPort(ComputerDynamicStateDataOutboundPortURI+(i+1), this, this.computerURIList.get(i)));
 			this.addPort(this.cdsdopList.get(this.cdsdopList.size()-1));
 			this.cdsdopList.get(this.cdsdopList.size()-1).publishPort();
 
 			this.doPortConnection(				
-					ComputerServicesOutboundPortURI+i,
-					computerServicesOutboundPortURI.get(i),
+					ComputerServicesOutboundPortURI+(i+1),
+					computerServicesInboundPortURI.get(i),
 					ComputerServicesConnector.class.getCanonicalName());
 
 			this.doPortConnection(
-					ComputerStaticStateDataOutboundPortURI+i,
-					computerStaticStateDataOutboundPortURI.get(i),
+					ComputerStaticStateDataOutboundPortURI+(i+1),
+					computerStaticStateDataInboundPortURI.get(i),
 					DataConnector.class.getCanonicalName());
 
 			this.doPortConnection(
-					ComputerDynamicStateDataOutboundPortURI+i,
-					computerDynamicStateDataOutboundPortURI.get(i),
+					ComputerDynamicStateDataOutboundPortURI+(i+1),
+					computerDynamicStateDataInboundPortURI.get(i),
 					ControlledDataConnector.class.getCanonicalName());
 		}
 
@@ -237,6 +235,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		System.out.println("Deploy dynamic components for " + applicationUri);
 
 		this.vmListUri.put(applicationUri, new ArrayList<String>());
+		
 		//create applicationVM for accepted application
 		for(int i=0; i<nombreVM; i++){
 
@@ -248,6 +247,16 @@ implements ApplicationRequestI, AdmissionControllerI{
 							applicationUri+"_"+VmRequestSubmissionInboundPortURI+i,
 							applicationUri+"_"+VmRequestNotificationOutboundPortURI+i
 					});
+			
+			// create ApplicationVMManagementOutboundPort 
+			this.avmOutBoundPortList.add(new ApplicationVMManagementOutboundPort(
+					applicationUri+"_"+ApplicationVMManagementOutboundPortURI+i, this));
+			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).publishPort();
+			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).doConnection(
+					applicationUri+"_"+ApplicationVMManagementInboundPortURI+i,
+					ApplicationVMManagementConnector.class.getCanonicalName());			
+
+			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).allocateCores(ac.get(i));
 
 
 			vmListUri.get(applicationUri).add(applicationUri+"_VM"+i);
@@ -262,21 +271,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 						applicationUri+"_"+DispatcherManagementInboundPortURI,
 						applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI,
 						applicationUri+"_"+DispatcherRequestNotificationInboundPortURI
-				});					
-
-
-		// create ApplicationVMManagementOutboundPort 
-		for(int i=0; i<nombreVM; i++){
-			this.avmOutBoundPortList.add(new ApplicationVMManagementOutboundPort(
-					applicationUri+"_"+ApplicationVMManagementOutboundPortURI+i,
-					new AbstractComponent(0, 0) {}));
-			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).publishPort();
-			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).doConnection(
-					applicationUri+"_"+ApplicationVMManagementInboundPortURI+i,
-					ApplicationVMManagementConnector.class.getCanonicalName());			
-
-			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).allocateCores(ac.get(i)) ;
-		}
+				});
 
 		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
@@ -393,7 +388,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 			}
 		}
 		if(!ressourceAvailable)
-			return false; // not engouh core for new vm
+			return false; // not enough available core for new VM
 
 		//create VM
 		this.portApplicationVM.createComponent(

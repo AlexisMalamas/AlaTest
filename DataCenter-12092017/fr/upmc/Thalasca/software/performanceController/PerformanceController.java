@@ -72,10 +72,10 @@ extends AbstractComponent{
 								dmop.getAverageExecutionTimeRequest(i) +" ms");
 					System.out.println("***********************************");
 					System.out.println("test"+applicationUri+dmop.getNbConnectedVM());
-					if(dmop.getNbConnectedVM()<6) {
+					/*if(dmop.getNbConnectedVM()<6) {
 						System.out.println("test");
 						acop.addVirtualMachine(applicationUri);
-					}
+					}*/
 
 				} catch (Exception e) {
 					throw new RuntimeException(e);

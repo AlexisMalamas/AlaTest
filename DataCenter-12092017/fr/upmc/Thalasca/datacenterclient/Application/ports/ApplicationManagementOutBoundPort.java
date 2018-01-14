@@ -29,7 +29,7 @@ public class ApplicationManagementOutBoundPort extends AbstractOutboundPort impl
 		public void connectionDispatcherWithRequestGeneratorForSubmission(
 				String DispatcherRequestSubmissionInboundPortURI,String applicationUri) throws Exception {
 			((ApplicationManagementI)this.connector).
-			connectionDispatcherWithRequestGeneratorForSubmission(DispatcherRequestSubmissionInboundPortURI,applicationUri);
+			connectionDispatcherWithRequestGeneratorForSubmission(DispatcherRequestSubmissionInboundPortURI, applicationUri);
 			
 		}
 
@@ -37,7 +37,7 @@ public class ApplicationManagementOutBoundPort extends AbstractOutboundPort impl
 		public void connectionDispatcherWithRequestGeneratorForNotification(ReflectionOutboundPort ropDispatcher,
 				String DispatcherRequestSubmissionInboundPortURI,String applicationUri) throws Exception {
 			((ApplicationManagementI)this.connector).
-			connectionDispatcherWithRequestGeneratorForNotification(ropDispatcher, DispatcherRequestSubmissionInboundPortURI,applicationUri);
+			connectionDispatcherWithRequestGeneratorForNotification(ropDispatcher, DispatcherRequestSubmissionInboundPortURI, applicationUri);
 			
 		}
 

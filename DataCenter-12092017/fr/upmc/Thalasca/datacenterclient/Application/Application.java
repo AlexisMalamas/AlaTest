@@ -24,11 +24,10 @@ public class Application
 extends AbstractComponent
 implements ApplicationManagementI, ApplicationAcceptNotificationI{
 
-	protected final String requestGeneratorUri = "rg";
 
 	protected RequestGenerator rg;
+	protected final String requestGeneratorUri = "rg";
 	
-	protected String  RequestGeneratorJvmUri = "";
 	protected static final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
 	protected static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
 	protected static final String	GeneratorRequestSubmissionOutboundPortURI = "grsop" ;
