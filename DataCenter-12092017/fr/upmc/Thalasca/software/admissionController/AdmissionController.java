@@ -126,7 +126,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		this.cdsdopList = new ArrayList<ComputerDynamicStateDataOutboundPort>();
 
 		for(int i=0; i<this.computerURIList.size(); i++){
-			
+
 			this.csopList.add(new ComputerServicesOutboundPort(computerServicesOutboundPortURI.get(i), this));
 			this.addPort(this.csopList.get(this.csopList.size()-1));
 			this.csopList.get(this.csopList.size()-1).publishPort();
@@ -178,7 +178,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 			this.portDispatcher.doConnection(					
 					this.DispatcherURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());
-			
+
 			this.portPerformanceController = new DynamicComponentCreationOutboundPort(this);
 			this.portPerformanceController.publishPort();
 			this.addPort(this.portPerformanceController);
@@ -234,7 +234,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		System.out.println("Deploy dynamic components for " + applicationUri);
 
 		this.vmListUri.put(applicationUri, new ArrayList<String>());
-		
+
 		//create applicationVM for accepted application
 		for(int i=0; i<nombreVM; i++){
 
@@ -246,7 +246,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 							applicationUri+"_"+VmRequestSubmissionInboundPortURI+i,
 							applicationUri+"_"+VmRequestNotificationOutboundPortURI+i
 					});
-			
+
 			// create ApplicationVMManagementOutboundPort 
 			this.avmOutBoundPortList.add(new ApplicationVMManagementOutboundPort(
 					applicationUri+"_"+ApplicationVMManagementOutboundPortURI+i, this));
@@ -342,26 +342,25 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 		System.out.println("Application reçue :"+applicationURI);
 
-		ArrayList<AllocatedCore[]> allocatedCore = new ArrayList<>();
-		boolean ressourcesAvailable = true;
-		int currentComputer=0;
+		ArrayList<AllocatedCore[]> allocatedCores = new ArrayList<>();
+		boolean ressourcesAvailable = false;
 		for(int i=0; i<nombreVM; i++){
-			allocatedCore.add(csopList.get(currentComputer).allocateCores(NB_CORES_BY_VM));
-
-			if(allocatedCore.get(i).length!=NB_CORES_BY_VM){
-				ressourcesAvailable=false;
-
-				if(currentComputer<this.computerURIList.size()-1){
-					currentComputer++;
-					ressourcesAvailable=true;
+			for(int j=0; j<this.computerURIList.size(); j++) {
+				AllocatedCore[] allocatedCore= csopList.get(j).allocateCores(NB_CORES_BY_VM);
+				if(allocatedCore.length == NB_CORES_BY_VM) {
+					allocatedCores.add(allocatedCore);
+					ressourcesAvailable = true;
+					break;
 				}
+				else
+					ressourcesAvailable = false;
 			}
 		}
 
 		this.appcnop.doConnection(applicationURI+"_"+this.appcnip, ApplicationControllerNotificationConnector.class.getCanonicalName());
 		if (ressourcesAvailable) {
 			System.out.println("Accept application " + applicationURI);
-			deployDynamicComponentsForApplication(applicationURI, allocatedCore, appmop, nombreVM);
+			deployDynamicComponentsForApplication(applicationURI, allocatedCores, appmop, nombreVM);
 			this.appcnop.responseFromApplicationController(true, applicationURI);
 
 		} else {
@@ -376,18 +375,20 @@ implements ApplicationRequestI, AdmissionControllerI{
 		int idVm = this.vmListUri.get(applicationUri).size();
 
 		// allocate core for new VM
-		AllocatedCore[] allocatedCore = new AllocatedCore[NB_CORES_BY_VM];
-		boolean ressourceAvailable = false;
-		for(int i=0; i<this.computerURIList.size(); i++) {
-			allocatedCore = csopList.get(i).allocateCores(NB_CORES_BY_VM);
-
-			if(allocatedCore.length==NB_CORES_BY_VM){
-				ressourceAvailable = true;
+		AllocatedCore[] allocatedCore = {};
+		boolean ressourcesAvailable = false;
+		for(int j=0; j<this.computerURIList.size(); j++) {
+			allocatedCore= csopList.get(j).allocateCores(NB_CORES_BY_VM);
+			if(allocatedCore.length == NB_CORES_BY_VM) {
+				ressourcesAvailable = true;
 				break;
 			}
+			else
+				ressourcesAvailable = false;
 		}
-		if(!ressourceAvailable)
-			return false; // not enough available core for new VM
+		
+		if(!ressourcesAvailable)
+			return false;
 
 		//create VM
 		this.portApplicationVM.createComponent(
