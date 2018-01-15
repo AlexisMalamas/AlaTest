@@ -120,6 +120,19 @@ public class Test2Application extends AbstractCVM{
 		cdsdipList.add(ComputerDynamicStateDataInboundPortURI+1);
 		cdsdipList.add(ComputerDynamicStateDataInboundPortURI+2);
 		
+		ArrayList<String> csdopList = new ArrayList<>();
+		csdopList.add(ComputerServicesOutboundPortURI+1);
+		csdopList.add(ComputerServicesOutboundPortURI+2);
+
+		ArrayList<String> cpssdopList = new ArrayList<>();
+		cpssdopList.add(ComputerStaticStateDataOutboundPortURI+1);
+		cpssdopList.add(ComputerStaticStateDataOutboundPortURI+2);
+
+		ArrayList<String> cdsdopList = new ArrayList<>();
+		cdsdopList.add(ComputerDynamicStateDataOutboundPortURI+1);
+		cdsdopList.add(ComputerDynamicStateDataOutboundPortURI+2);
+		
+		
 		ArrayList<String> computersURI = new ArrayList<>();
 		computersURI.add(computerURI);
 		computersURI.add(computerURI2);
@@ -127,8 +140,11 @@ public class Test2Application extends AbstractCVM{
 		//create admission controller
 		this.ac = new AdmissionController(								
 				csdipList,
+				csdopList,
 				cpssdipList,
+				cpssdopList,
 				cdsdipList, 
+				cdsdopList,
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationControllerNotificationOutboundPortURI,
 				computersURI,

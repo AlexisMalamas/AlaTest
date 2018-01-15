@@ -60,10 +60,6 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 	public static final String DispatcherManagementInboundPortURI = "dmip";
 
-	public static final String	ComputerServicesOutboundPortURI = "cs-obp" ;
-	public static final String	ComputerStaticStateDataOutboundPortURI = "css-dop" ;
-	public static final String	ComputerDynamicStateDataOutboundPortURI = "cds-dop" ;
-
 	public static final String AdmissionControllerInboundPortURI = "acip";
 
 	protected final String ApplicationVmURI = "";
@@ -95,8 +91,11 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 	public AdmissionController(
 			ArrayList<String> computerServicesInboundPortURI,
+			ArrayList<String> computerServicesOutboundPortURI,
 			ArrayList<String> computerStaticStateDataInboundPortURI,
+			ArrayList<String> computerStaticStateDataOutboundPortURI,
 			ArrayList<String> computerDynamicStateDataInboundPortURI,
+			ArrayList<String> computerDynamicStateDataOutboundPortURI,
 			String applicationSubmissionNotificationInboundPortURI,
 			String applicationControllerNotificationOutboundPortURI,
 			ArrayList<String> computerURI,
@@ -128,30 +127,30 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 		for(int i=0; i<this.computerURIList.size(); i++){
 			
-			this.csopList.add(new ComputerServicesOutboundPort(ComputerServicesOutboundPortURI+(i+1), this));
+			this.csopList.add(new ComputerServicesOutboundPort(computerServicesOutboundPortURI.get(i), this));
 			this.addPort(this.csopList.get(this.csopList.size()-1));
 			this.csopList.get(this.csopList.size()-1).publishPort();
 
-			this.cssdopList.add(new ComputerStaticStateDataOutboundPort(ComputerStaticStateDataOutboundPortURI+(i+1), this, this.computerURIList.get(i)));
+			this.cssdopList.add(new ComputerStaticStateDataOutboundPort(computerStaticStateDataOutboundPortURI.get(i), this, this.computerURIList.get(i)));
 			this.addPort(this.cssdopList.get(this.cssdopList.size()-1));
 			this.cssdopList.get(this.cssdopList.size()-1).publishPort();
 
-			this.cdsdopList.add(new ComputerDynamicStateDataOutboundPort(ComputerDynamicStateDataOutboundPortURI+(i+1), this, this.computerURIList.get(i)));
+			this.cdsdopList.add(new ComputerDynamicStateDataOutboundPort(computerDynamicStateDataOutboundPortURI.get(i), this, this.computerURIList.get(i)));
 			this.addPort(this.cdsdopList.get(this.cdsdopList.size()-1));
 			this.cdsdopList.get(this.cdsdopList.size()-1).publishPort();
 
 			this.doPortConnection(				
-					ComputerServicesOutboundPortURI+(i+1),
+					computerServicesOutboundPortURI.get(i),
 					computerServicesInboundPortURI.get(i),
 					ComputerServicesConnector.class.getCanonicalName());
 
 			this.doPortConnection(
-					ComputerStaticStateDataOutboundPortURI+(i+1),
+					computerStaticStateDataOutboundPortURI.get(i),
 					computerStaticStateDataInboundPortURI.get(i),
 					DataConnector.class.getCanonicalName());
 
 			this.doPortConnection(
-					ComputerDynamicStateDataOutboundPortURI+(i+1),
+					computerDynamicStateDataOutboundPortURI.get(i),
 					computerDynamicStateDataInboundPortURI.get(i),
 					ControlledDataConnector.class.getCanonicalName());
 		}

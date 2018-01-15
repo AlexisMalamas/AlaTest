@@ -80,23 +80,35 @@ public class Test extends AbstractCVM{
 				ComputerDynamicStateDataInboundPortURI) ;
 		this.addDeployedComponent(c) ;
 		
-		ArrayList<String> csdip = new ArrayList<>();
-		csdip.add(ComputerServicesInboundPortURI);
+		ArrayList<String> csdipList = new ArrayList<>();
+		csdipList.add(ComputerServicesInboundPortURI);
 
-		ArrayList<String> cpssdip = new ArrayList<>();
-		cpssdip.add(ComputerStaticStateDataInboundPortURI);
+		ArrayList<String> cpssdipList = new ArrayList<>();
+		cpssdipList.add(ComputerStaticStateDataInboundPortURI);
 
-		ArrayList<String> cdsdip = new ArrayList<>();
-		cdsdip.add(ComputerDynamicStateDataInboundPortURI);
+		ArrayList<String> cdsdipList = new ArrayList<>();
+		cdsdipList.add(ComputerDynamicStateDataInboundPortURI);
+		
+		ArrayList<String> csdopList = new ArrayList<>();
+		csdopList.add(ComputerServicesOutboundPortURI);
+
+		ArrayList<String> cpssdopList = new ArrayList<>();
+		cpssdopList.add(ComputerStaticStateDataOutboundPortURI);
+
+		ArrayList<String> cdsdopList = new ArrayList<>();
+		cdsdopList.add(ComputerDynamicStateDataOutboundPortURI);
 		
 		ArrayList<String> computersURI = new ArrayList<>();
 		computersURI.add(computerURI);
 		
 		//create admission controller
 		this.ac = new AdmissionController(								
-				csdip,
-				cpssdip,
-				cdsdip, 
+				csdipList,
+				csdopList,
+				cpssdipList,
+				cpssdopList,
+				cdsdipList, 
+				cdsdopList,
 				ApplicationSubmissionNotificationInboundPortURI,
 				ApplicationControllerNotificationOutboundPortURI,
 				computersURI,

@@ -632,7 +632,7 @@ implements	ProcessorServicesNotificationConsumerI,
 	throws Exception
 	{
 		assert	allocatedCores != null && allocatedCores.length != 0 ;
-
+		System.out.println("test"+allocatedCores.length);
 		for(int i = 0 ; i < allocatedCores.length ; i++) {
 			this.allocatedCoresIdleStatus.put(allocatedCores[i], true)  ;
 		}
@@ -661,6 +661,8 @@ implements	ProcessorServicesNotificationConsumerI,
 									put(allocatedCores[i].processorURI, np) ;
 			}
 		}
+		
+		printIdleStatus();
 	}
 
 	/**
