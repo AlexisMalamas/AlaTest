@@ -28,19 +28,18 @@ public class Test2Application extends AbstractCVM{
 	
 	public static final String ApplicationControllerNotificationOutboundPortURI = "appcnop";
 	public static final String ApplicationControllerNotificationInboundPortURI = "appcnip";
+	
+	public static final String ApplicationSubmissionNotificationInboundPortURI = "appsnip";
 
 	public static final String ApplicationURI = "ThalascaEnterprise";
 	public static final String ApplicationManagementInboundPortURI = "appmip";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI = "appsnop";
 	public static final String ApplicationManagementOutboundPortURI = "appmop";
-	public static final String ApplicationSubmissionNotificationInboundPortURI = "appsnip";
-
 
 	public static final String ApplicationURI2 = "JavaEnterprise";
 	public static final String ApplicationManagementInboundPortURI2 = "appmip2";
 	public static final String ApplicationSubmissionNotificationOutboundPortURI2= "appsnop2";
 	public static final String ApplicationManagementOutboundPortURI2 = "appmop2";
-	public static final String ApplicationSubmissionNotificationInboundPortURI2 = "appsnip2";
 	
 
 	public static final int nombreVM = 4;
