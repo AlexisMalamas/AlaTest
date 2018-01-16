@@ -74,18 +74,17 @@ implements ApplicationRequestI, AdmissionControllerI{
 	protected ArrayList<ComputerStaticStateDataOutboundPort> cssdopList;
 	protected ArrayList<ComputerDynamicStateDataOutboundPort> cdsdopList;
 
-	protected ArrayList<ApplicationVMManagementOutboundPort> avmOutBoundPortList;
+	protected HashMap<String, ArrayList<ApplicationVMManagementOutboundPort>> avmOutBoundPortList;
 
 	protected ApplicationControllerNotificationOutboundPort appcnop;
 	protected String appcnip;
 	protected ApplicationSubmissionNotificationInboundPort appsnip;
 
-	protected DispatcherManagementOutboundport dmop;
+	protected HashMap<String, DispatcherManagementOutboundport> dmopList;
 	protected AdmissionControllerInBoundPort acip;
 
 	protected HashMap<String, ArrayList<String>> vmListUri; // uri of all vm by application
 	protected ArrayList<String> dispatcherList;
-	protected ArrayList<RequestSubmissionInboundPort> rsipList;
 
 	protected ArrayList<String> computerURIList;
 
@@ -115,12 +114,18 @@ implements ApplicationRequestI, AdmissionControllerI{
 		this.appcnop = new ApplicationControllerNotificationOutboundPort(applicationControllerNotificationOutboundPortURI, this);
 		this.addPort(this.appcnop);
 		this.appcnop.publishPort();
+		
+		this.addOfferedInterface(AdmissionControllerI.class) ;
+		this.acip=new AdmissionControllerInBoundPort(AdmissionControllerInboundPortURI, this);
+		this.addPort(this.acip);
+		this.acip.publishPort();
 
 		this.computerURIList=computerURI;
 
 		this.vmListUri = new HashMap<String, ArrayList<String>>();
+		this.dmopList = new HashMap<String, DispatcherManagementOutboundport>();
 		this.dispatcherList = new ArrayList<String>();
-		this.avmOutBoundPortList = new ArrayList<ApplicationVMManagementOutboundPort>();
+		this.avmOutBoundPortList = new HashMap<String, ArrayList<ApplicationVMManagementOutboundPort>>();
 		this.csopList = new ArrayList<ComputerServicesOutboundPort>();
 		this.cssdopList = new ArrayList<ComputerStaticStateDataOutboundPort>();
 		this.cdsdopList = new ArrayList<ComputerDynamicStateDataOutboundPort>();
@@ -234,7 +239,9 @@ implements ApplicationRequestI, AdmissionControllerI{
 		System.out.println("Deploy dynamic components for " + applicationUri);
 
 		this.vmListUri.put(applicationUri, new ArrayList<String>());
-
+		
+		this.avmOutBoundPortList.put(applicationUri, new ArrayList<ApplicationVMManagementOutboundPort>());
+		
 		//create applicationVM for accepted application
 		for(int i=0; i<nombreVM; i++){
 
@@ -248,14 +255,14 @@ implements ApplicationRequestI, AdmissionControllerI{
 					});
 
 			// create ApplicationVMManagementOutboundPort 
-			this.avmOutBoundPortList.add(new ApplicationVMManagementOutboundPort(
+			this.avmOutBoundPortList.get(applicationUri).add(new ApplicationVMManagementOutboundPort(
 					applicationUri+"_"+ApplicationVMManagementOutboundPortURI+i, this));
-			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).publishPort();
-			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).doConnection(
+			this.avmOutBoundPortList.get(applicationUri).get(this.avmOutBoundPortList.get(applicationUri).size()-1).publishPort();
+			this.avmOutBoundPortList.get(applicationUri).get(this.avmOutBoundPortList.get(applicationUri).size()-1).doConnection(
 					applicationUri+"_"+ApplicationVMManagementInboundPortURI+i,
 					ApplicationVMManagementConnector.class.getCanonicalName());			
 
-			this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).allocateCores(ac.get(i));
+			this.avmOutBoundPortList.get(applicationUri).get(this.avmOutBoundPortList.get(applicationUri).size()-1).allocateCores(ac.get(i));
 
 
 			vmListUri.get(applicationUri).add(applicationUri+"_VM"+i);
@@ -265,6 +272,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		this.portDispatcher.createComponent(
 				Dispatcher.class.getCanonicalName(),
 				new Object[] {
+						applicationUri,
 						applicationUri+"_dispatcher",
 						applicationUri+"_"+DispatcherRequestSubmissionInboundPortURI,
 						applicationUri+"_"+DispatcherManagementInboundPortURI,
@@ -289,21 +297,17 @@ implements ApplicationRequestI, AdmissionControllerI{
 		appmop.connectionDispatcherWithRequestGeneratorForNotification(rop, applicationUri+"_"+DispatcherRequestNotificationOutboundPortURI, applicationUri);		
 
 
-
 		// connect dispatcher to VM
 		this.addRequiredInterface(DispatcherManagementI.class);
-		this.dmop = new DispatcherManagementOutboundport(applicationUri+"_dmop", this);
-		this.addPort(dmop);
-		this.dmop.publishPort();
-		this.dmop.doConnection(
-				applicationUri+"_"+DispatcherManagementInboundPortURI,
-				DispatcherManagementConnector.class.getCanonicalName());
-
-
-
+		this.dmopList.put(applicationUri, new DispatcherManagementOutboundport(applicationUri+"_dmop", this));
+		this.addPort(this.dmopList.get(applicationUri));
+		this.dmopList.get(applicationUri).publishPort();
+		this.dmopList.get(applicationUri).doConnection(
+			applicationUri+"_"+DispatcherManagementInboundPortURI,
+			DispatcherManagementConnector.class.getCanonicalName());
 
 		for(int i=0; i<nombreVM; i++){
-			this.dmop.connectToVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+i);
+			this.dmopList.get(applicationUri).connectToVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+i);
 
 			// connect applicationVM
 			rop.doConnection(applicationUri+"_VM"+i, ReflectionConnector.class.getCanonicalName());
@@ -320,17 +324,12 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 		// create performanceController for application
 
-		this.addRequiredInterface(AdmissionControllerI.class) ;
-		this.acip=new AdmissionControllerInBoundPort(applicationUri+"_"+AdmissionControllerInboundPortURI,this);
-		this.addPort(this.acip);
-		this.acip.publishPort();
-
 		this.portPerformanceController.createComponent(
 				PerformanceController.class.getCanonicalName(),
 				new Object[] {
 						applicationUri+"_performanceController",
 						applicationUri+"_"+DispatcherManagementInboundPortURI,
-						applicationUri+"_"+AdmissionControllerInboundPortURI,
+						AdmissionControllerInboundPortURI,
 						applicationUri
 				});
 
@@ -372,6 +371,8 @@ implements ApplicationRequestI, AdmissionControllerI{
 	@Override
 	public boolean addVirtualMachine(String applicationUri) throws Exception {
 
+		System.out.println("add vm for "+applicationUri);
+		
 		int idVm = this.vmListUri.get(applicationUri).size();
 
 		// allocate core for new VM
@@ -399,18 +400,19 @@ implements ApplicationRequestI, AdmissionControllerI{
 						applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm,
 						applicationUri+"_"+VmRequestNotificationOutboundPortURI+idVm
 				});
-		this.avmOutBoundPortList.add(new ApplicationVMManagementOutboundPort(
+		this.avmOutBoundPortList.get(applicationUri).add(new ApplicationVMManagementOutboundPort(
 				applicationUri+"_"+ApplicationVMManagementOutboundPortURI+idVm,
 				new AbstractComponent(0, 0) {}));
-		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).publishPort();
-		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).doConnection(
+		this.avmOutBoundPortList.get(applicationUri).get(this.avmOutBoundPortList.get(applicationUri).size()-1).publishPort();
+		this.avmOutBoundPortList.get(applicationUri).get(this.avmOutBoundPortList.get(applicationUri).size()-1).doConnection(
 				applicationUri+"_"+ApplicationVMManagementInboundPortURI+idVm,
 				ApplicationVMManagementConnector.class.getCanonicalName());			
 
 
-		this.avmOutBoundPortList.get(this.avmOutBoundPortList.size()-1).allocateCores(allocatedCore) ;
+		this.avmOutBoundPortList.get(applicationUri).get(this.avmOutBoundPortList.get(applicationUri).size()-1).allocateCores(allocatedCore) ;
 
-		this.dmop.connectToVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm);
+		// connect dispatcher to VM
+		this.dmopList.get(applicationUri).connectToVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm);
 
 		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
@@ -433,8 +435,18 @@ implements ApplicationRequestI, AdmissionControllerI{
 		return true;
 	}
 
+	/**
+	 *	Remove last VM if application have at least 1 VM left
+ 	 */
 	@Override
 	public boolean removeVirtualMachine(String applicationUri) throws Exception {
-		return false;
+		if(this.vmListUri.get(applicationUri).size()<2)
+			return false;
+		this.dmopList.get(applicationUri).disconnectVirtualMachine();
+		this.avmOutBoundPortList.get(applicationUri).get(this.avmOutBoundPortList.get(applicationUri).size()-1).doDisconnection();
+		this.avmOutBoundPortList.get(applicationUri).remove(this.avmOutBoundPortList.get(applicationUri).size()-1);
+		this.vmListUri.get(applicationUri).remove(this.vmListUri.size()-1);
+		
+		return true;
 	}
 }

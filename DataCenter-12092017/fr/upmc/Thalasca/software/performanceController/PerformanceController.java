@@ -17,7 +17,7 @@ extends AbstractComponent{
 
 	protected final String performanceContollerUri;
 
-	public static Long UPDATE_INVERVAL = 1000L; // update every 1 sec
+	public static Long UPDATE_INVERVAL = 10000L; // update every 10 sec
 
 	protected DispatcherManagementOutboundport dmop;
 	protected AdmissionControllerOutBoundPort acop;
@@ -36,7 +36,7 @@ extends AbstractComponent{
 
 		// connect PerformanceController to Dispatcher
 		this.addRequiredInterface(DispatcherManagementI.class);
-		this.dmop = new DispatcherManagementOutboundport(applicationUri+"_dmop", this);
+		this.dmop = new DispatcherManagementOutboundport(applicationUri+"_dmop_performanceController", this);
 		this.addPort(dmop);
 		this.dmop.publishPort();
 		this.dmop.doConnection(
@@ -45,7 +45,7 @@ extends AbstractComponent{
 
 		// connect PerformanceController to AdmissionController
 		this.addRequiredInterface(AdmissionControllerI.class);
-		this.acop = new AdmissionControllerOutBoundPort(applicationUri+"_acop", this);
+		this.acop = new AdmissionControllerOutBoundPort(applicationUri+"_acop_performanceController", this);
 		this.addPort(acop);
 		this.acop.publishPort();
 		this.acop.doConnection(
@@ -64,20 +64,28 @@ extends AbstractComponent{
 			@Override
 			public void run() {
 				try {
-					System.out.println("***********************************");
-					System.out.println(performanceContollerUri);
-					System.out.println("Average Execution Time Request : "+ dmop.getAverageExecutionTimeRequest()+" ms");
+					System.out.println("App: "+applicationUri+"   Average Execution Time Request : "+ 
+							dmop.getAverageExecutionTimeRequest()+" ms");
 					for(int i=0; i<dmop.getNbConnectedVM(); i++)
-						System.out.println("Average Execution Time Request for Vm " +i+" : "+
+						System.out.println("App: "+applicationUri+"   Average Execution Time Request for Vm " +i+" : "+
 								dmop.getAverageExecutionTimeRequest(i) +" ms");
-					System.out.println("***********************************");
-					System.out.println("test"+applicationUri+dmop.getNbConnectedVM());
+					
+					// test for add Vm
+					/*
 					if(dmop.getNbConnectedVM()<6) {
 						if(acop.addVirtualMachine(applicationUri))
 							System.out.println("VM ADD");
 						else
 							System.out.println("VM NOT ADD");
 							
+					}*/
+					
+					// test for remove vm
+					if(dmop.getNbConnectedVM()>2) {
+						if(acop.removeVirtualMachine(applicationUri))
+							System.out.println("VM Removed");
+						else
+							System.out.println("VM NOT Removed");		
 					}
 
 				} catch (Exception e) {

@@ -30,6 +30,7 @@ extends AbstractComponent
 implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherManagementI{
 
 	protected final String dispatcherURI ;
+	protected final String applicationURI;
 
 	// current VM
 	private int currentVm;
@@ -56,7 +57,8 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 	protected DispatcherManagementInboundport dmip;
 
-	public Dispatcher(String dispatcherURI,
+	public Dispatcher( String applicationURI,
+			String dispatcherURI,
 			String requestSubmissionInboundPortURI,
 			String dispatcherManagementInboundPortURI,
 			String requestNotificationOutboundPortURI,
@@ -70,6 +72,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		assert  requestNotificationOutboundPortURI != null ;
 
 		this.dispatcherURI = dispatcherURI;
+		this.applicationURI = applicationURI;
 		this.currentVm = 0;
 		this.TotalRequestExectutionTime = 0;
 		this.nbTotalRequest = 0;
@@ -135,34 +138,14 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.rnop.notifyRequestTermination(r) ;
 	}
 
-	@Override
-	public void shutdown() throws ComponentShutdownException {
-		try {
-			if (this.rnop.connected()) {
-				this.rnop.doDisconnection();
-			}
-			for (RequestSubmissionOutboundPort rsoport : this.rsopList)
-				if (rsoport.connected()) {
-					rsoport.doDisconnection();
-				}
-
-			if (this.rsip.connected()) 
-				this.rsip.doDisconnection();
-
-			if (this.rnip.connected()) 
-				this.rnip.doDisconnection();
-		}
-		catch (Exception e) {
-			throw new ComponentShutdownException(e);
-		}
-
-		super.shutdown();
-	}
-
-
+	/**
+	 * 
+	 *  Connect Dispatcher To RequestSubmissionInboundPort of VM
+	 * 
+	 */
 	@Override
 	public void connectToVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
-		String portURI = "vmPort-"+this.rsopList.size();
+		String portURI = this.applicationURI+"vmPort-"+this.rsopList.size();
 		RequestSubmissionOutboundPort port = new RequestSubmissionOutboundPort( portURI, this );
 
 		this.rsopList.add(port);
@@ -178,12 +161,21 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.nbTotalRequestVM.add(0);
 	}
 
+	/**
+	 * 
+	 * 	Disconnect Last VM
+	 * 
+	 */
 	@Override
 	public void disconnectVirtualMachine() throws Exception {
-		if(!this.rsopList.isEmpty())
-			if (rsopList.get(rsopList.size()-1).connected()){
-				rsopList.get(rsopList.size()-1).doDisconnection();
-			}
+		rsopList.get(rsopList.size()-1).doDisconnection();
+		// if current Vm is removed vm, go next vm
+		if(this.currentVm == this.rsopList.size()-1)
+			this.currentVm=0;
+		this.rsopList.remove(this.rsopList.size()-1);
+		
+		this.TotalRequestExectutionTimeVM.remove(this.TotalRequestExectutionTimeVM.size()-1);
+		this.nbTotalRequestVM.remove(this.nbTotalRequestVM.size()-1);
 	}
 
 	public int getNbTotalRequest() {
@@ -210,8 +202,37 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 			return 0L;
 	}
 
+	/**
+	 * 
+	 *  Return the number of connected VM to the dispatcher
+	 * 
+	 */
 	@Override
 	public int getNbConnectedVM() {
 		return this.rsopList.size();
+	}
+	
+	@Override
+	public void shutdown() throws ComponentShutdownException {
+		try {
+			if (this.rnop.connected()) {
+				this.rnop.doDisconnection();
+			}
+			for (RequestSubmissionOutboundPort rsoport : this.rsopList)
+				if (rsoport.connected()) {
+					rsoport.doDisconnection();
+				}
+
+			if (this.rsip.connected()) 
+				this.rsip.doDisconnection();
+
+			if (this.rnip.connected()) 
+				this.rnip.doDisconnection();
+		}
+		catch (Exception e) {
+			throw new ComponentShutdownException(e);
+		}
+
+		super.shutdown();
 	}
 }
