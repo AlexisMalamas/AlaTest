@@ -54,11 +54,11 @@ extends AbstractComponent{
 
 
 		System.out.println(this.dmop.getNbConnectedVM()+" Vm connected for "+performanceContollerUri);
-		displayAverageExecutionTimeRequest();
+		update();
 
 	}
 
-	public void displayAverageExecutionTimeRequest()
+	public void update()
 	{
 		this.scheduleTask(new ComponentI.ComponentTask() {
 			@Override
@@ -81,18 +81,24 @@ extends AbstractComponent{
 					}*/
 					
 					// test for remove vm
+					/*
 					if(dmop.getNbConnectedVM()>2) {
 						if(acop.removeVirtualMachine(applicationUri))
 							System.out.println("VM Removed");
 						else
 							System.out.println("VM NOT Removed");		
-					}
+					}*/
+					// test for upFrequency
+					
+					acop.upFrequencyCore(applicationUri, 0);
+					
+					
 
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
 				
-				displayAverageExecutionTimeRequest();
+				update();
 			}
 		}, UPDATE_INVERVAL, TimeUnit.MILLISECONDS);
 	}

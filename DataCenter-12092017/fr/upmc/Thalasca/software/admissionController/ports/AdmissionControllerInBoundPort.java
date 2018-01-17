@@ -58,4 +58,18 @@ implements AdmissionControllerI{
 					}) ;
 		}
 
+		@Override
+		public boolean upFrequencyCore(String applicationURI, int idVM) throws Exception {
+			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
+			
+			return this.owner.handleRequestSync(
+					new ComponentI.ComponentService<Boolean>() {
+						@Override
+						public Boolean call() throws Exception {
+							return ac.upFrequencyCore(applicationURI, idVM);
+							
+						}
+					}) ;
+		}
+
 }

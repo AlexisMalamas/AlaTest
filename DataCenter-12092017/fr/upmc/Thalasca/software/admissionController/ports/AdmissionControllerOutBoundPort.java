@@ -38,4 +38,9 @@ implements AdmissionControllerI{
 			return ((AdmissionControllerI)this.connector).removeVirtualMachine(applicationUri);
 		}
 
+		@Override
+		public boolean upFrequencyCore(String applicationURI, int idVM) throws Exception {
+			return ((AdmissionControllerI)this.connector).upFrequencyCore(applicationURI, idVM);
+		}
+
 }

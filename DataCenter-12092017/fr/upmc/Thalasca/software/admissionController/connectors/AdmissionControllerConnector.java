@@ -17,4 +17,9 @@ implements AdmissionControllerI{
 		return ((AdmissionControllerI)this.offering).removeVirtualMachine(applicationUri);
 	}
 
+	@Override
+	public boolean upFrequencyCore(String applicationURI, int idVM) throws Exception {
+		return ((AdmissionControllerI)this.offering).upFrequencyCore(applicationURI, idVM);
+	}
+
 }

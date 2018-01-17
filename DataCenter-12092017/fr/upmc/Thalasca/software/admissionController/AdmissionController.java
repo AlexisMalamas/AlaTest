@@ -1,7 +1,10 @@
 package fr.upmc.Thalasca.software.admissionController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import fr.upmc.Thalasca.datacenter.software.dispatcher.Dispatcher;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
@@ -30,14 +33,28 @@ import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
+import fr.upmc.datacenter.hardware.computers.interfaces.ComputerDynamicStateI;
+import fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateI;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerDynamicStateDataOutboundPort;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerStaticStateDataOutboundPort;
+import fr.upmc.datacenter.hardware.processors.Processor;
+import fr.upmc.datacenter.hardware.processors.Processor.ProcessorPortTypes;
+import fr.upmc.datacenter.hardware.processors.ProcessorDynamicState;
+import fr.upmc.datacenter.hardware.processors.ProcessorStaticState;
+import fr.upmc.datacenter.hardware.processors.connectors.ProcessorManagementConnector;
+import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorDynamicStateI;
+import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorManagementI;
+import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorStateDataConsumerI;
+import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorStaticStateDataI;
+import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorStaticStateI;
+import fr.upmc.datacenter.hardware.processors.ports.ProcessorDynamicStateDataOutboundPort;
+import fr.upmc.datacenter.hardware.processors.ports.ProcessorManagementOutboundPort;
+import fr.upmc.datacenter.hardware.processors.ports.ProcessorStaticStateDataOutboundPort;
 import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
 import fr.upmc.datacenter.software.applicationvm.connectors.ApplicationVMManagementConnector;
 import fr.upmc.datacenter.software.applicationvm.ports.ApplicationVMManagementOutboundPort;
 import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
-import fr.upmc.datacenter.software.ports.RequestSubmissionInboundPort;
 
 public class AdmissionController 
 extends AbstractComponent
@@ -87,6 +104,13 @@ implements ApplicationRequestI, AdmissionControllerI{
 	protected ArrayList<String> dispatcherList;
 
 	protected ArrayList<String> computerURIList;
+	
+	// add for update frequency core and proc
+	protected ArrayList<ArrayList<String>> processorURIList; // processor Uri List by computer. First index for computer
+	protected ArrayList<ArrayList<String>> processorManagementInboudPortURIList;
+	protected ArrayList<ArrayList<String>> processorStaticStateInboudPortURIList;
+	protected ArrayList<ArrayList<String>> processorDynamicStateInboudPortURIList;
+	protected HashMap<String, HashMap<Integer, String>> processorURIListByVM; // first index for application, second for vm
 
 	public AdmissionController(
 			ArrayList<String> computerServicesInboundPortURI,
@@ -135,11 +159,11 @@ implements ApplicationRequestI, AdmissionControllerI{
 			this.csopList.add(new ComputerServicesOutboundPort(computerServicesOutboundPortURI.get(i), this));
 			this.addPort(this.csopList.get(this.csopList.size()-1));
 			this.csopList.get(this.csopList.size()-1).publishPort();
-
+			
 			this.cssdopList.add(new ComputerStaticStateDataOutboundPort(computerStaticStateDataOutboundPortURI.get(i), this, this.computerURIList.get(i)));
 			this.addPort(this.cssdopList.get(this.cssdopList.size()-1));
 			this.cssdopList.get(this.cssdopList.size()-1).publishPort();
-
+			
 			this.cdsdopList.add(new ComputerDynamicStateDataOutboundPort(computerDynamicStateDataOutboundPortURI.get(i), this, this.computerURIList.get(i)));
 			this.addPort(this.cdsdopList.get(this.cdsdopList.size()-1));
 			this.cdsdopList.get(this.cdsdopList.size()-1).publishPort();
@@ -158,6 +182,32 @@ implements ApplicationRequestI, AdmissionControllerI{
 					computerDynamicStateDataOutboundPortURI.get(i),
 					computerDynamicStateDataInboundPortURI.get(i),
 					ControlledDataConnector.class.getCanonicalName());
+		}
+		
+		// add for update frequency core and proc
+		this.processorURIList = new ArrayList<ArrayList<String>>();
+		this.processorManagementInboudPortURIList = new ArrayList<ArrayList<String>>();
+		this.processorStaticStateInboudPortURIList = new ArrayList<ArrayList<String>>();
+		this.processorDynamicStateInboudPortURIList = new ArrayList<ArrayList<String>>();
+		
+		this.processorURIListByVM = new  HashMap<String, HashMap<Integer, String>>();
+		
+		for(int i=0; i<this.computerURIList.size(); i++){
+			this.processorURIList.add(new ArrayList<String>());
+			this.processorManagementInboudPortURIList.add(new ArrayList<String>());
+			this.processorStaticStateInboudPortURIList.add(new ArrayList<String>());
+			this.processorDynamicStateInboudPortURIList.add(new ArrayList<String>());
+			
+			ComputerStaticStateI computerStatic  = (ComputerStaticStateI) this.cssdopList.get(i).request();
+			Map<Integer, String> processorURI = computerStatic.getProcessorURIs();
+			
+			for( Map.Entry<Integer, String> e : processorURI.entrySet()){
+				Map<ProcessorPortTypes, String> processorPortsList = computerStatic.getProcessorPortMap().get(e.getValue());
+				processorURIList.get(i).add(e.getValue());
+				processorManagementInboudPortURIList.get(i).add(processorPortsList.get(Processor.ProcessorPortTypes.MANAGEMENT));
+				processorStaticStateInboudPortURIList.get(i).add(processorPortsList.get(Processor.ProcessorPortTypes.STATIC_STATE));
+				processorDynamicStateInboudPortURIList.get(i).add(processorPortsList.get(Processor.ProcessorPortTypes.DYNAMIC_STATE));
+			}
 		}
 
 		this.addRequiredInterface(DynamicComponentCreationI.class);
@@ -348,6 +398,9 @@ implements ApplicationRequestI, AdmissionControllerI{
 				AllocatedCore[] allocatedCore= csopList.get(j).allocateCores(NB_CORES_BY_VM);
 				if(allocatedCore.length == NB_CORES_BY_VM) {
 					allocatedCores.add(allocatedCore);
+					
+					//save for vm processorUri and coresURI
+					//System.out.println(allocatedCore[0].processorURI);
 					ressourcesAvailable = true;
 					break;
 				}
@@ -359,7 +412,18 @@ implements ApplicationRequestI, AdmissionControllerI{
 		this.appcnop.doConnection(applicationURI+"_"+this.appcnip, ApplicationControllerNotificationConnector.class.getCanonicalName());
 		if (ressourcesAvailable) {
 			System.out.println("Accept application " + applicationURI);
+			//deploy all compontents for new accepted Application
 			deployDynamicComponentsForApplication(applicationURI, allocatedCores, appmop, nombreVM);
+			
+			// processor uri for allocated vm
+			this.processorURIListByVM.put(applicationURI, new HashMap<Integer, String>());
+			for(int i=0; i<nombreVM; i++){
+				for(int j=0; j<allocatedCores.get(i).length; j++){
+					this.processorURIListByVM.get(applicationURI).put(i, allocatedCores.get(i)[j].processorURI);
+				}
+			}
+			
+			//send response to application
 			this.appcnop.responseFromApplicationController(true, applicationURI);
 
 		} else {
@@ -390,6 +454,11 @@ implements ApplicationRequestI, AdmissionControllerI{
 		
 		if(!ressourcesAvailable)
 			return false;
+		
+		// processor uri for allocated vm
+			for(int j=0; j<allocatedCore.length; j++){
+				this.processorURIListByVM.get(applicationUri).put(idVm, allocatedCore[j].processorURI);
+		}
 
 		//create VM
 		this.portApplicationVM.createComponent(
@@ -448,5 +517,70 @@ implements ApplicationRequestI, AdmissionControllerI{
 		this.vmListUri.get(applicationUri).remove(this.vmListUri.size()-1);
 		
 		return true;
+	}
+
+	@Override
+	public boolean upFrequencyCore(String applicationURI, int idVM) throws Exception {
+		// quand on remove vm remove aussi pour les ports staticOutboundPort et autre port
+		System.out.println(this.processorURIListByVM.get(applicationURI));
+		
+		String procUri = processorURIListByVM.get(applicationURI).get(idVM);
+		
+		int idComputerInprocessorURIList = -1;
+		int idVmInprocessorURIList = -1;
+		for(int i=0; i<this.processorURIList.size() && idComputerInprocessorURIList==-1; i++)
+			for(int j=0; j<this.processorURIList.get(i).size(); j++)
+			{
+				if(this.processorURIList.get(i).get(j).equals(procUri))
+				{
+					idComputerInprocessorURIList = i;
+					idVmInprocessorURIList = j;
+					break;
+				}
+			}
+		System.out.println(this.processorStaticStateInboudPortURIList
+				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList));
+		
+		String pssInBoundPort = this.processorStaticStateInboudPortURIList
+				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
+		
+		addRequiredInterface(ProcessorStaticState.class);
+		ProcessorStaticStateDataOutboundPort pss = new ProcessorStaticStateDataOutboundPort(this, applicationURI+idVM+"cssdop");
+		addPort(pss);
+		pss.publishPort();
+		pss.doConnection(pssInBoundPort, ControlledDataConnector.class.getCanonicalName());
+		
+		ProcessorStaticStateI pssi = (ProcessorStaticStateI) pss.request();
+		Set<Integer> addmissibleFrequencies = pssi.getAdmissibleFrequencies();
+		
+		String pdsInBoundPort = this.processorDynamicStateInboudPortURIList
+				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
+		
+		addRequiredInterface(ProcessorDynamicStateI.class);
+		ProcessorDynamicStateDataOutboundPort pds = new ProcessorDynamicStateDataOutboundPort(this, applicationURI+idVM+"cdsdop");
+		addPort(pds);
+		pds.publishPort();
+		pds.doConnection(pdsInBoundPort, ControlledDataConnector.class.getCanonicalName());
+		
+		ProcessorDynamicStateI pdsi = (ProcessorDynamicStateI) pds.request();
+		
+		System.out.println(Arrays.toString(pdsi.getCurrentCoreFrequencies()));
+		
+		String pmInBoundPort = this.processorManagementInboudPortURIList
+				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
+		
+		addRequiredInterface(ProcessorManagementI.class);
+		ProcessorManagementOutboundPort pm = new ProcessorManagementOutboundPort(applicationURI+idVM+"pmop", this);
+		addPort(pm);
+		pm.publishPort();
+		pm.doConnection(pmInBoundPort, ProcessorManagementConnector.class.getCanonicalName());
+		pm.setCoreFrequency(1, 3000);
+		
+		System.out.println(Arrays.toString(pdsi.getCurrentCoreFrequencies()));
+		
+		
+		
+		
+		return false;
 	}
 }
