@@ -249,44 +249,6 @@ implements ApplicationRequestI, AdmissionControllerI{
 		}
 	}
 
-	@Override
-	public void shutdown() throws ComponentShutdownException {
-		try {
-			for(ComputerServicesOutboundPort csop: csopList){
-				if (csop.connected()) {
-					csop.doDisconnection();
-				}
-			}
-			for(ComputerStaticStateDataOutboundPort cssdop: cssdopList){
-				if (cssdop.connected()) {
-					cssdop.doDisconnection();
-				}
-			}
-			for(ComputerDynamicStateDataOutboundPort cdsdop: cdsdopList)
-				if (cdsdop.connected()) {
-					cdsdop.doDisconnection();
-				}
-
-			if (this.portDispatcher.connected()) {
-				this.portDispatcher.doDisconnection();
-			}
-			if (this.portApplicationVM.connected()) {
-				this.portApplicationVM.doDisconnection();
-			}
-
-			if (this.portPerformanceController.connected()) {
-				this.portPerformanceController.doDisconnection();
-			}
-
-
-
-		} catch (Exception e) {
-			throw new ComponentShutdownException("Error shutdown AdmissionController", e);
-		}
-
-		super.shutdown();
-	}
-
 	public void deployDynamicComponentsForApplication(String applicationUri, ArrayList<AllocatedCore[]> ac, ApplicationManagementOutBoundPort appmop, int nombreVM) throws Exception {						 			
 		System.out.println("Deploy dynamic components for " + applicationUri);
 
@@ -561,7 +523,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 	public boolean changedFrequencyCore(String applicationURI, int idVM, boolean up) throws Exception
 	{
 		String procUri = processorURIListByVM.get(applicationURI).get(idVM);
-		System.out.println("test1");
+		
 		int idComputerInprocessorURIList = -1;
 		int idVmInprocessorURIList = -1;
 		for(int i=0; i<this.processorURIList.size() && idComputerInprocessorURIList==-1; i++)
@@ -577,7 +539,6 @@ implements ApplicationRequestI, AdmissionControllerI{
 		
 		String pssInBoundPort = this.processorStaticStateInboudPortURIList
 				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
-		System.out.println("test2");
 		addRequiredInterface(ProcessorStaticState.class);
 		ProcessorStaticStateDataOutboundPort pss = new ProcessorStaticStateDataOutboundPort(this, applicationURI+idVM+"cssdop");
 		addPort(pss);
@@ -585,10 +546,9 @@ implements ApplicationRequestI, AdmissionControllerI{
 		pss.doConnection(pssInBoundPort, ControlledDataConnector.class.getCanonicalName());
 		
 		ProcessorStaticStateI pssi = (ProcessorStaticStateI) pss.request();
-
-		System.out.println("test3");
-		Integer[] addmissibleFrequencies = (Integer[]) pssi.getAdmissibleFrequencies().toArray();
-		System.out.println("test4");
+		
+		Integer[] addmissibleFrequencies = pssi.getAdmissibleFrequencies().toArray(new Integer[pssi.getAdmissibleFrequencies().size()]);
+		
 		Arrays.sort(addmissibleFrequencies);
 		String pdsInBoundPort = this.processorDynamicStateInboudPortURIList
 				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
@@ -598,7 +558,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		addPort(pds);
 		pds.publishPort();
 		pds.doConnection(pdsInBoundPort, ControlledDataConnector.class.getCanonicalName());
-		System.out.println("test5");
+		
 		ProcessorDynamicStateI pdsi = (ProcessorDynamicStateI) pds.request();
 		
 		String pmInBoundPort = this.processorManagementInboudPortURIList
@@ -692,5 +652,40 @@ implements ApplicationRequestI, AdmissionControllerI{
 		ProcessorDynamicStateI pdsi = (ProcessorDynamicStateI) pds.request();
 		
 		return pdsi.getCurrentCoreFrequencies();
+	}
+	
+	@Override
+	public void shutdown() throws ComponentShutdownException {
+		try {
+			for(ComputerServicesOutboundPort csop: csopList){
+				if (csop.connected()) {
+					csop.doDisconnection();
+				}
+			}
+			for(ComputerStaticStateDataOutboundPort cssdop: cssdopList){
+				if (cssdop.connected()) {
+					cssdop.doDisconnection();
+				}
+			}
+			for(ComputerDynamicStateDataOutboundPort cdsdop: cdsdopList)
+				if (cdsdop.connected()) {
+					cdsdop.doDisconnection();
+				}
+
+			if (this.portDispatcher.connected()) {
+				this.portDispatcher.doDisconnection();
+			}
+			if (this.portApplicationVM.connected()) {
+				this.portApplicationVM.doDisconnection();
+			}
+
+			if (this.portPerformanceController.connected()) {
+				this.portPerformanceController.doDisconnection();
+			}
+		} catch (Exception e) {
+			throw new ComponentShutdownException("Error shutdown AdmissionController", e);
+		}
+
+		super.shutdown();
 	}
 }
