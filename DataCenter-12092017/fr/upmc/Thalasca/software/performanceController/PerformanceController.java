@@ -1,5 +1,6 @@
 package fr.upmc.Thalasca.software.performanceController;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
@@ -90,8 +91,9 @@ extends AbstractComponent{
 					}*/
 					// test for upFrequency
 					
-					acop.upFrequencyCores(applicationUri, 0);
-					
+					acop.upFrequencyCores(applicationUri, 1);
+					for(int i=0; i<dmop.getNbConnectedVM(); i++)
+						System.out.println(applicationUri+" idVm: "+i+" cores:"+acop.getFrequencyCores(applicationUri, i));
 					
 
 				} catch (Exception e) {

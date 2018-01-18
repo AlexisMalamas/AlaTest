@@ -69,15 +69,19 @@ public class Test2Application extends AbstractCVM{
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>() ;
 		admissibleFrequencies.add(1500) ;	
 		admissibleFrequencies.add(3000) ;
+		admissibleFrequencies.add(4500) ;
+		admissibleFrequencies.add(6000) ;
 		Map<Integer,Integer> processingPower = new HashMap<Integer,Integer>() ;
 		processingPower.put(1500, 1500000) ;
 		processingPower.put(3000, 3000000) ;
+		processingPower.put(4500, 4500000) ;
+		processingPower.put(6000, 6000000) ;
 		Computer c = new Computer(
 				computerURI,
 				admissibleFrequencies,
 				processingPower,  
 				1500,
-				1500,
+				4500,
 				numberOfProcessors,
 				numberOfCores,
 				ComputerServicesInboundPortURI+1,
@@ -91,15 +95,19 @@ public class Test2Application extends AbstractCVM{
 		Set<Integer> admissibleFrequencies2 = new HashSet<Integer>() ;
 		admissibleFrequencies2.add(1500) ;
 		admissibleFrequencies2.add(3000) ;
+		admissibleFrequencies2.add(4500) ;
+		admissibleFrequencies2.add(6000) ;
 		Map<Integer,Integer> processingPower2 = new HashMap<Integer,Integer>() ;
 		processingPower2.put(1500, 1500000) ;
 		processingPower2.put(3000, 3000000) ;
+		processingPower2.put(4500, 4500000) ;
+		processingPower2.put(6000, 6000000) ;
 		Computer c2 = new Computer(
 				computerURI2,
 				admissibleFrequencies2,
 				processingPower2,  
 				1500,
-				1500,
+				4500,
 				numberOfProcessors2,
 				numberOfCores2,
 				ComputerServicesInboundPortURI+2,

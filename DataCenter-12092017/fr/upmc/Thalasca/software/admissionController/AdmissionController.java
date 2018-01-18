@@ -548,8 +548,8 @@ implements ApplicationRequestI, AdmissionControllerI{
 		ProcessorStaticStateI pssi = (ProcessorStaticStateI) pss.request();
 		
 		Integer[] addmissibleFrequencies = pssi.getAdmissibleFrequencies().toArray(new Integer[pssi.getAdmissibleFrequencies().size()]);
-		
 		Arrays.sort(addmissibleFrequencies);
+		
 		String pdsInBoundPort = this.processorDynamicStateInboudPortURIList
 				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
 		
@@ -571,35 +571,35 @@ implements ApplicationRequestI, AdmissionControllerI{
 		pm.doConnection(pmInBoundPort, ProcessorManagementConnector.class.getCanonicalName());
 		
 		boolean frequencyChanged = false;
-		//changed frequency of all cores used by vm
+		//changed frequency of all cores used by VM
 		for(int i=0; i<this.coreNoListByVM.get(applicationURI).get(idVM).size(); i++)
 		{
 			int numeroCore = this.coreNoListByVM.get(applicationURI).get(idVM).get(i);
 			int currentFrequency = pdsi.getCurrentCoreFrequencies()[numeroCore];
 			
-			// if we want up Cores frequencies
+			// if we want up Cores frequencies to next availableFrequency
 			if(up)
 				//find FrequencyAvailble
 				for(int j=0; j<addmissibleFrequencies.length;j++) 
 				{
-					
-					if(addmissibleFrequencies[i]>currentFrequency)
+					if(addmissibleFrequencies[j]>currentFrequency)
 					{
+						System.out.println("UPDATE "+addmissibleFrequencies[j]);
 						//update frequency
-						pm.setCoreFrequency(numeroCore, addmissibleFrequencies[i]);
+						pm.setCoreFrequency(numeroCore, addmissibleFrequencies[j]);
 						frequencyChanged = true;
 						break;
 					}
 				}
-			// if we want down Cores frequencies
+			// if we want down Cores frequencies to previous availableFrequency
 			else
 			{
 				for(int j=addmissibleFrequencies.length-1; j>=0;j--) 
 				{
-					if(addmissibleFrequencies[i]>currentFrequency)
+					if(addmissibleFrequencies[j]>currentFrequency)
 					{
 						//update frequency
-						pm.setCoreFrequency(numeroCore, addmissibleFrequencies[i]);
+						pm.setCoreFrequency(numeroCore, addmissibleFrequencies[j]);
 						frequencyChanged = true;
 						break;
 					}
@@ -623,7 +623,9 @@ implements ApplicationRequestI, AdmissionControllerI{
 	 * 
 	 * */
 	@Override
-	public int[] getFrequencyCores(String applicationURI, int idVM) throws Exception {
+	public ArrayList<Integer> getFrequencyCores(String applicationURI, int idVM) throws Exception {
+		
+		ArrayList<Integer> coreFrequencies = new ArrayList<Integer>();
 		
 		String procUri = processorURIListByVM.get(applicationURI).get(idVM);
 		
@@ -650,8 +652,14 @@ implements ApplicationRequestI, AdmissionControllerI{
 		pds.publishPort();
 		pds.doConnection(pdsInBoundPort, ControlledDataConnector.class.getCanonicalName());
 		ProcessorDynamicStateI pdsi = (ProcessorDynamicStateI) pds.request();
+		int[] frequencies = pdsi.getCurrentCoreFrequencies();
 		
-		return pdsi.getCurrentCoreFrequencies();
+		for(int i=0; i<this.coreNoListByVM.get(applicationURI).get(idVM).size(); i++) {
+			int numeroCore = this.coreNoListByVM.get(applicationURI).get(idVM).get(i);
+			coreFrequencies.add(frequencies[numeroCore]);
+		}
+		
+		return coreFrequencies;
 	}
 	
 	@Override

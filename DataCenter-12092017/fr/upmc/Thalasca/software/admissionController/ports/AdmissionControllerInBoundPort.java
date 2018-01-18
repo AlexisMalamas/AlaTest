@@ -1,5 +1,7 @@
 package fr.upmc.Thalasca.software.admissionController.ports;
 
+import java.util.ArrayList;
+
 import fr.upmc.Thalasca.software.admissionController.AdmissionController;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.components.ComponentI;
@@ -87,13 +89,13 @@ implements AdmissionControllerI{
 		}
 
 		@Override
-		public int[] getFrequencyCores(String applicationURI, int idVM) throws Exception {
+		public ArrayList<Integer> getFrequencyCores(String applicationURI, int idVM) throws Exception {
 			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
 			
 			return this.owner.handleRequestSync(
-					new ComponentI.ComponentService<int[]>() {
+					new ComponentI.ComponentService<ArrayList<Integer>>() {
 						@Override
-						public int[] call() throws Exception {
+						public ArrayList<Integer> call() throws Exception {
 							return ac.getFrequencyCores(applicationURI, idVM);
 							
 						}

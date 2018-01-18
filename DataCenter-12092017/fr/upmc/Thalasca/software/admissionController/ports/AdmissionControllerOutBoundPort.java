@@ -1,5 +1,7 @@
 package fr.upmc.Thalasca.software.admissionController.ports;
 
+import java.util.ArrayList;
+
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractOutboundPort;
@@ -49,7 +51,7 @@ implements AdmissionControllerI{
 		}
 
 		@Override
-		public int[] getFrequencyCores(String applicationURI, int idVM) throws Exception {
+		public ArrayList<Integer> getFrequencyCores(String applicationURI, int idVM) throws Exception {
 			return ((AdmissionControllerI)this.connector).getFrequencyCores(applicationURI, idVM);
 		}
 
