@@ -90,7 +90,7 @@ extends AbstractComponent{
 					}*/
 					// test for upFrequency
 					
-					acop.upFrequencyCore(applicationUri, 0);
+					acop.upFrequencyCores(applicationUri, 0);
 					
 					
 

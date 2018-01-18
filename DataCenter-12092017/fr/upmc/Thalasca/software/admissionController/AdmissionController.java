@@ -111,7 +111,8 @@ implements ApplicationRequestI, AdmissionControllerI{
 	protected ArrayList<ArrayList<String>> processorStaticStateInboudPortURIList;
 	protected ArrayList<ArrayList<String>> processorDynamicStateInboudPortURIList;
 	protected HashMap<String, HashMap<Integer, String>> processorURIListByVM; // first index for application, second for vm
-
+	protected HashMap<String, HashMap<Integer, ArrayList<Integer>>> coreNoListByVM; // first index for application, second for vm
+	
 	public AdmissionController(
 			ArrayList<String> computerServicesInboundPortURI,
 			ArrayList<String> computerServicesOutboundPortURI,
@@ -191,6 +192,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		this.processorDynamicStateInboudPortURIList = new ArrayList<ArrayList<String>>();
 		
 		this.processorURIListByVM = new  HashMap<String, HashMap<Integer, String>>();
+		this.coreNoListByVM = new HashMap<String, HashMap<Integer, ArrayList<Integer>>>();
 		
 		for(int i=0; i<this.computerURIList.size(); i++){
 			this.processorURIList.add(new ArrayList<String>());
@@ -415,11 +417,17 @@ implements ApplicationRequestI, AdmissionControllerI{
 			//deploy all compontents for new accepted Application
 			deployDynamicComponentsForApplication(applicationURI, allocatedCores, appmop, nombreVM);
 			
-			// processor uri for allocated vm
+			// processor uri and numeroCore for allocated vm
 			this.processorURIListByVM.put(applicationURI, new HashMap<Integer, String>());
+			this.coreNoListByVM.put(applicationURI, new HashMap<Integer, ArrayList<Integer>>());
+			
 			for(int i=0; i<nombreVM; i++){
+				
+				this.coreNoListByVM.get(applicationURI).put(i, new ArrayList<Integer>());
+				
 				for(int j=0; j<allocatedCores.get(i).length; j++){
 					this.processorURIListByVM.get(applicationURI).put(i, allocatedCores.get(i)[j].processorURI);
+					this.coreNoListByVM.get(applicationURI).get(i).add(allocatedCores.get(i)[j].coreNo);
 				}
 			}
 			
@@ -458,6 +466,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		// processor uri for allocated vm
 			for(int j=0; j<allocatedCore.length; j++){
 				this.processorURIListByVM.get(applicationUri).put(idVm, allocatedCore[j].processorURI);
+				this.coreNoListByVM.get(applicationUri).get(idVm).add(allocatedCore[j].coreNo);
 		}
 
 		//create VM
@@ -516,13 +525,145 @@ implements ApplicationRequestI, AdmissionControllerI{
 		this.avmOutBoundPortList.get(applicationUri).remove(this.avmOutBoundPortList.get(applicationUri).size()-1);
 		this.vmListUri.get(applicationUri).remove(this.vmListUri.size()-1);
 		
+		this.processorURIListByVM.get(applicationUri).remove(this.processorURIListByVM.get(applicationUri).size()-1);
+		this.coreNoListByVM.get(applicationUri).remove(this.coreNoListByVM.get(applicationUri).size()-1);
+		
+		
 		return true;
 	}
 
+	/**
+	 * 
+	 *  call changedFrequencyCore function with true parameter for up
+	 * 
+	 */
 	@Override
-	public boolean upFrequencyCore(String applicationURI, int idVM) throws Exception {
-		// quand on remove vm remove aussi pour les ports staticOutboundPort et autre port
-		System.out.println(this.processorURIListByVM.get(applicationURI));
+	public boolean upFrequencyCores(String applicationURI, int idVM) throws Exception {
+		return changedFrequencyCore(applicationURI, idVM, true);
+	}
+	
+	/**
+	 * 
+	 *  call changedFrequencyCore function with false parameter for down
+	 * 
+	 */
+	@Override
+	public boolean downFrequencyCores(String applicationURI, int idVM) throws Exception {
+		return changedFrequencyCore(applicationURI, idVM, false);
+	}
+	
+	/**
+	 * 
+	 *  down or up (depend on value of up boolean given in parameter) frequency of all cores used by idVM.
+	 *  return true if frequency changed for at least one core or return false
+	 * 
+	 */
+	public boolean changedFrequencyCore(String applicationURI, int idVM, boolean up) throws Exception
+	{
+		String procUri = processorURIListByVM.get(applicationURI).get(idVM);
+		System.out.println("test1");
+		int idComputerInprocessorURIList = -1;
+		int idVmInprocessorURIList = -1;
+		for(int i=0; i<this.processorURIList.size() && idComputerInprocessorURIList==-1; i++)
+			for(int j=0; j<this.processorURIList.get(i).size(); j++)
+			{
+				if(this.processorURIList.get(i).get(j).equals(procUri))
+				{
+					idComputerInprocessorURIList = i;
+					idVmInprocessorURIList = j;
+					break;
+				}
+			}
+		
+		String pssInBoundPort = this.processorStaticStateInboudPortURIList
+				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
+		System.out.println("test2");
+		addRequiredInterface(ProcessorStaticState.class);
+		ProcessorStaticStateDataOutboundPort pss = new ProcessorStaticStateDataOutboundPort(this, applicationURI+idVM+"cssdop");
+		addPort(pss);
+		pss.publishPort();
+		pss.doConnection(pssInBoundPort, ControlledDataConnector.class.getCanonicalName());
+		
+		ProcessorStaticStateI pssi = (ProcessorStaticStateI) pss.request();
+
+		System.out.println("test3");
+		Integer[] addmissibleFrequencies = (Integer[]) pssi.getAdmissibleFrequencies().toArray();
+		System.out.println("test4");
+		Arrays.sort(addmissibleFrequencies);
+		String pdsInBoundPort = this.processorDynamicStateInboudPortURIList
+				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
+		
+		addRequiredInterface(ProcessorDynamicStateI.class);
+		ProcessorDynamicStateDataOutboundPort pds = new ProcessorDynamicStateDataOutboundPort(this, applicationURI+idVM+"cdsdop");
+		addPort(pds);
+		pds.publishPort();
+		pds.doConnection(pdsInBoundPort, ControlledDataConnector.class.getCanonicalName());
+		System.out.println("test5");
+		ProcessorDynamicStateI pdsi = (ProcessorDynamicStateI) pds.request();
+		
+		String pmInBoundPort = this.processorManagementInboudPortURIList
+				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
+		
+		addRequiredInterface(ProcessorManagementI.class);
+		ProcessorManagementOutboundPort pm = new ProcessorManagementOutboundPort(applicationURI+idVM+"pmop", this);
+		addPort(pm);
+		pm.publishPort();
+		pm.doConnection(pmInBoundPort, ProcessorManagementConnector.class.getCanonicalName());
+		
+		boolean frequencyChanged = false;
+		//changed frequency of all cores used by vm
+		for(int i=0; i<this.coreNoListByVM.get(applicationURI).get(idVM).size(); i++)
+		{
+			int numeroCore = this.coreNoListByVM.get(applicationURI).get(idVM).get(i);
+			int currentFrequency = pdsi.getCurrentCoreFrequencies()[numeroCore];
+			
+			// if we want up Cores frequencies
+			if(up)
+				//find FrequencyAvailble
+				for(int j=0; j<addmissibleFrequencies.length;j++) 
+				{
+					
+					if(addmissibleFrequencies[i]>currentFrequency)
+					{
+						//update frequency
+						pm.setCoreFrequency(numeroCore, addmissibleFrequencies[i]);
+						frequencyChanged = true;
+						break;
+					}
+				}
+			// if we want down Cores frequencies
+			else
+			{
+				for(int j=addmissibleFrequencies.length-1; j>=0;j--) 
+				{
+					if(addmissibleFrequencies[i]>currentFrequency)
+					{
+						//update frequency
+						pm.setCoreFrequency(numeroCore, addmissibleFrequencies[i]);
+						frequencyChanged = true;
+						break;
+					}
+				}
+			}
+		}
+		//usefull syso for debug
+		/*
+			System.out.println(this.processorStaticStateInboudPortURIList
+					.get(idComputerInprocessorURIList).get(idVmInprocessorURIList));
+			System.out.println(Arrays.toString(pdsi.getCurrentCoreFrequencies()));
+			System.out.println(Arrays.toString(pdsi.getCurrentCoreFrequencies()));
+		*/
+		
+		return frequencyChanged;
+	}
+
+	/**
+	 * 
+	 * Return table of frequencies of cores used by given VM in parameter
+	 * 
+	 * */
+	@Override
+	public int[] getFrequencyCores(String applicationURI, int idVM) throws Exception {
 		
 		String procUri = processorURIListByVM.get(applicationURI).get(idVM);
 		
@@ -538,20 +679,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 					break;
 				}
 			}
-		System.out.println(this.processorStaticStateInboudPortURIList
-				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList));
 		
-		String pssInBoundPort = this.processorStaticStateInboudPortURIList
-				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
-		
-		addRequiredInterface(ProcessorStaticState.class);
-		ProcessorStaticStateDataOutboundPort pss = new ProcessorStaticStateDataOutboundPort(this, applicationURI+idVM+"cssdop");
-		addPort(pss);
-		pss.publishPort();
-		pss.doConnection(pssInBoundPort, ControlledDataConnector.class.getCanonicalName());
-		
-		ProcessorStaticStateI pssi = (ProcessorStaticStateI) pss.request();
-		Set<Integer> addmissibleFrequencies = pssi.getAdmissibleFrequencies();
 		
 		String pdsInBoundPort = this.processorDynamicStateInboudPortURIList
 				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
@@ -561,26 +689,8 @@ implements ApplicationRequestI, AdmissionControllerI{
 		addPort(pds);
 		pds.publishPort();
 		pds.doConnection(pdsInBoundPort, ControlledDataConnector.class.getCanonicalName());
-		
 		ProcessorDynamicStateI pdsi = (ProcessorDynamicStateI) pds.request();
 		
-		System.out.println(Arrays.toString(pdsi.getCurrentCoreFrequencies()));
-		
-		String pmInBoundPort = this.processorManagementInboudPortURIList
-				.get(idComputerInprocessorURIList).get(idVmInprocessorURIList);
-		
-		addRequiredInterface(ProcessorManagementI.class);
-		ProcessorManagementOutboundPort pm = new ProcessorManagementOutboundPort(applicationURI+idVM+"pmop", this);
-		addPort(pm);
-		pm.publishPort();
-		pm.doConnection(pmInBoundPort, ProcessorManagementConnector.class.getCanonicalName());
-		pm.setCoreFrequency(1, 3000);
-		
-		System.out.println(Arrays.toString(pdsi.getCurrentCoreFrequencies()));
-		
-		
-		
-		
-		return false;
+		return pdsi.getCurrentCoreFrequencies();
 	}
 }

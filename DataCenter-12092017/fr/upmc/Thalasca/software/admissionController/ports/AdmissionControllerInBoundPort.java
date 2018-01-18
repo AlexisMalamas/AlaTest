@@ -59,14 +59,42 @@ implements AdmissionControllerI{
 		}
 
 		@Override
-		public boolean upFrequencyCore(String applicationURI, int idVM) throws Exception {
+		public boolean upFrequencyCores(String applicationURI, int idVM) throws Exception {
 			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
 			
 			return this.owner.handleRequestSync(
 					new ComponentI.ComponentService<Boolean>() {
 						@Override
 						public Boolean call() throws Exception {
-							return ac.upFrequencyCore(applicationURI, idVM);
+							return ac.upFrequencyCores(applicationURI, idVM);
+							
+						}
+					}) ;
+		}
+
+		@Override
+		public boolean downFrequencyCores(String applicationURI, int idVM) throws Exception {
+			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
+			
+			return this.owner.handleRequestSync(
+					new ComponentI.ComponentService<Boolean>() {
+						@Override
+						public Boolean call() throws Exception {
+							return ac.downFrequencyCores(applicationURI, idVM);
+							
+						}
+					}) ;
+		}
+
+		@Override
+		public int[] getFrequencyCores(String applicationURI, int idVM) throws Exception {
+			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
+			
+			return this.owner.handleRequestSync(
+					new ComponentI.ComponentService<int[]>() {
+						@Override
+						public int[] call() throws Exception {
+							return ac.getFrequencyCores(applicationURI, idVM);
 							
 						}
 					}) ;

@@ -18,8 +18,18 @@ implements AdmissionControllerI{
 	}
 
 	@Override
-	public boolean upFrequencyCore(String applicationURI, int idVM) throws Exception {
-		return ((AdmissionControllerI)this.offering).upFrequencyCore(applicationURI, idVM);
+	public boolean upFrequencyCores(String applicationURI, int idVM) throws Exception {
+		return ((AdmissionControllerI)this.offering).upFrequencyCores(applicationURI, idVM);
+	}
+
+	@Override
+	public boolean downFrequencyCores(String applicationURI, int idVM) throws Exception {
+		return ((AdmissionControllerI)this.offering).downFrequencyCores(applicationURI, idVM);
+	}
+
+	@Override
+	public int[] getFrequencyCores(String applicationURI, int idVM) throws Exception {
+		return ((AdmissionControllerI)this.offering).getFrequencyCores(applicationURI, idVM);
 	}
 
 }
