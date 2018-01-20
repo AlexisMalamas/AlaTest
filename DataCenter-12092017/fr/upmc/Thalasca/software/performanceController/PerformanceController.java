@@ -19,6 +19,8 @@ extends AbstractComponent{
 	protected final String performanceContollerUri;
 
 	public static Long UPDATE_INVERVAL = 10000L; // update every 10 sec
+	public static Long LOWER_WANTED_TIME_REQUEST = 3000L;
+	public static Long MAX_WANTED_TIME_REQUEST = 8000L;
 
 	protected DispatcherManagementOutboundport dmop;
 	protected AdmissionControllerOutBoundPort acop;
@@ -65,11 +67,13 @@ extends AbstractComponent{
 			@Override
 			public void run() {
 				try {
+					
 					System.out.println("App: "+applicationUri+"   Average Execution Time Request : "+ 
 							dmop.getAverageExecutionTimeRequest()+" ms");
 					for(int i=0; i<dmop.getNbConnectedVM(); i++)
-						System.out.println("App: "+applicationUri+"   Average Execution Time Request for Vm " +i+" : "+
+						System.out.println("App: "+applicationUri+"   Average Execution Time Request for 20 last request on Vm " +i+" : "+
 								dmop.getAverageExecutionTimeRequest(i) +" ms");
+					
 					
 					// test for add Vm
 					/*
@@ -89,13 +93,13 @@ extends AbstractComponent{
 						else
 							System.out.println("VM NOT Removed");		
 					}*/
-					// test for upFrequency
 					
+					// test for upFrequency
+					/*
 					acop.upFrequencyCores(applicationUri, 1);
 					for(int i=0; i<dmop.getNbConnectedVM(); i++)
 						System.out.println(applicationUri+" idVm: "+i+" cores:"+acop.getFrequencyCores(applicationUri, i));
-					
-
+					*/
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}

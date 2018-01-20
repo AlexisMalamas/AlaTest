@@ -2,6 +2,7 @@ package fr.upmc.Thalasca.datacenter.software.dispatcher;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementInboundport;
@@ -34,14 +35,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 	// current VM
 	private int currentVm;
-	
-	// add for part 2
-	private int nbTotalRequest;
-	private long TotalRequestExectutionTime;
-	private ArrayList<Long> TotalRequestExectutionTimeVM;
-	private ArrayList<Integer> nbTotalRequestVM;
-	private HashMap<String, Integer> nameRequestToVm; // to know which VM excute a request
-	private HashMap<String, Long> startTimeRequest; // to know time excution of a request
 
 	// send request to VM
 	protected ArrayList<RequestSubmissionOutboundPort>	rsopList ;
@@ -56,6 +49,17 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	protected RequestNotificationInboundPort rnip ;
 
 	protected DispatcherManagementInboundport dmip;
+	
+	// add for part 2
+	private static int NB_LAST_REQUEST = 20; // 20 last request for calculate average time for vm
+	private int nbTotalRequest;
+	private long TotalRequestExectutionTime;
+	private ArrayList<Long> TotalRequestExectutionTimeVM;
+	private ArrayList<Integer> nbTotalRequestVM;
+	private HashMap<String, Integer> nameRequestToVm; // to know which VM excute a request
+	private HashMap<String, Long> startTimeRequest; // to know time excution of a request
+	
+	private HashMap<Integer,  LinkedList<Long>> executionTimeRequest; // first index for idVM
 
 	public Dispatcher( String applicationURI,
 			String dispatcherURI,
@@ -77,6 +81,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.TotalRequestExectutionTime = 0;
 		this.nbTotalRequest = 0;
 		this.startTimeRequest = new HashMap<String, Long>();
+		this.executionTimeRequest = new HashMap<Integer,  LinkedList<Long>>();
 		
 		this.addRequiredInterface(DispatcherManagementI.class) ;
 		this.dmip =new DispatcherManagementInboundport(dispatcherManagementInboundPortURI,this) ;
@@ -136,6 +141,13 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		int vm = this.nameRequestToVm.remove(r.getRequestURI());
 		this.TotalRequestExectutionTimeVM.set(vm, this.TotalRequestExectutionTimeVM.get(vm)+requestTime);
 		this.rnop.notifyRequestTermination(r) ;
+		
+		if(!this.executionTimeRequest.containsKey(vm)) // if first time we see that vm
+			this.executionTimeRequest.put(vm, new  LinkedList<Long>());
+		this.executionTimeRequest.get(vm).add(requestTime);
+		
+		if(this.executionTimeRequest.get(vm).size()>NB_LAST_REQUEST)  // only saves last request
+			this.executionTimeRequest.get(vm).removeFirst();
 	}
 
 	/**
@@ -194,12 +206,23 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 			return 0L;
 	}
 
+	/**
+	 * 
+	 * Return average time for last NB_LAST_REQUEST requests on the given vm in parameter
+	 * 
+	 * */
 	@Override
 	public Long getAverageExecutionTimeRequest(int vm) throws Exception {
-		if(vm<this.rsopList.size() && nbTotalRequestVM.get(vm)!=0)
-			return TotalRequestExectutionTimeVM.get(vm)/nbTotalRequestVM.get(vm);
-		else
-			return 0L;
+		if(vm<this.rsopList.size() && executionTimeRequest.get(vm).size()!=0) {
+			Long sumTime = 0L;
+			for(int i=0; i<this.executionTimeRequest.get(vm).size(); i++)
+			{
+				sumTime += this.executionTimeRequest.get(vm).get(i);
+			}
+
+			return sumTime/executionTimeRequest.get(vm).size();
+		}
+		return 0L;
 	}
 
 	/**
