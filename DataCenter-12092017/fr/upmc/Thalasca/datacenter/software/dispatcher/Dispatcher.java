@@ -140,14 +140,15 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		
 		int vm = this.nameRequestToVm.remove(r.getRequestURI());
 		this.TotalRequestExectutionTimeVM.set(vm, this.TotalRequestExectutionTimeVM.get(vm)+requestTime);
-		this.rnop.notifyRequestTermination(r) ;
-		
+
 		if(!this.executionTimeRequest.containsKey(vm)) // if first time we see that vm
 			this.executionTimeRequest.put(vm, new  LinkedList<Long>());
 		this.executionTimeRequest.get(vm).add(requestTime);
 		
 		if(this.executionTimeRequest.get(vm).size()>NB_LAST_REQUEST)  // only saves last request
 			this.executionTimeRequest.get(vm).removeFirst();
+		
+		this.rnop.notifyRequestTermination(r) ;
 	}
 
 	/**
@@ -180,7 +181,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	 */
 	@Override
 	public void disconnectVirtualMachine() throws Exception {
-		rsopList.get(rsopList.size()-1).doDisconnection();
+		this.rsopList.get(this.rsopList.size()-1).doDisconnection();
 		// if current Vm is removed vm, go next vm
 		if(this.currentVm == this.rsopList.size()-1)
 			this.currentVm=0;
@@ -191,17 +192,17 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	}
 
 	public int getNbTotalRequest() {
-		return nbTotalRequest;
+		return this.nbTotalRequest;
 	}
 
 	public long getTotalRequestExectutionTime() {
-		return TotalRequestExectutionTime;
+		return this.TotalRequestExectutionTime;
 	}
 
 	@Override
 	public Long getAverageExecutionTimeRequest() throws Exception {
-		if(nbTotalRequest!=0)
-			return TotalRequestExectutionTime/nbTotalRequest;
+		if(this.nbTotalRequest!=0)
+			return TotalRequestExectutionTime/this.nbTotalRequest;
 		else
 			return 0L;
 	}
@@ -213,14 +214,12 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	 * */
 	@Override
 	public Long getAverageExecutionTimeRequest(int vm) throws Exception {
-		if(vm<this.rsopList.size() && executionTimeRequest.get(vm).size()!=0) {
+		if(this.executionTimeRequest.containsKey(vm) && this.executionTimeRequest.get(vm).size()!=0) {
 			Long sumTime = 0L;
 			for(int i=0; i<this.executionTimeRequest.get(vm).size(); i++)
-			{
 				sumTime += this.executionTimeRequest.get(vm).get(i);
-			}
 
-			return sumTime/executionTimeRequest.get(vm).size();
+			return sumTime/this.executionTimeRequest.get(vm).size();
 		}
 		return 0L;
 	}

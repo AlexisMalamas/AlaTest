@@ -1,6 +1,5 @@
 package fr.upmc.Thalasca.software.performanceController;
 
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
@@ -19,8 +18,8 @@ extends AbstractComponent{
 	protected final String performanceContollerUri;
 
 	public static Long UPDATE_INVERVAL = 10000L; // update every 10 sec
-	public static Long LOWER_WANTED_TIME_REQUEST = 3000L;
-	public static Long MAX_WANTED_TIME_REQUEST = 8000L;
+	public static Long LOWER_WANTED_TIME_REQUEST = 2000L;
+	public static Long MAX_WANTED_TIME_REQUEST = 5000L;
 
 	protected DispatcherManagementOutboundport dmop;
 	protected AdmissionControllerOutBoundPort acop;
@@ -67,6 +66,13 @@ extends AbstractComponent{
 			@Override
 			public void run() {
 				try {
+					for(int i=0; i<dmop.getNbConnectedVM(); i++) {
+						if(dmop.getAverageExecutionTimeRequest(i)>MAX_WANTED_TIME_REQUEST)
+							System.out.println("App: "+applicationUri+"   up frequency vm "+i+":"+acop.upFrequencyCores(applicationUri, i));
+						else if(dmop.getAverageExecutionTimeRequest(i)<LOWER_WANTED_TIME_REQUEST)
+							System.out.println("App: "+applicationUri+"   down frequency vm "+i+":"+acop.downFrequencyCores(applicationUri, i));
+					}
+					
 					
 					System.out.println("App: "+applicationUri+"   Average Execution Time Request : "+ 
 							dmop.getAverageExecutionTimeRequest()+" ms");

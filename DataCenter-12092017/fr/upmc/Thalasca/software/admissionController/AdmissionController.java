@@ -584,7 +584,6 @@ implements ApplicationRequestI, AdmissionControllerI{
 				{
 					if(addmissibleFrequencies[j]>currentFrequency)
 					{
-						System.out.println("UPDATE "+addmissibleFrequencies[j]);
 						//update frequency
 						pm.setCoreFrequency(numeroCore, addmissibleFrequencies[j]);
 						frequencyChanged = true;
@@ -594,7 +593,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 			// if we want down Cores frequencies to previous availableFrequency
 			else
 			{
-				for(int j=addmissibleFrequencies.length-1; j>=0;j--) 
+				for(int j=addmissibleFrequencies.length-1; j>0;j--) 
 				{
 					if(addmissibleFrequencies[j]>currentFrequency)
 					{
@@ -606,13 +605,6 @@ implements ApplicationRequestI, AdmissionControllerI{
 				}
 			}
 		}
-		//usefull syso for debug
-		/*
-			System.out.println(this.processorStaticStateInboudPortURIList
-					.get(idComputerInprocessorURIList).get(idVmInprocessorURIList));
-			System.out.println(Arrays.toString(pdsi.getCurrentCoreFrequencies()));
-			System.out.println(Arrays.toString(pdsi.getCurrentCoreFrequencies()));
-		*/
 		
 		return frequencyChanged;
 	}
