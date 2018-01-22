@@ -4,6 +4,12 @@ import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherMana
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractOutboundPort;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class DispatcherManagementOutboundport 
 extends		AbstractOutboundPort
 implements	DispatcherManagementI

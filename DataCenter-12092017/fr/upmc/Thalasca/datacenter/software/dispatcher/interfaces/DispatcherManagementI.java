@@ -3,6 +3,12 @@ package fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces;
 import fr.upmc.components.interfaces.OfferedI;
 import fr.upmc.components.interfaces.RequiredI;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public interface DispatcherManagementI
 extends OfferedI, RequiredI{
 	

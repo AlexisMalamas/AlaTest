@@ -5,6 +5,12 @@ import java.util.ArrayList;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.components.connectors.AbstractConnector;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class AdmissionControllerConnector 
 extends AbstractConnector
 implements AdmissionControllerI{

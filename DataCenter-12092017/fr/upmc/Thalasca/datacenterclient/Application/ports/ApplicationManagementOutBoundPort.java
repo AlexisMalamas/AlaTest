@@ -5,6 +5,12 @@ import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractOutboundPort;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class ApplicationManagementOutBoundPort extends AbstractOutboundPort implements ApplicationManagementI {
 	public ApplicationManagementOutBoundPort(
 			ComponentI owner

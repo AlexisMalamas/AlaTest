@@ -5,6 +5,12 @@ import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationContr
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractInboundPort;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class ApplicationControllerNotificationInboundPort 
 extends AbstractInboundPort
 implements ApplicationControllerNotificationI{

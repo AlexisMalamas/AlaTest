@@ -5,9 +5,10 @@ import fr.upmc.components.interfaces.OfferedI;
 import fr.upmc.components.interfaces.RequiredI;
 
 /**
- * 	Request from Application to AdmissionController
  * 
- * */
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
 public interface ApplicationRequestI 
 extends OfferedI, RequiredI{
 	

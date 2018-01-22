@@ -20,6 +20,12 @@ import fr.upmc.datacenterclient.requestgenerator.connectors.RequestGeneratorMana
 import fr.upmc.datacenterclient.requestgenerator.interfaces.RequestGeneratorManagementI;
 import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class Application 
 extends AbstractComponent
 implements ApplicationManagementI, ApplicationAcceptNotificationI{

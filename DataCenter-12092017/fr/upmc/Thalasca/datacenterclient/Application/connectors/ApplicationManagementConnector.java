@@ -4,6 +4,12 @@ import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationManag
 import fr.upmc.components.connectors.AbstractConnector;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class ApplicationManagementConnector 
 extends AbstractConnector
 implements ApplicationManagementI{

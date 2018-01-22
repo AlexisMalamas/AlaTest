@@ -4,6 +4,12 @@ import fr.upmc.components.interfaces.OfferedI;
 import fr.upmc.components.interfaces.RequiredI;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public interface ApplicationManagementI 
 extends OfferedI, RequiredI{
 	

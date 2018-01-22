@@ -7,6 +7,12 @@ import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractInboundPort;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class ApplicationManagementInboundPort extends AbstractInboundPort implements ApplicationManagementI{
 
 	private static final long serialVersionUID = 1L;

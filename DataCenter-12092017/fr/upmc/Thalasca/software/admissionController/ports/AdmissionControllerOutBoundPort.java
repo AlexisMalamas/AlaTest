@@ -6,6 +6,12 @@ import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControl
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractOutboundPort;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class AdmissionControllerOutBoundPort 
 extends AbstractOutboundPort 
 implements AdmissionControllerI{

@@ -16,6 +16,12 @@ import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.processors.Processor;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class Test2Application extends AbstractCVM{
 	public static final String	ComputerServicesInboundPortURI = "cs-ibp" ;
 	public static final String	ComputerServicesOutboundPortURI = "cs-obp" ;

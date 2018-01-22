@@ -24,8 +24,6 @@ import fr.upmc.datacenter.software.ports.RequestSubmissionOutboundPort;
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */
-
-
 public class Dispatcher 
 extends AbstractComponent
 implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherManagementI{
@@ -131,6 +129,12 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.currentVm %= this.rsopList.size();
 	}
 
+	/**
+	 * 
+	 * Reception of terminated requests
+	 * @param	r	RequestTerminate 
+	 * 
+	 * */
 	@Override
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
 		
@@ -154,6 +158,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	/**
 	 * 
 	 *  Connect Dispatcher To RequestSubmissionInboundPort of VM
+	 *  @param	requestSubmissionInboundPortURI		URI of request Submission Inbound Port of Vm to connect
 	 * 
 	 */
 	@Override
@@ -209,7 +214,8 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 	/**
 	 * 
-	 * Return average time for last NB_LAST_REQUEST requests on the given vm in parameter
+	 * @param vm	id of vm
+	 * @return 		Average time for last NB_LAST_REQUEST requests on the given vm in parameter
 	 * 
 	 * */
 	@Override
@@ -226,7 +232,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 	/**
 	 * 
-	 *  Return the number of connected VM to the dispatcher
+	 *  @return		Number of connected VM to the dispatcher
 	 * 
 	 */
 	@Override

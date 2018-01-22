@@ -5,6 +5,12 @@ import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractInboundPort;
 import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class DispatcherManagementInboundport
 extends AbstractInboundPort
 implements DispatcherManagementI{

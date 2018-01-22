@@ -5,6 +5,12 @@ import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationSubmi
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractInboundPort;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class ApplicationSubmissionNotificationInboundPort
 extends AbstractInboundPort
 implements ApplicationSubmissionNotificationI{

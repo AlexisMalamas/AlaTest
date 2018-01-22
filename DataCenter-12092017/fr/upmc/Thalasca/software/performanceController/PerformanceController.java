@@ -12,14 +12,19 @@ import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.exceptions.ComponentShutdownException;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
 public class PerformanceController
 extends AbstractComponent{
 
 	protected final String performanceContollerUri;
 
-	public static Long UPDATE_INVERVAL = 10000L; // update every 10 sec
-	public static Long LOWER_WANTED_TIME_REQUEST = 2000L;
-	public static Long MAX_WANTED_TIME_REQUEST = 5000L;
+	public final static Long UPDATE_INVERVAL = 10000L; // update every 10 sec
+	public final static Long LOWER_WANTED_TIME_REQUEST = 2000L; // lower range for time execution of request
+	public final static Long MAX_WANTED_TIME_REQUEST = 5000L; // max range for time execution of request
 
 	protected DispatcherManagementOutboundport dmop;
 	protected AdmissionControllerOutBoundPort acop;
@@ -72,15 +77,15 @@ extends AbstractComponent{
 						else if(dmop.getAverageExecutionTimeRequest(i)<LOWER_WANTED_TIME_REQUEST)
 							System.out.println("App: "+applicationUri+"   down frequency vm "+i+":"+acop.downFrequencyCores(applicationUri, i));
 					}
-					
-					
+
+
 					System.out.println("App: "+applicationUri+"   Average Execution Time Request : "+ 
 							dmop.getAverageExecutionTimeRequest()+" ms");
 					for(int i=0; i<dmop.getNbConnectedVM(); i++)
 						System.out.println("App: "+applicationUri+"   Average Execution Time Request for 20 last request on Vm " +i+" : "+
 								dmop.getAverageExecutionTimeRequest(i) +" ms");
-					
-					
+
+
 					// test for add Vm
 					/*
 					if(dmop.getNbConnectedVM()<6) {
@@ -88,9 +93,9 @@ extends AbstractComponent{
 							System.out.println("VM ADD");
 						else
 							System.out.println("VM NOT ADD");
-							
+
 					}*/
-					
+
 					// test for remove vm
 					/*
 					if(dmop.getNbConnectedVM()>2) {
@@ -99,17 +104,17 @@ extends AbstractComponent{
 						else
 							System.out.println("VM NOT Removed");		
 					}*/
-					
+
 					// test for upFrequency
 					/*
 					acop.upFrequencyCores(applicationUri, 1);
 					for(int i=0; i<dmop.getNbConnectedVM(); i++)
 						System.out.println(applicationUri+" idVm: "+i+" cores:"+acop.getFrequencyCores(applicationUri, i));
-					*/
+					 */
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
-				
+
 				update();
 			}
 		}, UPDATE_INVERVAL, TimeUnit.MILLISECONDS);

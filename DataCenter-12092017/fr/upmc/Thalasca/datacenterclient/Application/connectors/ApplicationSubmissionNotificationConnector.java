@@ -4,6 +4,12 @@ import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationSubmi
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagementOutBoundPort;
 import fr.upmc.components.connectors.AbstractConnector;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class ApplicationSubmissionNotificationConnector 
 extends AbstractConnector
 implements ApplicationSubmissionNotificationI{

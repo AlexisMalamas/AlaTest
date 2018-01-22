@@ -7,6 +7,12 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class Javassist {
 
 
