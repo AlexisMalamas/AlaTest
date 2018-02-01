@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.Dispatcher;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
@@ -327,7 +328,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 			DispatcherManagementConnector.class.getCanonicalName());
 
 		for(int i=0; i<nombreVM; i++){
-			this.dmopList.get(applicationUri).connectToVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+i);
+			this.dmopList.get(applicationUri).connectToVirtualMachine(new VM(applicationUri+"_VM"+i, applicationUri+"_"+VmRequestSubmissionInboundPortURI+i, applicationUri+"_"+VmRequestNotificationOutboundPortURI+i));
 
 			// connect applicationVM
 			rop.doConnection(applicationUri+"_VM"+i, ReflectionConnector.class.getCanonicalName());
@@ -409,7 +410,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 	}
 
 	@Override
-	public boolean addVirtualMachine(String applicationUri) throws Exception {
+	public boolean createAndaddVirtualMachine(String applicationUri) throws Exception {
 
 		System.out.println("add vm for "+applicationUri);
 		
@@ -458,7 +459,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 		this.avmOutBoundPortList.get(applicationUri).get(this.avmOutBoundPortList.get(applicationUri).size()-1).allocateCores(allocatedCore) ;
 
 		// connect dispatcher to VM
-		this.dmopList.get(applicationUri).connectToVirtualMachine(applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm);
+		this.dmopList.get(applicationUri).connectToVirtualMachine(new VM(applicationUri+"_VM"+idVm, applicationUri+"_"+VmRequestSubmissionInboundPortURI+idVm, applicationUri+"_"+VmRequestNotificationOutboundPortURI+idVm));
 
 		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
@@ -485,7 +486,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 	 *	Remove last VM if application have at least 1 VM left
  	 */
 	@Override
-	public boolean removeVirtualMachine(String applicationUri) throws Exception {
+	public boolean deleteAndremoveVirtualMachine(String applicationUri) throws Exception {
 		if(this.vmListUri.get(applicationUri).size()<2)
 			return false;
 		this.dmopList.get(applicationUri).disconnectVirtualMachine();

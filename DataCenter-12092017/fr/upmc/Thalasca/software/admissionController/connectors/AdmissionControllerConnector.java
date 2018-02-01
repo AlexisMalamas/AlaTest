@@ -16,13 +16,13 @@ extends AbstractConnector
 implements AdmissionControllerI{
 
 	@Override
-	public boolean addVirtualMachine(String applicationUri) throws Exception {
-		return ((AdmissionControllerI)this.offering).addVirtualMachine(applicationUri);
+	public boolean createAndaddVirtualMachine(String applicationUri) throws Exception {
+		return ((AdmissionControllerI)this.offering).createAndaddVirtualMachine(applicationUri);
 	}
 
 	@Override
-	public boolean removeVirtualMachine(String applicationUri) throws Exception {
-		return ((AdmissionControllerI)this.offering).removeVirtualMachine(applicationUri);
+	public boolean deleteAndremoveVirtualMachine(String applicationUri) throws Exception {
+		return ((AdmissionControllerI)this.offering).deleteAndremoveVirtualMachine(applicationUri);
 	}
 
 	@Override

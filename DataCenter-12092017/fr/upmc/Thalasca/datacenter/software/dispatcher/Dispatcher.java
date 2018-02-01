@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementInboundport;
 import fr.upmc.components.AbstractComponent;
@@ -48,6 +49,9 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 	protected DispatcherManagementInboundport dmip;
 	
+	//List VM
+	protected ArrayList<VM> listVM;
+	
 	// add for part 2
 	private static int NB_LAST_REQUEST = 20; // 20 last request for calculate average time for vm
 	private int nbTotalRequest;
@@ -80,6 +84,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.nbTotalRequest = 0;
 		this.startTimeRequest = new HashMap<String, Long>();
 		this.executionTimeRequest = new HashMap<Integer,  LinkedList<Long>>();
+		this.listVM = new ArrayList<VM>();
 		
 		this.addRequiredInterface(DispatcherManagementI.class) ;
 		this.dmip =new DispatcherManagementInboundport(dispatcherManagementInboundPortURI,this) ;
@@ -162,7 +167,8 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	 * 
 	 */
 	@Override
-	public void connectToVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
+	public void connectToVirtualMachine(VM vm) throws Exception {
+		this.listVM.add(vm);
 		String portURI = this.applicationURI+"vmPort-"+this.rsopList.size();
 		RequestSubmissionOutboundPort port = new RequestSubmissionOutboundPort( portURI, this );
 
@@ -172,7 +178,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 		this.doPortConnection(
 				port.getPortURI(),
-				requestSubmissionInboundPortURI,
+				vm.getVmRequestSubmissionInboundURI(),
 				RequestSubmissionConnector.class.getCanonicalName());
 		
 		this.TotalRequestExectutionTimeVM.add(0L);

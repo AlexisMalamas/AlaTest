@@ -1,5 +1,6 @@
 package fr.upmc.Thalasca.datacenter.software.dispatcher.connectors;
 
+import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
 import fr.upmc.components.connectors.AbstractConnector;
 
@@ -14,8 +15,8 @@ extends AbstractConnector
 implements	DispatcherManagementI
 {
 	@Override
-	public void connectToVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
-		( ( DispatcherManagementI ) this.offering ).connectToVirtualMachine(requestSubmissionInboundPortURI);
+	public void connectToVirtualMachine(VM vm) throws Exception {
+		( ( DispatcherManagementI ) this.offering ).connectToVirtualMachine(vm);
 	}
 
 	@Override

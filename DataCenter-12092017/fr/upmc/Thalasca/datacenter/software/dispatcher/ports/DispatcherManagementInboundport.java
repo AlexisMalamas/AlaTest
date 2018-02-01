@@ -1,5 +1,6 @@
 package fr.upmc.Thalasca.datacenter.software.dispatcher.ports;
 
+import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractInboundPort;
@@ -37,7 +38,7 @@ implements DispatcherManagementI{
 	}
 
 	@Override
-	public void connectToVirtualMachine(String requestSubmissionInboundPortURI) throws Exception {
+	public void connectToVirtualMachine(VM vm) throws Exception {
 
 		final DispatcherManagementI dm = ( DispatcherManagementI ) this.owner;
 
@@ -45,7 +46,7 @@ implements DispatcherManagementI{
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						dm.connectToVirtualMachine(requestSubmissionInboundPortURI) ;
+						dm.connectToVirtualMachine(vm) ;
 						return null;
 					}
 				}) ;

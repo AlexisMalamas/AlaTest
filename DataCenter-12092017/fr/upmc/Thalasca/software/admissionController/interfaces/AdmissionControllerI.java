@@ -12,8 +12,8 @@ import fr.upmc.components.interfaces.RequiredI;
  */
 
 public interface AdmissionControllerI extends OfferedI, RequiredI{
-	public boolean addVirtualMachine(String applicationUri) throws Exception;
-	public boolean removeVirtualMachine(String applicationUri) throws Exception;
+	public boolean createAndaddVirtualMachine(String applicationUri) throws Exception;
+	public boolean deleteAndremoveVirtualMachine(String applicationUri) throws Exception;
 
 	public boolean upFrequencyCores(String applicationURI, int idVM) throws Exception;
 	public boolean downFrequencyCores(String applicationURI, int idVM) throws Exception;

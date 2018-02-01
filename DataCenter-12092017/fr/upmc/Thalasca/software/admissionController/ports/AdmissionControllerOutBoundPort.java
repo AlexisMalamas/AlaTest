@@ -36,14 +36,14 @@ implements AdmissionControllerI{
 		}
 
 		@Override
-		public boolean addVirtualMachine(String applicationUri) throws Exception {
-			return ((AdmissionControllerI)this.connector).addVirtualMachine(applicationUri);
+		public boolean createAndaddVirtualMachine(String applicationUri) throws Exception {
+			return ((AdmissionControllerI)this.connector).createAndaddVirtualMachine(applicationUri);
 			
 		}
 
 		@Override
-		public boolean removeVirtualMachine(String applicationUri) throws Exception {
-			return ((AdmissionControllerI)this.connector).removeVirtualMachine(applicationUri);
+		public boolean deleteAndremoveVirtualMachine(String applicationUri) throws Exception {
+			return ((AdmissionControllerI)this.connector).deleteAndremoveVirtualMachine(applicationUri);
 		}
 
 		@Override
