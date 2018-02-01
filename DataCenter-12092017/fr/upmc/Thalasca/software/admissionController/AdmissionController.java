@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import fr.upmc.Thalasca.datacenter.software.dispatcher.Dispatcher;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
