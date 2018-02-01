@@ -14,7 +14,7 @@ public interface DispatcherManagementI
 extends OfferedI, RequiredI{
 	
 	public void connectToVirtualMachine(VM vm) throws Exception;
-	public void disconnectVirtualMachine() throws Exception;
+	public VM disconnectVirtualMachine() throws Exception;
 	public Long getAverageExecutionTimeRequest() throws Exception;
 	public Long getAverageExecutionTimeRequest(int vm) throws Exception;
 	public int getNbConnectedVM() throws Exception;

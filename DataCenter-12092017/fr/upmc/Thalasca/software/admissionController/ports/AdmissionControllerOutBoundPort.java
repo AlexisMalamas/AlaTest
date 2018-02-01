@@ -2,6 +2,7 @@ package fr.upmc.Thalasca.software.admissionController.ports;
 
 import java.util.ArrayList;
 
+import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractOutboundPort;
@@ -36,14 +37,14 @@ implements AdmissionControllerI{
 		}
 
 		@Override
-		public boolean createAndaddVirtualMachine(String applicationUri) throws Exception {
-			return ((AdmissionControllerI)this.connector).createAndaddVirtualMachine(applicationUri);
+		public boolean createAndAddVirtualMachine(String applicationUri) throws Exception {
+			return ((AdmissionControllerI)this.connector).createAndAddVirtualMachine(applicationUri);
 			
 		}
 
 		@Override
-		public boolean deleteAndremoveVirtualMachine(String applicationUri) throws Exception {
-			return ((AdmissionControllerI)this.connector).deleteAndremoveVirtualMachine(applicationUri);
+		public boolean deleteAndRemoveVirtualMachine(String applicationUri) throws Exception {
+			return ((AdmissionControllerI)this.connector).deleteAndRemoveVirtualMachine(applicationUri);
 		}
 
 		@Override
@@ -59,6 +60,17 @@ implements AdmissionControllerI{
 		@Override
 		public ArrayList<Integer> getFrequencyCores(String applicationURI, int idVM) throws Exception {
 			return ((AdmissionControllerI)this.connector).getFrequencyCores(applicationURI, idVM);
+		}
+
+		@Override
+		public void addVirtualMachine(VM vm, String applicationUri) throws Exception {
+			((AdmissionControllerI)this.connector).addVirtualMachine(vm, applicationUri);
+			
+		}
+
+		@Override
+		public VM removeVirtualMachine(String applicationUri) throws Exception {
+			return ((AdmissionControllerI)this.connector).removeVirtualMachine(applicationUri);
 		}
 
 }

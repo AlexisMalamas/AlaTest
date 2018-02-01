@@ -20,8 +20,8 @@ implements	DispatcherManagementI
 	}
 
 	@Override
-	public void disconnectVirtualMachine() throws Exception {
-		( ( DispatcherManagementI ) this.offering ).disconnectVirtualMachine();
+	public VM disconnectVirtualMachine() throws Exception {
+		return ( ( DispatcherManagementI ) this.offering ).disconnectVirtualMachine();
 		
 	}
 

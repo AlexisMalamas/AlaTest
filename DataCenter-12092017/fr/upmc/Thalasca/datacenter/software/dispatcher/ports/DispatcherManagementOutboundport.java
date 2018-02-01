@@ -37,8 +37,8 @@ implements	DispatcherManagementI
 	}
 
 	@Override
-	public void disconnectVirtualMachine() throws Exception {
-		( ( DispatcherManagementI ) this.connector ).disconnectVirtualMachine();
+	public VM disconnectVirtualMachine() throws Exception {
+		return ( ( DispatcherManagementI ) this.connector ).disconnectVirtualMachine();
 		
 	}
 

@@ -53,15 +53,14 @@ implements DispatcherManagementI{
 	}
 
 	@Override
-	public void disconnectVirtualMachine() throws Exception {
+	public VM disconnectVirtualMachine() throws Exception {
 		final DispatcherManagementI dm = ( DispatcherManagementI ) this.owner;
 
-		this.owner.handleRequestSync(
-				new ComponentI.ComponentService<Void>() {
+		return this.owner.handleRequestSync(
+				new ComponentI.ComponentService<VM>() {
 					@Override
-					public Void call() throws Exception {
-						dm.disconnectVirtualMachine();
-						return null;
+					public VM call() throws Exception {
+						return dm.disconnectVirtualMachine();
 					}
 				}) ;
 	}

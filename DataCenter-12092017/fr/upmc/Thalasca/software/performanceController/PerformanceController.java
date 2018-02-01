@@ -1,13 +1,16 @@
 package fr.upmc.Thalasca.software.performanceController;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementOutboundport;
 import fr.upmc.Thalasca.software.admissionController.connectors.AdmissionControllerConnector;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerOutBoundPort;
+import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerManagementI;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.exceptions.ComponentShutdownException;
@@ -18,7 +21,8 @@ import fr.upmc.components.exceptions.ComponentShutdownException;
  *
  */
 public class PerformanceController
-extends AbstractComponent{
+extends AbstractComponent
+implements PerformanceControllerManagementI{
 
 	protected final String performanceContollerUri;
 
@@ -123,6 +127,11 @@ extends AbstractComponent{
 	@Override
 	public void shutdown() throws ComponentShutdownException {
 		super.shutdown();
+	}
+
+	@Override
+	public void sendVirtualMachineAvailable(ArrayList<VM> listVM) throws Exception {
+		
 	}
 
 }

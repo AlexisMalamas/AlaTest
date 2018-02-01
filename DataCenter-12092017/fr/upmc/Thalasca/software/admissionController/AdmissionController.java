@@ -33,20 +33,16 @@ import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
-import fr.upmc.datacenter.hardware.computers.interfaces.ComputerDynamicStateI;
 import fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateI;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerDynamicStateDataOutboundPort;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerStaticStateDataOutboundPort;
 import fr.upmc.datacenter.hardware.processors.Processor;
 import fr.upmc.datacenter.hardware.processors.Processor.ProcessorPortTypes;
-import fr.upmc.datacenter.hardware.processors.ProcessorDynamicState;
 import fr.upmc.datacenter.hardware.processors.ProcessorStaticState;
 import fr.upmc.datacenter.hardware.processors.connectors.ProcessorManagementConnector;
 import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorDynamicStateI;
 import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorManagementI;
-import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorStateDataConsumerI;
-import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorStaticStateDataI;
 import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorStaticStateI;
 import fr.upmc.datacenter.hardware.processors.ports.ProcessorDynamicStateDataOutboundPort;
 import fr.upmc.datacenter.hardware.processors.ports.ProcessorManagementOutboundPort;
@@ -61,7 +57,6 @@ import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */
-
 public class AdmissionController 
 extends AbstractComponent
 implements ApplicationRequestI, AdmissionControllerI{
@@ -368,9 +363,6 @@ implements ApplicationRequestI, AdmissionControllerI{
 				AllocatedCore[] allocatedCore= csopList.get(j).allocateCores(NB_CORES_BY_VM);
 				if(allocatedCore.length == NB_CORES_BY_VM) {
 					allocatedCores.add(allocatedCore);
-					
-					//save for vm processorUri and coresURI
-					//System.out.println(allocatedCore[0].processorURI);
 					ressourcesAvailable = true;
 					break;
 				}
@@ -409,7 +401,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 	}
 
 	@Override
-	public boolean createAndaddVirtualMachine(String applicationUri) throws Exception {
+	public boolean createAndAddVirtualMachine(String applicationUri) throws Exception {
 
 		System.out.println("add vm for "+applicationUri);
 		
@@ -485,7 +477,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 	 *	Remove last VM if application have at least 1 VM left
  	 */
 	@Override
-	public boolean deleteAndremoveVirtualMachine(String applicationUri) throws Exception {
+	public boolean deleteAndRemoveVirtualMachine(String applicationUri) throws Exception {
 		if(this.vmListUri.get(applicationUri).size()<2)
 			return false;
 		this.dmopList.get(applicationUri).disconnectVirtualMachine();
@@ -693,5 +685,17 @@ implements ApplicationRequestI, AdmissionControllerI{
 		}
 
 		super.shutdown();
+	}
+
+	@Override
+	public void addVirtualMachine(VM vm, String applicationUri) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public VM removeVirtualMachine(String applicationUri) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

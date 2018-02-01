@@ -2,6 +2,7 @@ package fr.upmc.Thalasca.software.admissionController.ports;
 
 import java.util.ArrayList;
 
+import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.software.admissionController.AdmissionController;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.components.ComponentI;
@@ -39,28 +40,28 @@ implements AdmissionControllerI{
 		}
 
 		@Override
-		public boolean createAndaddVirtualMachine(String applicationUri) throws Exception {
+		public boolean createAndAddVirtualMachine(String applicationUri) throws Exception {
 			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
 			
 			return this.owner.handleRequestSync(
 					new ComponentI.ComponentService<Boolean>() {
 						@Override
 						public Boolean call() throws Exception {
-							return ac.createAndaddVirtualMachine(applicationUri);
+							return ac.createAndAddVirtualMachine(applicationUri);
 							
 						}
 					}) ;
 		}
 
 		@Override
-		public boolean deleteAndremoveVirtualMachine(String applicationUri) throws Exception {
+		public boolean deleteAndRemoveVirtualMachine(String applicationUri) throws Exception {
 			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
 			
 			return this.owner.handleRequestSync(
 					new ComponentI.ComponentService<Boolean>() {
 						@Override
 						public Boolean call() throws Exception {
-							return ac.deleteAndremoveVirtualMachine(applicationUri);
+							return ac.deleteAndRemoveVirtualMachine(applicationUri);
 							
 						}
 					}) ;
@@ -103,6 +104,35 @@ implements AdmissionControllerI{
 						@Override
 						public ArrayList<Integer> call() throws Exception {
 							return ac.getFrequencyCores(applicationURI, idVM);
+							
+						}
+					}) ;
+		}
+
+		@Override
+		public void addVirtualMachine(VM vm, String applicationUri) throws Exception {
+			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
+			
+			this.owner.handleRequestSync(
+					new ComponentI.ComponentService<Void>() {
+						@Override
+						public Void call() throws Exception {
+							ac.addVirtualMachine(vm, applicationUri);
+							return null;
+						}
+					}) ;
+			
+		}
+
+		@Override
+		public VM removeVirtualMachine(String applicationUri) throws Exception {
+			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
+			
+			return this.owner.handleRequestSync(
+					new ComponentI.ComponentService<VM>() {
+						@Override
+						public VM call() throws Exception {
+							return ac.removeVirtualMachine(applicationUri);
 							
 						}
 					}) ;

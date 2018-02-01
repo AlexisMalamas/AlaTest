@@ -191,15 +191,21 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	 * 
 	 */
 	@Override
-	public void disconnectVirtualMachine() throws Exception {
-		this.rsopList.get(this.rsopList.size()-1).doDisconnection();
-		// if current Vm is removed vm, go next vm
-		if(this.currentVm == this.rsopList.size()-1)
-			this.currentVm=0;
-		this.rsopList.remove(this.rsopList.size()-1);
+	public VM disconnectVirtualMachine() throws Exception {
+		if(this.listVM.size()>1) {
+			this.rsopList.get(this.rsopList.size()-1).doDisconnection();
+			// if current Vm is removed vm, go next vm
+			if(this.currentVm == this.rsopList.size()-1)
+				this.currentVm=0;
+			this.rsopList.remove(this.rsopList.size()-1);
+			
+			this.TotalRequestExectutionTimeVM.remove(this.TotalRequestExectutionTimeVM.size()-1);
+			this.nbTotalRequestVM.remove(this.nbTotalRequestVM.size()-1);
 		
-		this.TotalRequestExectutionTimeVM.remove(this.TotalRequestExectutionTimeVM.size()-1);
-		this.nbTotalRequestVM.remove(this.nbTotalRequestVM.size()-1);
+			return this.listVM.remove(this.listVM.size()-1);
+		}
+		else
+			return null;
 	}
 
 	public int getNbTotalRequest() {
