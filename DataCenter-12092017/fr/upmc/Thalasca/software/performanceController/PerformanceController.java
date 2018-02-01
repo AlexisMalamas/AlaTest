@@ -75,14 +75,14 @@ implements PerformanceControllerManagementI{
 			@Override
 			public void run() {
 				try {
-					for(int i=0; i<dmop.getNbConnectedVM(); i++) {
+					/*for(int i=0; i<dmop.getNbConnectedVM(); i++) {
 						if(dmop.getAverageExecutionTimeRequest(i)>MAX_WANTED_TIME_REQUEST)
 							System.out.println("App: "+applicationUri+"   up frequency vm "+i+":"
 									+acop.upFrequencyCores(applicationUri, dmop.getIdVm(i)));
 						else if(dmop.getAverageExecutionTimeRequest(i)<LOWER_WANTED_TIME_REQUEST)
 							System.out.println("App: "+applicationUri+"   down frequency vm "+i+":"
 									+acop.downFrequencyCores(applicationUri, dmop.getIdVm(i)));
-					}
+					}*/
 
 
 					System.out.println("App: "+applicationUri+"   Average Execution Time Request : "+ 

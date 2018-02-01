@@ -660,8 +660,6 @@ implements	ProcessorServicesNotificationConsumerI,
 									put(allocatedCores[i].processorURI, np) ;
 			}
 		}
-		
-		printIdleStatus();
 	}
 
 	/**

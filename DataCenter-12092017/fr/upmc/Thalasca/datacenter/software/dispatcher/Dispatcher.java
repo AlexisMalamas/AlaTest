@@ -121,9 +121,15 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.currentVm %= this.rsopList.size();
 	}
 
+	/**
+	 *
+	 * Send request to current VM
+	 * @param	r	Request to send
+	 * 
+	 **/
 	@Override
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
-		// add for part 2
+		System.out.println(this.applicationURI);
 		this.nbTotalRequest++;
 		this.startTimeRequest.put(r.getRequestURI(), System.currentTimeMillis());
 		this.nbTotalRequestVM.set(this.currentVm, this.nbTotalRequestVM.get(this.currentVm)+1);
@@ -169,11 +175,11 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	@Override
 	public void connectToVirtualMachine(VM vm) throws Exception {
 		this.listVM.add(vm);
-		String portURI = this.applicationURI+"vmPort-"+this.rsopList.size();
-		RequestSubmissionOutboundPort port = new RequestSubmissionOutboundPort( portURI, this );
+		String portURI = "vmPort"+vm.getIdVM();
+		RequestSubmissionOutboundPort port = new RequestSubmissionOutboundPort(portURI, this);
 
 		this.rsopList.add(port);
-		this.addPort( port );
+		this.addPort(port);
 		port.publishPort();
 
 		this.doPortConnection(

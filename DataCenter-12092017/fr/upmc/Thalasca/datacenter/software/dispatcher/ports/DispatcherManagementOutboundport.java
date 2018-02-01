@@ -10,7 +10,6 @@ import fr.upmc.components.ports.AbstractOutboundPort;
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */
-
 public class DispatcherManagementOutboundport 
 extends		AbstractOutboundPort
 implements	DispatcherManagementI

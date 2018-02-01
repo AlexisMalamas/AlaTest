@@ -11,7 +11,6 @@ import fr.upmc.components.connectors.AbstractConnector;
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */
-
 public class AdmissionControllerConnector 
 extends AbstractConnector
 implements AdmissionControllerI{
