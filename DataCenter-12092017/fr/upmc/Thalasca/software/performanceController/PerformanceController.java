@@ -77,9 +77,11 @@ implements PerformanceControllerManagementI{
 				try {
 					for(int i=0; i<dmop.getNbConnectedVM(); i++) {
 						if(dmop.getAverageExecutionTimeRequest(i)>MAX_WANTED_TIME_REQUEST)
-							System.out.println("App: "+applicationUri+"   up frequency vm "+i+":"+acop.upFrequencyCores(applicationUri, i));
+							System.out.println("App: "+applicationUri+"   up frequency vm "+i+":"
+									+acop.upFrequencyCores(applicationUri, dmop.getIdVm(i)));
 						else if(dmop.getAverageExecutionTimeRequest(i)<LOWER_WANTED_TIME_REQUEST)
-							System.out.println("App: "+applicationUri+"   down frequency vm "+i+":"+acop.downFrequencyCores(applicationUri, i));
+							System.out.println("App: "+applicationUri+"   down frequency vm "+i+":"
+									+acop.downFrequencyCores(applicationUri, dmop.getIdVm(i)));
 					}
 
 
@@ -88,33 +90,6 @@ implements PerformanceControllerManagementI{
 					for(int i=0; i<dmop.getNbConnectedVM(); i++)
 						System.out.println("App: "+applicationUri+"   Average Execution Time Request for 20 last request on Vm " +i+" : "+
 								dmop.getAverageExecutionTimeRequest(i) +" ms");
-
-
-					// test for add Vm
-					/*
-					if(dmop.getNbConnectedVM()<6) {
-						if(acop.addVirtualMachine(applicationUri))
-							System.out.println("VM ADD");
-						else
-							System.out.println("VM NOT ADD");
-
-					}*/
-
-					// test for remove vm
-					/*
-					if(dmop.getNbConnectedVM()>2) {
-						if(acop.removeVirtualMachine(applicationUri))
-							System.out.println("VM Removed");
-						else
-							System.out.println("VM NOT Removed");		
-					}*/
-
-					// test for upFrequency
-					/*
-					acop.upFrequencyCores(applicationUri, 1);
-					for(int i=0; i<dmop.getNbConnectedVM(); i++)
-						System.out.println(applicationUri+" idVm: "+i+" cores:"+acop.getFrequencyCores(applicationUri, i));
-					 */
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
@@ -131,6 +106,7 @@ implements PerformanceControllerManagementI{
 
 	@Override
 	public void sendVirtualMachineAvailable(ArrayList<VM> listVM) throws Exception {
+		System.out.println("Performance controller "+applicationUri);
 		
 	}
 

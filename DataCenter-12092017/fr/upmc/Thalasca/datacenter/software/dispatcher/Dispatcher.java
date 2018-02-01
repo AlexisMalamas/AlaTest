@@ -275,4 +275,9 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 		super.shutdown();
 	}
+
+	@Override
+	public int getIdVm(int i) throws Exception {
+		return this.listVM.get(i).getIdVM();
+	}
 }

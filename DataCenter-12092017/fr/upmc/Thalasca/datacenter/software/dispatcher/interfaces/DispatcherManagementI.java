@@ -18,5 +18,6 @@ extends OfferedI, RequiredI{
 	public Long getAverageExecutionTimeRequest() throws Exception;
 	public Long getAverageExecutionTimeRequest(int vm) throws Exception;
 	public int getNbConnectedVM() throws Exception;
+	public int getIdVm(int i) throws Exception;
 	
 }

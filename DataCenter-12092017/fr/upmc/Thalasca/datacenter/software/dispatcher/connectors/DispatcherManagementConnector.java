@@ -39,4 +39,9 @@ implements	DispatcherManagementI
 	public int getNbConnectedVM() throws Exception{
 		return ( ( DispatcherManagementI ) this.offering ).getNbConnectedVM();
 	}
+
+	@Override
+	public int getIdVm(int i) throws Exception {
+		return ( ( DispatcherManagementI ) this.offering ).getIdVm(i);
+	}
 }

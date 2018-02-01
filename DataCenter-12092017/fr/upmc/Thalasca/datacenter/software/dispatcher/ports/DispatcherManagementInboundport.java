@@ -103,4 +103,17 @@ implements DispatcherManagementI{
 					}
 				}) ;
 	}
+
+	@Override
+	public int getIdVm(int i) throws Exception {
+		final DispatcherManagementI dm = ( DispatcherManagementI ) this.owner;
+		return this.owner.handleRequestSync(
+				new ComponentI.ComponentService<Integer>() {
+					@Override
+					public Integer call() throws Exception {
+						return dm.getIdVm(i);
+						
+					}
+				}) ;
+	}
 }
