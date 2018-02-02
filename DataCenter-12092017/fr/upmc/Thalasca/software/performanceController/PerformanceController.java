@@ -3,18 +3,13 @@ package fr.upmc.Thalasca.software.performanceController;
 import java.util.ArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
 import fr.upmc.Thalasca.datacenter.software.VM.DynamicVM;
 import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementOutboundport;
-import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationSubmissionNotificationI;
-import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationInboundPort;
-import fr.upmc.Thalasca.software.admissionController.AdmissionController;
 import fr.upmc.Thalasca.software.admissionController.connectors.AdmissionControllerConnector;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
-import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerInBoundPort;
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerOutBoundPort;
 import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerDynamicStateI;
 import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerStateDataConsumerI;
@@ -23,11 +18,11 @@ import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControll
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.exceptions.ComponentShutdownException;
-import fr.upmc.components.interfaces.DataOfferedI.DataI;
+import fr.upmc.components.pre.reflection.connectors.ReflectionConnector;
+import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.datacenter.TimeManagement;
-import fr.upmc.datacenter.connectors.ControlledDataConnector;
-import fr.upmc.datacenter.hardware.computers.interfaces.ComputerDynamicStateI;
 import fr.upmc.datacenter.interfaces.PushModeControllingI;
+import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
 
 /**
  * 
@@ -52,6 +47,11 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	
 	protected ScheduledFuture<?> pushingFuture;
 	protected ArrayList<VM> listVmAvailable;
+	
+	public String dispatcherRequestNotificationInboundPortURI;
+	public String vmRequestNotificationOutboundPortURI;
+	
+	protected boolean applicatioNeedVM; // set true if application need moreVM
 
 	public PerformanceController(
 			String performanceContollerUri,
@@ -59,13 +59,19 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 			String acipUri,
 			String applicationUri,
 			String performanceControllerInboundPortURI,
-			String performanceControllerOutboundPortURI
+			String performanceControllerOutboundPortURI,
+			String dispatcherRequestNotificationInboundPortURI,
+			String vmRequestNotificationOutboundPortURI
 			) throws Exception{
 		super(performanceContollerUri,1,1);
 
 		this.performanceContollerUri = performanceContollerUri;
 		this.applicationUri = applicationUri;
 		this.listVmAvailable = new ArrayList<VM>();
+		this.applicatioNeedVM = true;
+		
+		this.dispatcherRequestNotificationInboundPortURI = dispatcherRequestNotificationInboundPortURI;
+		this.vmRequestNotificationOutboundPortURI = vmRequestNotificationOutboundPortURI;
 
 		// connect PerformanceController to Dispatcher
 		this.addRequiredInterface(DispatcherManagementI.class);
@@ -89,7 +95,7 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 		addPort(pcdsip);
 		pcdsip.publishPort();
 		
-		this.pcdsop = new PerformanceControllerDynamicStateDataOutboundPort(this, performanceControllerOutboundPortURI);
+		this.pcdsop = new PerformanceControllerDynamicStateDataOutboundPort(performanceControllerOutboundPortURI, this);
 		addPort(pcdsop);
 		pcdsop.publishPort();
 
@@ -158,7 +164,6 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	@Override
 	public void startLimitedPushing(int interval, int n) throws Exception {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -170,13 +175,41 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 		}
 	}
 
+	/**
+	 *
+	 * Accept and save VM from previous performanceController or from admissionController
+	 * 
+	 **/
 	@Override
-	public void acceptPerformanceControllerDynamicData(String performanceControllerURI,
-			PerformanceControllerDynamicStateI currentDynamicState) throws Exception {
-		// TODO Auto-generated method stub
-		
+	public void acceptPerformanceControllerDynamicData(PerformanceControllerDynamicStateI currentDynamicState) 
+			throws Exception {
+		synchronized(this){
+			if(applicatioNeedVM){
+				applicatioNeedVM = false;
+				System.out.println("Pick a Vm for Application "+this.applicationUri);
+				
+				// connect dispatcher to VM
+				this.dmop.connectToVirtualMachine(currentDynamicState.getVM());
+				// connect VM to dispatcher
+				ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
+				this.addPort(rop);
+				rop.localPublishPort();
+				rop.doConnection(currentDynamicState.getVM().getVmURI()+"_VM", ReflectionConnector.class.getCanonicalName());
+				rop.doPortConnection(
+						currentDynamicState.getVM().getVmURI()+"_"+vmRequestNotificationOutboundPortURI,
+						currentDynamicState.getVM().getVmURI()+"_"+dispatcherRequestNotificationInboundPortURI,
+						RequestNotificationConnector.class.getCanonicalName());
+			}
+			else
+				this.listVmAvailable.add(currentDynamicState.getVM());
+		}
 	}
 	
+	/**
+	 * 
+	 * Send available VM to next performanceController or admissionController
+	 *
+	 **/
 	public void sendDynamicState() throws Exception
 	{
 		if (this.pcdsip.connected()) {
@@ -185,6 +218,11 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 		}
 	}
 
+	/**
+	 * 
+	 * get not used vm
+	 *
+	 **/
 	public PerformanceControllerDynamicStateI getDynamicState() throws Exception {
 		VM vm = null;
         synchronized(this){

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import fr.upmc.Thalasca.datacenter.software.VM.DynamicVM;
 import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.Dispatcher;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
@@ -22,6 +24,8 @@ import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControl
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerInBoundPort;
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerOutBoundPort;
 import fr.upmc.Thalasca.software.performanceController.PerformanceController;
+import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerDynamicStateI;
+import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerStateDataConsumerI;
 import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerDynamicStateDataInboundPort;
 import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerDynamicStateDataOutboundPort;
 import fr.upmc.components.AbstractComponent;
@@ -55,6 +59,8 @@ import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorStaticStateI;
 import fr.upmc.datacenter.hardware.processors.ports.ProcessorDynamicStateDataOutboundPort;
 import fr.upmc.datacenter.hardware.processors.ports.ProcessorManagementOutboundPort;
 import fr.upmc.datacenter.hardware.processors.ports.ProcessorStaticStateDataOutboundPort;
+import fr.upmc.datacenter.interfaces.ControlledDataOfferedI;
+import fr.upmc.datacenter.interfaces.ControlledDataRequiredI;
 import fr.upmc.datacenter.interfaces.PushModeControllingI;
 import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
 import fr.upmc.datacenter.software.applicationvm.connectors.ApplicationVMManagementConnector;
@@ -68,7 +74,7 @@ import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
  */
 public class AdmissionController 
 extends AbstractComponent
-implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI{
+implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, PerformanceControllerStateDataConsumerI{
 
 	public static final int NB_CORES_BY_VM=2;
 	public int ID_VM = 1;
@@ -167,11 +173,13 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI{
 		this.addPort(this.acip);
 		this.acip.publishPort();
 		
+		this.addOfferedInterface(ControlledDataOfferedI.ControlledPullI.class) ;
 		this.pcdsip = new PerformanceControllerDynamicStateDataInboundPort(performanceControllerInboundPortURI, this);
 		addPort(pcdsip);
 		pcdsip.publishPort();
 		
-		this.pcdsop = new PerformanceControllerDynamicStateDataOutboundPort(this, performanceControllerOutboundPortURI);
+		this.addRequiredInterface(ControlledDataRequiredI.ControlledPullI.class) ;
+		this.pcdsop = new PerformanceControllerDynamicStateDataOutboundPort(performanceControllerOutboundPortURI, this);
 		addPort(pcdsop);
 		pcdsop.publishPort();
 		pcdsop.doConnection(performanceControllerInboundPortURI, ControlledDataConnector.class.getCanonicalName());
@@ -273,7 +281,10 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI{
 					this.PerformanceControllerURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());
 
-			
+			// add 2 VM in available list VM
+			for(int i=0; i<2; i++)
+				addVirtualMachine();
+			// start pushing of VM in Ring of PerformanceController
 			this.startUnlimitedPushing(intervalPushingTime);
 		} catch (Exception e) {
 			throw new ComponentStartException("Error start AdmissionController", e);
@@ -367,8 +378,11 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI{
 						applicationUri,
 						applicationUri+"_"+performanceControllerInboundPortURI,
 						applicationUri+"_"+performanceControllerOutboundPortURI,
+						applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
+						applicationUri+"_"+VmRequestNotificationOutboundPortURI
 				});
 
+		// stop pushing for add a performanceController in Ring
 		this.stopPushing();
 		addPerformanceControllerInRing(applicationUri);
 		this.startUnlimitedPushing(intervalPushingTime);
@@ -399,10 +413,12 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI{
 		this.appcnop.doConnection(applicationURI+"_"+this.appcnip, ApplicationControllerNotificationConnector.class.getCanonicalName());
 		if (ressourcesAvailable) {
 			System.out.println("Accept application " + applicationURI);
-			
+			int idVM;
 			//reserve ID_Vm
-			int idVM = ID_VM;
-			ID_VM += nombreVM;
+			synchronized(this) {
+				idVM = ID_VM;
+				ID_VM += nombreVM;
+			}
 			
 			//deploy all components for new accepted Application
 			deployDynamicComponentsForApplication(applicationURI, allocatedCores, appmop, nombreVM, idVM);
@@ -424,72 +440,7 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI{
 			this.appcnop.responseFromApplicationController(false, applicationURI);
 		}
 	}
-
-	@Override
-	public boolean createAndAddVirtualMachine(String applicationUri) throws Exception {
-		System.out.println("create and add vm for "+applicationUri);
-		
-		// allocate core for new VM
-		AllocatedCore[] allocatedCore = {};
-		boolean ressourcesAvailable = false;
-		for(int j=0; j<this.computerURIList.size(); j++) {
-			allocatedCore= csopList.get(j).allocateCores(NB_CORES_BY_VM);
-			if(allocatedCore.length == NB_CORES_BY_VM) {
-				ressourcesAvailable = true;
-				break;
-			}
-			else
-				ressourcesAvailable = false;
-		}
-		
-		if(!ressourcesAvailable)
-			return false;
-		
-		// processor uri for allocated vm
-			for(int j=0; j<allocatedCore.length; j++){
-				this.processorURIListByVM.put(ID_VM, allocatedCore[j].processorURI);
-				this.coreNoListByVM.get(ID_VM).add(allocatedCore[j].coreNo);
-		}
-
-		//create VM
-		this.portApplicationVM.createComponent(
-				ApplicationVM.class.getCanonicalName(),
-				new Object[] {
-						ID_VM+"_VM",
-						ID_VM+"_"+ApplicationVMManagementInboundPortURI,
-						ID_VM+"_"+VmRequestSubmissionInboundPortURI,
-						ID_VM+"_"+VmRequestNotificationOutboundPortURI
-				});
-		ApplicationVMManagementOutboundPort avmop = new ApplicationVMManagementOutboundPort(
-				ID_VM+"_"+ApplicationVMManagementOutboundPortURI, new AbstractComponent(0, 0) {});
-		avmop.publishPort();
-		avmop.doConnection(
-				ID_VM+"_"+ApplicationVMManagementInboundPortURI,
-				ApplicationVMManagementConnector.class.getCanonicalName());			
-
-
-		avmop.allocateCores(allocatedCore) ;
-		
-		// connect dispatcher to VM
-		this.dmopList.get(applicationUri).connectToVirtualMachine(
-				new VM(ID_VM, ID_VM+"_VM", ID_VM+"_"+VmRequestSubmissionInboundPortURI,
-						ID_VM+"_"+VmRequestNotificationOutboundPortURI, avmop));
-
-		// connect applicationVM to dispatcher
-		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
-		this.addPort(rop);
-		rop.localPublishPort();
-		rop.doConnection(ID_VM+"_VM", ReflectionConnector.class.getCanonicalName());
-		rop.toggleTracing();
-		rop.toggleLogging();
-		rop.doPortConnection(
-				ID_VM+"_"+VmRequestNotificationOutboundPortURI,
-				applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
-				RequestNotificationConnector.class.getCanonicalName());
-		ID_VM++;
-		return true;
-	}
-
+	
 	/**
 	 *	Remove last VM And destroy it for application given
  	 */
@@ -701,22 +652,62 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI{
 		super.shutdown();
 	}
 
-	@Override
-	public void addVirtualMachine(VM vm, String applicationUri) throws Exception {
-		System.out.println("add vm for "+applicationUri);
+	/**
+	 * 
+	 * create and add virtual Machine in list of available VM
+	 * 
+	 **/
+	public boolean addVirtualMachine() throws Exception {
+		System.out.println("Try create and add virtual Machine in list of available VM");
+		int idVm = ID_VM;
+		this.ID_VM++;
+		
+		// allocate core for new VM
+		AllocatedCore[] allocatedCore = {};
+		boolean ressourcesAvailable = false;
+		for(int j=0; j<this.computerURIList.size(); j++) {
+			allocatedCore= csopList.get(j).allocateCores(NB_CORES_BY_VM);
+			if(allocatedCore.length == NB_CORES_BY_VM) {
+				ressourcesAvailable = true;
+				break;
+			}
+			else
+				ressourcesAvailable = false;
+		}
+		
+		if(!ressourcesAvailable)
+			return false;
+		
+		// processor uri for allocated vm
+		this.coreNoListByVM.put(idVm, new ArrayList<Integer>());
+		for(int j=0; j<allocatedCore.length; j++){
+			this.processorURIListByVM.put(idVm, allocatedCore[j].processorURI);
+			this.coreNoListByVM.get(idVm).add(allocatedCore[j].coreNo);
+		}
 
-		// connect dispatcher to VM
-		this.dmopList.get(applicationUri).connectToVirtualMachine(vm);
+		//create VM
+		this.portApplicationVM.createComponent(
+				ApplicationVM.class.getCanonicalName(),
+				new Object[] {
+						idVm+"_VM",
+						idVm+"_"+ApplicationVMManagementInboundPortURI,
+						idVm+"_"+VmRequestSubmissionInboundPortURI,
+						idVm+"_"+VmRequestNotificationOutboundPortURI
+				});
+		ApplicationVMManagementOutboundPort avmop = new ApplicationVMManagementOutboundPort(
+				idVm+"_"+ApplicationVMManagementOutboundPortURI, new AbstractComponent(0, 0) {});
+		avmop.publishPort();
+		avmop.doConnection(
+				idVm+"_"+ApplicationVMManagementInboundPortURI,
+				ApplicationVMManagementConnector.class.getCanonicalName());			
 
-		// connect VM to dispatcher
-		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
-		this.addPort(rop);
-		rop.localPublishPort();
-		rop.doConnection(vm.getVmURI()+"_VM", ReflectionConnector.class.getCanonicalName());
-		rop.doPortConnection(
-				vm.getVmURI()+"_"+VmRequestNotificationOutboundPortURI,
-				vm.getVmURI()+"_"+DispatcherRequestNotificationInboundPortURI,
-				RequestNotificationConnector.class.getCanonicalName());
+		avmop.allocateCores(allocatedCore);
+		
+		this.listVmAvailable.add(new VM(idVm, idVm+"_VM", idVm+"_"+VmRequestSubmissionInboundPortURI,
+				idVm+"_"+VmRequestNotificationOutboundPortURI, avmop));
+		
+		System.out.println("VM created and added in list of available VM");
+		return true;
 	}
 
 	@Override
@@ -752,7 +743,7 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI{
 			rop.doConnection(performanceControllerURIList.get(0)+"_performanceController", ReflectionConnector.class.getCanonicalName());
 			rop.doPortConnection(
 					performanceControllerURIList.get(0)+"_"+performanceControllerOutboundPortURI,
-					this.pcdsip.getPortURI(), ControlledDataConnector.class.getCanonicalName());
+					performanceControllerInboundPortURI, ControlledDataConnector.class.getCanonicalName());
 		}
 		else
 		{
@@ -796,7 +787,6 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI{
 	@Override
 	public void startLimitedPushing(int interval, int n) throws Exception {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -808,11 +798,42 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI{
 		}
 	}
 
-	public DataI getDynamicState() {
-		return null;
+	/**
+	 * 
+	 * get not used vm
+	 *
+	 **/
+	public PerformanceControllerDynamicStateI getDynamicState() throws Exception {
+		VM vm = null;
+        synchronized(this){
+            if(!this.listVmAvailable.isEmpty()) {
+            	vm = this.listVmAvailable.remove(0);
+            }
+        }
+        return new DynamicVM(vm);
 	}
 
-	protected void sendDynamicState() {
-		
+	/**
+	 * 
+	 * Send available VM to next performanceController or admissionController
+	 *
+	 **/
+	public void sendDynamicState() throws Exception
+	{
+		if (this.pcdsip.connected()) {
+			PerformanceControllerDynamicStateI cds = this.getDynamicState() ;
+			this.pcdsip.send(cds) ;
+		}
+	}
+	
+	/**
+	 *
+	 * Accept and save VM from previous performanceController or from admissionController
+	 * 
+	 **/
+	@Override
+	public void acceptPerformanceControllerDynamicData(PerformanceControllerDynamicStateI currentDynamicState) 
+			throws Exception {
+		this.listVmAvailable.add(currentDynamicState.getVM());		
 	}
 }

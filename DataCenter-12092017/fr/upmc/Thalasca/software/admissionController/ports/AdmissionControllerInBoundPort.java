@@ -40,20 +40,6 @@ implements AdmissionControllerI{
 		}
 
 		@Override
-		public boolean createAndAddVirtualMachine(String applicationUri) throws Exception {
-			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
-			
-			return this.owner.handleRequestSync(
-					new ComponentI.ComponentService<Boolean>() {
-						@Override
-						public Boolean call() throws Exception {
-							return ac.createAndAddVirtualMachine(applicationUri);
-							
-						}
-					}) ;
-		}
-
-		@Override
 		public boolean deleteAndRemoveVirtualMachine(String applicationUri) throws Exception {
 			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
 			
@@ -107,21 +93,6 @@ implements AdmissionControllerI{
 							
 						}
 					}) ;
-		}
-
-		@Override
-		public void addVirtualMachine(VM vm, String applicationUri) throws Exception {
-			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
-			
-			this.owner.handleRequestSync(
-					new ComponentI.ComponentService<Void>() {
-						@Override
-						public Void call() throws Exception {
-							ac.addVirtualMachine(vm, applicationUri);
-							return null;
-						}
-					}) ;
-			
 		}
 
 		@Override

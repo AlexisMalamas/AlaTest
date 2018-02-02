@@ -9,28 +9,14 @@ import fr.upmc.datacenter.ports.AbstractControlledDataOutboundPort;
 public class PerformanceControllerDynamicStateDataOutboundPort
 extends AbstractControlledDataOutboundPort{
 	
-	private static final long	serialVersionUID = 1L ;
-	protected String computerURI ;
-
-	public PerformanceControllerDynamicStateDataOutboundPort(
-		ComponentI owner,
-		String computerURI
-		) throws Exception
-	{
-		super(owner) ;
-		this.computerURI = computerURI ;
-
-		assert owner instanceof PerformanceControllerStateDataConsumerI ;
-	}
+	private static final long serialVersionUID = 1L;
 
 	public PerformanceControllerDynamicStateDataOutboundPort(
 		String uri,
-		ComponentI owner,
-		String computerURI
+		ComponentI owner
 		) throws Exception
 	{
 		super(uri, owner);
-		this.computerURI = computerURI ;
 
 		assert	owner instanceof PerformanceControllerStateDataConsumerI ;
 	}
@@ -40,7 +26,6 @@ extends AbstractControlledDataOutboundPort{
 	throws Exception
 	{
 		((PerformanceControllerStateDataConsumerI)this.owner).
-						acceptPerformanceControllerDynamicData(this.computerURI,
-												  (PerformanceControllerDynamicStateI) d) ;
+						acceptPerformanceControllerDynamicData((PerformanceControllerDynamicStateI) d) ;
 	}
 }

@@ -16,11 +16,6 @@ extends AbstractConnector
 implements AdmissionControllerI{
 
 	@Override
-	public boolean createAndAddVirtualMachine(String applicationUri) throws Exception {
-		return ((AdmissionControllerI)this.offering).createAndAddVirtualMachine(applicationUri);
-	}
-
-	@Override
 	public boolean deleteAndRemoveVirtualMachine(String applicationUri) throws Exception {
 		return ((AdmissionControllerI)this.offering).deleteAndRemoveVirtualMachine(applicationUri);
 	}
@@ -38,12 +33,6 @@ implements AdmissionControllerI{
 	@Override
 	public ArrayList<Integer> getFrequencyCores(String applicationURI, int idVM) throws Exception {
 		return ((AdmissionControllerI)this.offering).getFrequencyCores(applicationURI, idVM);
-	}
-
-	@Override
-	public void addVirtualMachine(VM vm, String applicationUri) throws Exception {
-		((AdmissionControllerI)this.offering).addVirtualMachine(vm, applicationUri);
-		
 	}
 
 	@Override
