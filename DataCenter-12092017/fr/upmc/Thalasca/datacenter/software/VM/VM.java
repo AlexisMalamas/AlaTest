@@ -1,5 +1,6 @@
 package fr.upmc.Thalasca.datacenter.software.VM;
 
+import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerDynamicStateI;
 import fr.upmc.datacenter.software.applicationvm.ports.ApplicationVMManagementOutboundPort;
 
 /**
@@ -7,7 +8,7 @@ import fr.upmc.datacenter.software.applicationvm.ports.ApplicationVMManagementOu
  * @author Kevin GESNOUIN and Alexis MALAMAS
  *
  */
-public class VM {
+public class VM{
 
 	protected int idVM;
 	protected String vmURI;

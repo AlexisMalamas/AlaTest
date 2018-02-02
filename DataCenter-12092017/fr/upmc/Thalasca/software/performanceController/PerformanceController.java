@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import fr.upmc.Thalasca.datacenter.software.VM.DynamicVM;
 import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
@@ -15,13 +16,17 @@ import fr.upmc.Thalasca.software.admissionController.connectors.AdmissionControl
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerInBoundPort;
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerOutBoundPort;
-import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerManagementI;
-import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerInboundPort;
-import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerOutboundPort;
+import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerDynamicStateI;
+import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerStateDataConsumerI;
+import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerDynamicStateDataInboundPort;
+import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerDynamicStateDataOutboundPort;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.exceptions.ComponentShutdownException;
+import fr.upmc.components.interfaces.DataOfferedI.DataI;
 import fr.upmc.datacenter.TimeManagement;
+import fr.upmc.datacenter.connectors.ControlledDataConnector;
+import fr.upmc.datacenter.hardware.computers.interfaces.ComputerDynamicStateI;
 import fr.upmc.datacenter.interfaces.PushModeControllingI;
 
 /**
@@ -31,7 +36,7 @@ import fr.upmc.datacenter.interfaces.PushModeControllingI;
  */
 public class PerformanceController
 extends AbstractComponent
-implements PerformanceControllerManagementI, PushModeControllingI{
+implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 
 	protected final String performanceContollerUri;
 
@@ -42,10 +47,11 @@ implements PerformanceControllerManagementI, PushModeControllingI{
 	protected DispatcherManagementOutboundport dmop;
 	protected AdmissionControllerOutBoundPort acop;
 	protected String applicationUri;
-	protected PerformanceControllerInboundPort pcip;
-	protected PerformanceControllerOutboundPort pcop;
+	protected PerformanceControllerDynamicStateDataInboundPort pcdsip;
+	protected PerformanceControllerDynamicStateDataOutboundPort pcdsop;
 	
 	protected ScheduledFuture<?> pushingFuture;
+	protected ArrayList<VM> listVmAvailable;
 
 	public PerformanceController(
 			String performanceContollerUri,
@@ -59,16 +65,7 @@ implements PerformanceControllerManagementI, PushModeControllingI{
 
 		this.performanceContollerUri = performanceContollerUri;
 		this.applicationUri = applicationUri;
-
-		this.addOfferedInterface(PerformanceControllerManagementI.class) ;
-		this.pcip=new PerformanceControllerInboundPort(performanceControllerInboundPortURI, this);
-		this.addPort(this.pcip);
-		this.pcip.publishPort();
-		
-		this.addRequiredInterface(PerformanceControllerManagementI.class) ;
-		this.pcop=new PerformanceControllerOutboundPort(performanceControllerOutboundPortURI, this);
-		this.addPort(this.pcop);
-		this.pcop.publishPort();
+		this.listVmAvailable = new ArrayList<VM>();
 
 		// connect PerformanceController to Dispatcher
 		this.addRequiredInterface(DispatcherManagementI.class);
@@ -87,6 +84,14 @@ implements PerformanceControllerManagementI, PushModeControllingI{
 		this.acop.doConnection(
 				acipUri,
 				AdmissionControllerConnector.class.getCanonicalName());
+		
+		this.pcdsip = new PerformanceControllerDynamicStateDataInboundPort(performanceControllerInboundPortURI, this);
+		addPort(pcdsip);
+		pcdsip.publishPort();
+		
+		this.pcdsop = new PerformanceControllerDynamicStateDataOutboundPort(this, performanceControllerOutboundPortURI);
+		addPort(pcdsop);
+		pcdsop.publishPort();
 
 		this.startUnlimitedPushing(2000);
 
@@ -131,12 +136,6 @@ implements PerformanceControllerManagementI, PushModeControllingI{
 	}
 
 	@Override
-	public void sendVirtualMachineAvailable(ArrayList<VM> listVM) throws Exception {
-		System.out.println("Send virtual machine  Performance controller "+applicationUri);
-		pcop.sendVirtualMachineAvailable(listVM);
-	}
-
-	@Override
 	public void startUnlimitedPushing(int interval) throws Exception {
 		final PerformanceController c = this ;
 		this.pushingFuture =
@@ -145,7 +144,7 @@ implements PerformanceControllerManagementI, PushModeControllingI{
 						@Override
 						public void run() {
 							try {
-								c.sendVirtualMachineAvailable(new ArrayList<VM>()) ;
+								c.sendDynamicState();
 							} catch (Exception e) {
 								throw new RuntimeException(e) ;
 							}
@@ -169,5 +168,30 @@ implements PerformanceControllerManagementI, PushModeControllingI{
 									this.pushingFuture.isDone())) {
 			this.pushingFuture.cancel(false) ;
 		}
+	}
+
+	@Override
+	public void acceptPerformanceControllerDynamicData(String performanceControllerURI,
+			PerformanceControllerDynamicStateI currentDynamicState) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public void sendDynamicState() throws Exception
+	{
+		if (this.pcdsip.connected()) {
+			PerformanceControllerDynamicStateI cds = this.getDynamicState() ;
+			this.pcdsip.send(cds) ;
+		}
+	}
+
+	public PerformanceControllerDynamicStateI getDynamicState() throws Exception {
+		VM vm = null;
+        synchronized(this){
+            if(!this.listVmAvailable.isEmpty()) {
+            	vm = this.listVmAvailable.remove(0);
+            }
+        }
+        return new DynamicVM(vm);
 	}
 }
