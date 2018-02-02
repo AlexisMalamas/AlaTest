@@ -129,7 +129,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	 **/
 	@Override
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
-		System.out.println(this.applicationURI);
 		this.nbTotalRequest++;
 		this.startTimeRequest.put(r.getRequestURI(), System.currentTimeMillis());
 		this.nbTotalRequestVM.set(this.currentVm, this.nbTotalRequestVM.get(this.currentVm)+1);
