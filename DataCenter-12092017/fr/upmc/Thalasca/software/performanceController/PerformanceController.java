@@ -7,10 +7,15 @@ import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.connectors.DispatcherManagementConnector;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherManagementI;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementOutboundport;
+import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationSubmissionNotificationI;
+import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationInboundPort;
 import fr.upmc.Thalasca.software.admissionController.connectors.AdmissionControllerConnector;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
+import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerInBoundPort;
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerOutBoundPort;
 import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerManagementI;
+import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerInboundPort;
+import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerOutboundPort;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.exceptions.ComponentShutdownException;
@@ -33,17 +38,31 @@ implements PerformanceControllerManagementI{
 	protected DispatcherManagementOutboundport dmop;
 	protected AdmissionControllerOutBoundPort acop;
 	protected String applicationUri;
+	protected PerformanceControllerInboundPort pcip;
+	protected PerformanceControllerOutboundPort pcop;
 
 	public PerformanceController(
 			String performanceContollerUri,
 			String dmipUri,
 			String acipUri,
-			String applicationUri
+			String applicationUri,
+			String performanceControllerInboundPortURI,
+			String performanceControllerOutboundPortURI
 			) throws Exception{
 		super(performanceContollerUri,1,1);
 
 		this.performanceContollerUri = performanceContollerUri;
 		this.applicationUri = applicationUri;
+
+		this.addOfferedInterface(PerformanceControllerManagementI.class) ;
+		this.pcip=new PerformanceControllerInboundPort(performanceControllerInboundPortURI, this);
+		this.addPort(this.pcip);
+		this.pcip.publishPort();
+		
+		this.addRequiredInterface(PerformanceControllerManagementI.class) ;
+		this.pcop=new PerformanceControllerOutboundPort(performanceControllerOutboundPortURI, this);
+		this.addPort(this.pcop);
+		this.pcop.publishPort();
 
 		// connect PerformanceController to Dispatcher
 		this.addRequiredInterface(DispatcherManagementI.class);
@@ -75,14 +94,14 @@ implements PerformanceControllerManagementI{
 			@Override
 			public void run() {
 				try {
-					/*for(int i=0; i<dmop.getNbConnectedVM(); i++) {
+					for(int i=0; i<dmop.getNbConnectedVM(); i++) {
 						if(dmop.getAverageExecutionTimeRequest(i)>MAX_WANTED_TIME_REQUEST)
 							System.out.println("App: "+applicationUri+"   up frequency vm "+i+":"
 									+acop.upFrequencyCores(applicationUri, dmop.getIdVm(i)));
 						else if(dmop.getAverageExecutionTimeRequest(i)<LOWER_WANTED_TIME_REQUEST)
 							System.out.println("App: "+applicationUri+"   down frequency vm "+i+":"
 									+acop.downFrequencyCores(applicationUri, dmop.getIdVm(i)));
-					}*/
+					}
 
 
 					System.out.println("App: "+applicationUri+"   Average Execution Time Request : "+ 
@@ -106,8 +125,8 @@ implements PerformanceControllerManagementI{
 
 	@Override
 	public void sendVirtualMachineAvailable(ArrayList<VM> listVM) throws Exception {
-		System.out.println("Performance controller "+applicationUri);
-		
+		System.out.println("Send virtual machine  Performance controller "+applicationUri);
+		pcop.sendVirtualMachineAvailable(listVM);
 	}
 
 }

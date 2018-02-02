@@ -19,7 +19,12 @@ import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagement
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationInboundPort;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerInBoundPort;
+import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerOutBoundPort;
 import fr.upmc.Thalasca.software.performanceController.PerformanceController;
+import fr.upmc.Thalasca.software.performanceController.connectors.PerformanceControllerConnector;
+import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerManagementI;
+import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerInboundPort;
+import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerOutboundPort;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.cvm.AbstractCVM;
@@ -59,7 +64,7 @@ import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
  */
 public class AdmissionController 
 extends AbstractComponent
-implements ApplicationRequestI, AdmissionControllerI{
+implements ApplicationRequestI, AdmissionControllerI, PerformanceControllerManagementI{
 
 	public static final int NB_CORES_BY_VM=2;
 	public int ID_VM = 1;
@@ -80,10 +85,15 @@ implements ApplicationRequestI, AdmissionControllerI{
 	public static final String DispatcherManagementInboundPortURI = "dmip";
 
 	public static final String AdmissionControllerInboundPortURI = "acip";
+	public static final String AdmissionControllerOutboundPortURI = "acop";
+	
+	public static final String performanceControllerInboundPortURI = "pcip";
+	public static final String performanceControllerOutboundPortURI = "pcop";
 
 	protected final String ApplicationVmURI = "";
 	protected final String DispatcherURI = "";
 	protected final String PerformanceControllerURI = "";
+	protected final String admissionControllerURI;
 
 	protected DynamicComponentCreationOutboundPort portApplicationVM;
 	protected DynamicComponentCreationOutboundPort portDispatcher;
@@ -98,9 +108,13 @@ implements ApplicationRequestI, AdmissionControllerI{
 	protected ApplicationSubmissionNotificationInboundPort appsnip;
 
 	protected HashMap<String, DispatcherManagementOutboundport> dmopList;
-	protected AdmissionControllerInBoundPort acip;
 	protected ArrayList<String> dispatcherList;
 	protected ArrayList<String> computerURIList;
+	protected ArrayList<String> performanceControllerURIList;
+	
+	protected PerformanceControllerInboundPort pcip;
+	protected PerformanceControllerOutboundPort pcop;
+	protected AdmissionControllerInBoundPort acip;
 	
 	// add for update frequency core and proc
 	protected ArrayList<ArrayList<String>> processorURIList; // processor Uri List by computer. First index for computer
@@ -109,6 +123,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 	protected ArrayList<ArrayList<String>> processorDynamicStateInboudPortURIList;
 	protected HashMap<Integer, String> processorURIListByVM; // first index for id vm
 	protected HashMap<Integer, ArrayList<Integer>> coreNoListByVM; // first index for id vm
+	
 	
 	public AdmissionController(
 			ArrayList<String> computerServicesInboundPortURI,
@@ -124,7 +139,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 			String applicationControllerNotificationInboundPortURI) throws Exception
 	{
 		super(admissionControllerURI, 1, 1);
-
+		this.admissionControllerURI = admissionControllerURI;
 		appcnip = applicationControllerNotificationInboundPortURI;
 
 		this.addOfferedInterface(ApplicationSubmissionNotificationI.class);
@@ -137,6 +152,17 @@ implements ApplicationRequestI, AdmissionControllerI{
 		this.addPort(this.appcnop);
 		this.appcnop.publishPort();
 		
+		this.addOfferedInterface(PerformanceControllerManagementI.class) ;
+		this.pcip=new PerformanceControllerInboundPort(performanceControllerInboundPortURI, this);
+		this.addPort(this.pcip);
+		this.pcip.publishPort();
+		
+		this.addRequiredInterface(PerformanceControllerManagementI.class) ;
+		this.pcop=new PerformanceControllerOutboundPort(performanceControllerOutboundPortURI, this);
+		this.addPort(this.pcop);
+		this.pcop.publishPort();
+		this.pcop.doConnection(performanceControllerInboundPortURI, PerformanceControllerConnector.class.getCanonicalName());
+		
 		this.addOfferedInterface(AdmissionControllerI.class) ;
 		this.acip=new AdmissionControllerInBoundPort(AdmissionControllerInboundPortURI, this);
 		this.addPort(this.acip);
@@ -146,6 +172,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 
 		this.dmopList = new HashMap<String, DispatcherManagementOutboundport>();
 		this.dispatcherList = new ArrayList<String>();
+		this.performanceControllerURIList = new ArrayList<String>();
 		this.csopList = new ArrayList<ComputerServicesOutboundPort>();
 		this.cssdopList = new ArrayList<ComputerStaticStateDataOutboundPort>();
 		this.cdsdopList = new ArrayList<ComputerDynamicStateDataOutboundPort>();
@@ -238,7 +265,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 					this.PerformanceControllerURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());
 
-
+			this.pcop.sendVirtualMachineAvailable(new ArrayList<VM>());
 		} catch (Exception e) {
 			throw new ComponentStartException("Error start AdmissionController", e);
 		}
@@ -321,7 +348,6 @@ implements ApplicationRequestI, AdmissionControllerI{
 					applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
 					RequestNotificationConnector.class.getCanonicalName());
 		}
-
 		// create performanceController for application
 		this.portPerformanceController.createComponent(
 				PerformanceController.class.getCanonicalName(),
@@ -329,8 +355,14 @@ implements ApplicationRequestI, AdmissionControllerI{
 						applicationUri+"_performanceController",
 						applicationUri+"_"+DispatcherManagementInboundPortURI,
 						AdmissionControllerInboundPortURI,
-						applicationUri
+						applicationUri,
+						applicationUri+"_"+performanceControllerInboundPortURI,
+						applicationUri+"_"+performanceControllerOutboundPortURI,
 				});
+
+		
+		addPerformanceControllerInRing(applicationUri);
+		
 
 		System.out.println("finish creation ressources for the application "+applicationUri);
 	}
@@ -369,7 +401,7 @@ implements ApplicationRequestI, AdmissionControllerI{
 			for(int i=0; i<nombreVM; i++) {
 				this.coreNoListByVM.put(idVM, new ArrayList<Integer>());
 				for(int j=0; j<allocatedCores.get(i).length; j++){
-					this.processorURIListByVM.put(i, allocatedCores.get(i)[j].processorURI);
+					this.processorURIListByVM.put(idVM, allocatedCores.get(i)[j].processorURI);
 					this.coreNoListByVM.get(idVM).add(allocatedCores.get(i)[j].coreNo);
 				}
 				idVM++;
@@ -692,5 +724,50 @@ implements ApplicationRequestI, AdmissionControllerI{
 		rop.doPortDisconnection(vm.getVmURI()+"_"+VmRequestNotificationOutboundPortURI);
 		
 		return vm;
+	}
+	
+	/**
+	 * 
+	 * Function for add performance controller in ring and connect his port
+	 * 
+	 **/
+	public void addPerformanceControllerInRing(String applicationUri) throws Exception {
+		System.out.println("Add performance controller in ring");
+		performanceControllerURIList.add(applicationUri);
+		if(performanceControllerURIList.size()==1)
+		{
+			// connect performance controller to admissionController
+			ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
+			this.addPort(rop);
+			rop.localPublishPort();
+			rop.doConnection(performanceControllerURIList.get(0)+"_performanceController", ReflectionConnector.class.getCanonicalName());
+			rop.doPortConnection(
+					performanceControllerURIList.get(0)+"_"+performanceControllerOutboundPortURI,
+					this.pcip.getPortURI(),
+					PerformanceControllerConnector.class.getCanonicalName());
+		}
+		else
+		{
+			// connect performance controller to next controller performance
+			ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
+			this.addPort(rop);
+			rop.localPublishPort();
+			rop.doConnection(performanceControllerURIList.get(performanceControllerURIList.size()-1)+"_performanceController",
+					ReflectionConnector.class.getCanonicalName());
+			rop.doPortConnection(
+					performanceControllerURIList.get(performanceControllerURIList.size()-1)+"_"+performanceControllerOutboundPortURI,
+					performanceControllerURIList.get(performanceControllerURIList.size()-2)+"_"+performanceControllerInboundPortURI,
+					PerformanceControllerConnector.class.getCanonicalName());
+		}
+		// connect admissionController to performance controller
+		this.pcop.doConnection(performanceControllerURIList.get(performanceControllerURIList.size()-1)
+				+"_"+performanceControllerInboundPortURI, PerformanceControllerConnector.class.getCanonicalName());
+		System.out.println("Performance controller added in ring");
+	}
+
+	@Override
+	public void sendVirtualMachineAvailable(ArrayList<VM> listVM) throws Exception {
+		System.out.println("Send virtual machine Addmission controller");
+		this.pcop.sendVirtualMachineAvailable(listVM);
 	}
 }
