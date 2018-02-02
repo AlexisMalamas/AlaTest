@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.datacenter.software.dispatcher.Dispatcher;
@@ -26,6 +28,7 @@ import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceCon
 import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerInboundPort;
 import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerOutboundPort;
 import fr.upmc.components.AbstractComponent;
+import fr.upmc.components.ComponentI;
 import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.components.cvm.pre.dcc.connectors.DynamicComponentCreationConnector;
@@ -35,7 +38,9 @@ import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.components.exceptions.ComponentStartException;
 import fr.upmc.components.pre.reflection.connectors.ReflectionConnector;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
+import fr.upmc.datacenter.TimeManagement;
 import fr.upmc.datacenter.connectors.ControlledDataConnector;
+import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
 import fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateI;
@@ -52,6 +57,7 @@ import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorStaticStateI;
 import fr.upmc.datacenter.hardware.processors.ports.ProcessorDynamicStateDataOutboundPort;
 import fr.upmc.datacenter.hardware.processors.ports.ProcessorManagementOutboundPort;
 import fr.upmc.datacenter.hardware.processors.ports.ProcessorStaticStateDataOutboundPort;
+import fr.upmc.datacenter.interfaces.PushModeControllingI;
 import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
 import fr.upmc.datacenter.software.applicationvm.connectors.ApplicationVMManagementConnector;
 import fr.upmc.datacenter.software.applicationvm.ports.ApplicationVMManagementOutboundPort;
@@ -64,7 +70,8 @@ import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
  */
 public class AdmissionController 
 extends AbstractComponent
-implements ApplicationRequestI, AdmissionControllerI, PerformanceControllerManagementI{
+implements ApplicationRequestI, AdmissionControllerI,
+PerformanceControllerManagementI, PushModeControllingI{
 
 	public static final int NB_CORES_BY_VM=2;
 	public int ID_VM = 1;
@@ -89,6 +96,8 @@ implements ApplicationRequestI, AdmissionControllerI, PerformanceControllerManag
 	
 	public static final String performanceControllerInboundPortURI = "pcip";
 	public static final String performanceControllerOutboundPortURI = "pcop";
+	
+	public static int intervalPushingTime = 1000;
 
 	protected final String ApplicationVmURI = "";
 	protected final String DispatcherURI = "";
@@ -115,6 +124,8 @@ implements ApplicationRequestI, AdmissionControllerI, PerformanceControllerManag
 	protected PerformanceControllerInboundPort pcip;
 	protected PerformanceControllerOutboundPort pcop;
 	protected AdmissionControllerInBoundPort acip;
+	
+	protected ScheduledFuture<?> pushingFuture;
 	
 	// add for update frequency core and proc
 	protected ArrayList<ArrayList<String>> processorURIList; // processor Uri List by computer. First index for computer
@@ -233,7 +244,6 @@ implements ApplicationRequestI, AdmissionControllerI, PerformanceControllerManag
 				processorDynamicStateInboudPortURIList.get(i).add(processorPortsList.get(Processor.ProcessorPortTypes.DYNAMIC_STATE));
 			}
 		}
-
 		this.addRequiredInterface(DynamicComponentCreationI.class);
 	}
 
@@ -265,7 +275,8 @@ implements ApplicationRequestI, AdmissionControllerI, PerformanceControllerManag
 					this.PerformanceControllerURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());
 
-			this.pcop.sendVirtualMachineAvailable(new ArrayList<VM>());
+			
+			this.startUnlimitedPushing(intervalPushingTime);
 		} catch (Exception e) {
 			throw new ComponentStartException("Error start AdmissionController", e);
 		}
@@ -360,9 +371,9 @@ implements ApplicationRequestI, AdmissionControllerI, PerformanceControllerManag
 						applicationUri+"_"+performanceControllerOutboundPortURI,
 				});
 
-		
+		this.stopPushing();
 		addPerformanceControllerInRing(applicationUri);
-		
+		this.startUnlimitedPushing(intervalPushingTime);
 
 		System.out.println("finish creation ressources for the application "+applicationUri);
 	}
@@ -769,5 +780,40 @@ implements ApplicationRequestI, AdmissionControllerI, PerformanceControllerManag
 	public void sendVirtualMachineAvailable(ArrayList<VM> listVM) throws Exception {
 		System.out.println("Send virtual machine Addmission controller");
 		this.pcop.sendVirtualMachineAvailable(listVM);
+	}
+
+	@Override
+	public void startUnlimitedPushing(int interval) throws Exception {
+		final AdmissionController c = this ;
+		this.pushingFuture =
+			this.scheduleTaskAtFixedRate(
+					new ComponentI.ComponentTask() {
+						@Override
+						public void run() {
+							try {
+								c.sendVirtualMachineAvailable(new ArrayList<VM>()) ;
+							} catch (Exception e) {
+								throw new RuntimeException(e) ;
+							}
+						}
+					},
+					TimeManagement.acceleratedDelay(interval),
+					TimeManagement.acceleratedDelay(interval),
+					TimeUnit.MILLISECONDS) ;
+	}
+
+	@Override
+	public void startLimitedPushing(int interval, int n) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void stopPushing() throws Exception {
+		if (this.pushingFuture != null &&
+				!(this.pushingFuture.isCancelled() ||
+									this.pushingFuture.isDone())) {
+			this.pushingFuture.cancel(false) ;
+		}
 	}
 }

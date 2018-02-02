@@ -1,6 +1,7 @@
 package fr.upmc.Thalasca.software.performanceController;
 
 import java.util.ArrayList;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import fr.upmc.Thalasca.datacenter.software.VM.VM;
@@ -9,6 +10,7 @@ import fr.upmc.Thalasca.datacenter.software.dispatcher.interfaces.DispatcherMana
 import fr.upmc.Thalasca.datacenter.software.dispatcher.ports.DispatcherManagementOutboundport;
 import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationSubmissionNotificationI;
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationInboundPort;
+import fr.upmc.Thalasca.software.admissionController.AdmissionController;
 import fr.upmc.Thalasca.software.admissionController.connectors.AdmissionControllerConnector;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerInBoundPort;
@@ -19,6 +21,8 @@ import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControll
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.exceptions.ComponentShutdownException;
+import fr.upmc.datacenter.TimeManagement;
+import fr.upmc.datacenter.interfaces.PushModeControllingI;
 
 /**
  * 
@@ -27,7 +31,7 @@ import fr.upmc.components.exceptions.ComponentShutdownException;
  */
 public class PerformanceController
 extends AbstractComponent
-implements PerformanceControllerManagementI{
+implements PerformanceControllerManagementI, PushModeControllingI{
 
 	protected final String performanceContollerUri;
 
@@ -40,6 +44,8 @@ implements PerformanceControllerManagementI{
 	protected String applicationUri;
 	protected PerformanceControllerInboundPort pcip;
 	protected PerformanceControllerOutboundPort pcop;
+	
+	protected ScheduledFuture<?> pushingFuture;
 
 	public PerformanceController(
 			String performanceContollerUri,
@@ -82,6 +88,7 @@ implements PerformanceControllerManagementI{
 				acipUri,
 				AdmissionControllerConnector.class.getCanonicalName());
 
+		this.startUnlimitedPushing(2000);
 
 		System.out.println(this.dmop.getNbConnectedVM()+" Vm connected for "+performanceContollerUri);
 		update();
@@ -129,4 +136,38 @@ implements PerformanceControllerManagementI{
 		pcop.sendVirtualMachineAvailable(listVM);
 	}
 
+	@Override
+	public void startUnlimitedPushing(int interval) throws Exception {
+		final PerformanceController c = this ;
+		this.pushingFuture =
+			this.scheduleTaskAtFixedRate(
+					new ComponentI.ComponentTask() {
+						@Override
+						public void run() {
+							try {
+								c.sendVirtualMachineAvailable(new ArrayList<VM>()) ;
+							} catch (Exception e) {
+								throw new RuntimeException(e) ;
+							}
+						}
+					},
+					TimeManagement.acceleratedDelay(interval),
+					TimeManagement.acceleratedDelay(interval),
+					TimeUnit.MILLISECONDS) ;
+	}
+
+	@Override
+	public void startLimitedPushing(int interval, int n) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void stopPushing() throws Exception {
+		if (this.pushingFuture != null &&
+				!(this.pushingFuture.isCancelled() ||
+									this.pushingFuture.isDone())) {
+			this.pushingFuture.cancel(false) ;
+		}
+	}
 }
