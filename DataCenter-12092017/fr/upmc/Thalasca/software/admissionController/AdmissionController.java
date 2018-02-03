@@ -22,7 +22,6 @@ import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationManagement
 import fr.upmc.Thalasca.datacenterclient.Application.ports.ApplicationSubmissionNotificationInboundPort;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerInBoundPort;
-import fr.upmc.Thalasca.software.admissionController.ports.AdmissionControllerOutBoundPort;
 import fr.upmc.Thalasca.software.performanceController.PerformanceController;
 import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerDynamicStateI;
 import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerStateDataConsumerI;
@@ -37,12 +36,10 @@ import fr.upmc.components.cvm.pre.dcc.interfaces.DynamicComponentCreationI;
 import fr.upmc.components.cvm.pre.dcc.ports.DynamicComponentCreationOutboundPort;
 import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.components.exceptions.ComponentStartException;
-import fr.upmc.components.interfaces.DataOfferedI.DataI;
 import fr.upmc.components.pre.reflection.connectors.ReflectionConnector;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.datacenter.TimeManagement;
 import fr.upmc.datacenter.connectors.ControlledDataConnector;
-import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
 import fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateI;
@@ -100,7 +97,7 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 	public static final String performanceControllerInboundPortURI = "pcip";
 	public static final String performanceControllerOutboundPortURI = "pcop";
 	
-	public static int intervalPushingTime = 1000;
+	public static final int intervalPushingTime = 500;
 
 	protected final String ApplicationVmURI = "";
 	protected final String DispatcherURI = "";
@@ -280,12 +277,7 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 			this.portPerformanceController.doConnection(					
 					this.PerformanceControllerURI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());
-
-			// add 2 VM in available list VM
-			for(int i=0; i<2; i++)
-				addVirtualMachine();
-			// start pushing of VM in Ring of PerformanceController
-			this.startUnlimitedPushing(intervalPushingTime);
+			
 		} catch (Exception e) {
 			throw new ComponentStartException("Error start AdmissionController", e);
 		}
@@ -416,8 +408,8 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 			int idVM;
 			//reserve ID_Vm
 			synchronized(this) {
-				idVM = ID_VM;
-				ID_VM += nombreVM;
+				idVM = this.ID_VM;
+				this.ID_VM += nombreVM;
 			}
 			
 			//deploy all components for new accepted Application
@@ -440,26 +432,13 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 			this.appcnop.responseFromApplicationController(false, applicationURI);
 		}
 	}
-	
-	/**
-	 *	Remove last VM And destroy it for application given
- 	 */
-	@Override
-	public boolean deleteAndRemoveVirtualMachine(String applicationUri) throws Exception {
-		VM vm = this.dmopList.get(applicationUri).disconnectVirtualMachine();
-		if(vm == null)
-			return false;
-		vm.getAvmop().doDisconnection();
-		this.processorURIListByVM.remove(vm.getIdVM());
-		this.coreNoListByVM.remove(vm.getIdVM());
-		
-		
-		return true;
-	}
 
 	/**
 	 * 
 	 *  call changedFrequencyCore function with true parameter for up
+	 *  @param 	applicationURI	URI of application
+	 * 	@param	idVM			id of VM
+	 * 	@return	boolean			return if we changed frequency of given VM else return false
 	 * 
 	 */
 	@Override
@@ -470,6 +449,9 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 	/**
 	 * 
 	 *  call changedFrequencyCore function with false parameter for down
+	 *  @param 	applicationURI	URI of application
+	 * 	@param	idVM			id of VM
+	 * 	@return	boolean			return if we changed frequency of given VM else return false
 	 * 
 	 */
 	@Override
@@ -481,6 +463,9 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 	 * 
 	 *  down or up (depend on value of up boolean given in parameter) frequency of all cores used by idVM.
 	 *  return true if frequency changed for at least one core or return false
+	 * 	@param 	applicationURI	URI of application
+	 * 	@param	idVM			id of VM
+	 * 	@return	boolean			return if we changed frequency of given VM else return false
 	 * 
 	 */
 	public boolean changedFrequencyCore(String applicationURI, int idVM, boolean up) throws Exception
@@ -575,6 +560,9 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 	/**
 	 * 
 	 * Return table of frequencies of cores used by given VM in parameter
+	 * @param	applicationURI		URI of application
+	 * @param	idVM				id of VM
+	 * @return	ArrayList<Integer>	list of frequencies for given VM
 	 * 
 	 * */
 	@Override
@@ -654,12 +642,14 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 
 	/**
 	 * 
-	 * create and add virtual Machine in list of available VM
+	 * Create and add virtual Machine in list of available VM if enough available cores in computers.
+	 * 
+	 * @return	boolean	return true if VM added else false
 	 * 
 	 **/
 	public boolean addVirtualMachine() throws Exception {
 		System.out.println("Try create and add virtual Machine in list of available VM");
-		int idVm = ID_VM;
+		int idVm = this.ID_VM;
 		this.ID_VM++;
 		
 		// allocate core for new VM
@@ -709,26 +699,11 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 		System.out.println("VM created and added in list of available VM");
 		return true;
 	}
-
-	@Override
-	public VM removeVirtualMachine(String applicationUri) throws Exception {
-		VM vm = this.dmopList.get(applicationUri).disconnectVirtualMachine();
-		if(vm==null)
-			return null;
-		
-		/* maybe */
-		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
-		this.addPort(rop);
-		rop.localPublishPort();
-		rop.doConnection(vm.getVmURI()+"_VM", ReflectionConnector.class.getCanonicalName());
-		rop.doPortDisconnection(vm.getVmURI()+"_"+VmRequestNotificationOutboundPortURI);
-		
-		return vm;
-	}
 	
 	/**
 	 * 
 	 * Function for add performance controller in ring and connect his port
+	 * @param	applicationUri	URI of application
 	 * 
 	 **/
 	public void addPerformanceControllerInRing(String applicationUri) throws Exception {
@@ -744,6 +719,12 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 			rop.doPortConnection(
 					performanceControllerURIList.get(0)+"_"+performanceControllerOutboundPortURI,
 					performanceControllerInboundPortURI, ControlledDataConnector.class.getCanonicalName());
+
+			// connect admissionController to performance controller
+			this.pcdsop.doConnection(performanceControllerURIList.get(performanceControllerURIList.size()-1)
+					+"_"+performanceControllerInboundPortURI, ControlledDataConnector.class.getCanonicalName());
+			System.out.println("Performance controller added in ring");
+		
 		}
 		else
 		{
@@ -751,44 +732,80 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 			ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
 			this.addPort(rop);
 			rop.localPublishPort();
-			rop.doConnection(performanceControllerURIList.get(performanceControllerURIList.size()-1)+"_performanceController",
+			rop.doConnection(performanceControllerURIList.get(performanceControllerURIList.size()-2)+"_performanceController",
 					ReflectionConnector.class.getCanonicalName());
 			rop.doPortConnection(
+					performanceControllerURIList.get(performanceControllerURIList.size()-2)+"_"+performanceControllerOutboundPortURI,
+					performanceControllerURIList.get(performanceControllerURIList.size()-1)+"_"+performanceControllerInboundPortURI,
+					ControlledDataConnector.class.getCanonicalName());
+			
+			// connect performance controller to next admissionController
+			ReflectionOutboundPort rop2 = new ReflectionOutboundPort(this);
+			this.addPort(rop2);
+			rop2.localPublishPort();
+			rop2.doConnection(performanceControllerURIList.get(performanceControllerURIList.size()-1)+"_performanceController",
+					ReflectionConnector.class.getCanonicalName());
+			rop2.doPortConnection(
 					performanceControllerURIList.get(performanceControllerURIList.size()-1)+"_"+performanceControllerOutboundPortURI,
-					performanceControllerURIList.get(performanceControllerURIList.size()-2)+"_"+performanceControllerInboundPortURI,
+					this.pcdsip.getPortURI(),
 					ControlledDataConnector.class.getCanonicalName());
 		}
-		// connect admissionController to performance controller
-		this.pcdsop.doConnection(performanceControllerURIList.get(performanceControllerURIList.size()-1)
-				+"_"+performanceControllerInboundPortURI, ControlledDataConnector.class.getCanonicalName());
-		System.out.println("Performance controller added in ring");
 	}
 
+	/**
+	 * Send available VM to next performanceController or admissionController
+	 **/
+	public void sendDynamicState() throws Exception
+	{
+		if (this.pcdsip.connected()) {
+			PerformanceControllerDynamicStateI cds = this.getDynamicState();
+			if(cds.getVM()!=null) {
+				System.out.println("Admission controller send vm: "+cds.getVM().getIdVM());
+				this.pcdsip.send(cds);
+			}
+		}
+	}
+	
+	/**
+	 *
+	 * Accept and save VM from previous performanceController or from admissionController
+	 * @param	currentDynamicState	Vm to send in ring
+	 * 
+	 **/
+	@Override
+	public void acceptPerformanceControllerDynamicData(PerformanceControllerDynamicStateI currentDynamicState) 
+			throws Exception {
+		System.out.println("AdmissionController recieve VM "+currentDynamicState.getVM().getIdVM());
+		this.listVmAvailable.add(currentDynamicState.getVM());		
+	}
+	
 	@Override
 	public void startUnlimitedPushing(int interval) throws Exception {
 		final AdmissionController c = this ;
 		this.pushingFuture =
-			this.scheduleTaskAtFixedRate(
+			this.scheduleTask(
 					new ComponentI.ComponentTask() {
 						@Override
 						public void run() {
 							try {
+								System.out.println("teeeeee");
 								c.sendDynamicState();
+								c.startUnlimitedPushing(interval);
 							} catch (Exception e) {
 								throw new RuntimeException(e) ;
 							}
 						}
 					},
 					TimeManagement.acceleratedDelay(interval),
-					TimeManagement.acceleratedDelay(interval),
 					TimeUnit.MILLISECONDS) ;
 	}
 
 	@Override
-	public void startLimitedPushing(int interval, int n) throws Exception {
-		// TODO Auto-generated method stub
-	}
+	public void startLimitedPushing(int interval, int n) throws Exception {}
 
+	/**
+	 *	Stop pushing of VM in ring 
+	 **/
 	@Override
 	public void stopPushing() throws Exception {
 		if (this.pushingFuture != null &&
@@ -799,9 +816,8 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 	}
 
 	/**
-	 * 
-	 * get not used vm
-	 *
+	 *	Function used to return not used vm and wrap in DynamicVM object
+	 *	@return	DynamicVM	Return not used vm and wrap in DynamicVM object
 	 **/
 	public PerformanceControllerDynamicStateI getDynamicState() throws Exception {
 		VM vm = null;
@@ -811,29 +827,5 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
             }
         }
         return new DynamicVM(vm);
-	}
-
-	/**
-	 * 
-	 * Send available VM to next performanceController or admissionController
-	 *
-	 **/
-	public void sendDynamicState() throws Exception
-	{
-		if (this.pcdsip.connected()) {
-			PerformanceControllerDynamicStateI cds = this.getDynamicState() ;
-			this.pcdsip.send(cds) ;
-		}
-	}
-	
-	/**
-	 *
-	 * Accept and save VM from previous performanceController or from admissionController
-	 * 
-	 **/
-	@Override
-	public void acceptPerformanceControllerDynamicData(PerformanceControllerDynamicStateI currentDynamicState) 
-			throws Exception {
-		this.listVmAvailable.add(currentDynamicState.getVM());		
 	}
 }

@@ -38,6 +38,8 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	public final static Long UPDATE_INVERVAL = 10000L; // update every 10 sec
 	public final static Long LOWER_WANTED_TIME_REQUEST = 2000L; // lower range for time execution of request
 	public final static Long MAX_WANTED_TIME_REQUEST = 5000L; // max range for time execution of request
+	
+	public static final int intervalPushingTime = 500;
 
 	protected DispatcherManagementOutboundport dmop;
 	protected AdmissionControllerOutBoundPort acop;
@@ -99,7 +101,7 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 		addPort(pcdsop);
 		pcdsop.publishPort();
 
-		this.startUnlimitedPushing(2000);
+		this.startUnlimitedPushing(intervalPushingTime);
 
 		System.out.println(this.dmop.getNbConnectedVM()+" Vm connected for "+performanceContollerUri);
 		update();
@@ -121,6 +123,8 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 									+acop.downFrequencyCores(applicationUri, dmop.getIdVm(i)));
 					}
 
+					
+					//listVmAvailable.add(dmop.disconnectVirtualMachine());
 
 					System.out.println("App: "+applicationUri+"   Average Execution Time Request : "+ 
 							dmop.getAverageExecutionTimeRequest()+" ms");
@@ -163,7 +167,6 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 
 	@Override
 	public void startLimitedPushing(int interval, int n) throws Exception {
-		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -183,10 +186,12 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	@Override
 	public void acceptPerformanceControllerDynamicData(PerformanceControllerDynamicStateI currentDynamicState) 
 			throws Exception {
+		System.out.println(this.performanceContollerUri+" recieve a VM "+currentDynamicState.getVM().getIdVM()
+				+" from previous entity in ring");
 		synchronized(this){
 			if(applicatioNeedVM){
 				applicatioNeedVM = false;
-				System.out.println("Pick a Vm for Application "+this.applicationUri);
+				System.out.println("Pick "+currentDynamicState.getVM().getIdVM()+" for Application "+this.applicationUri);
 				
 				// connect dispatcher to VM
 				this.dmop.connectToVirtualMachine(currentDynamicState.getVM());
@@ -214,7 +219,10 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	{
 		if (this.pcdsip.connected()) {
 			PerformanceControllerDynamicStateI cds = this.getDynamicState() ;
-			this.pcdsip.send(cds) ;
+			if(cds.getVM()!=null) {
+				System.out.println(this.performanceContollerUri+" send vm: "+cds.getVM().getIdVM());
+				this.pcdsip.send(cds);
+			}
 		}
 	}
 

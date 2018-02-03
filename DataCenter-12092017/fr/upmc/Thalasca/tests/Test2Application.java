@@ -259,14 +259,16 @@ public class Test2Application extends AbstractCVM{
 	}
 
 	public static void main(String[] args) {
-
-
 		try {
 			final Test2Application test = new Test2Application();
 			test.deploy();
 			System.out.println("starting...");
 			test.start();
-
+			
+			// add 2 VM in available list VM
+			test.ac.addVirtualMachine();
+			test.ac.addVirtualMachine();
+			
 			new Thread(new Runnable() {
 				@Override
 				public void run() {

@@ -12,10 +12,6 @@ import fr.upmc.components.interfaces.RequiredI;
  *
  */
 public interface AdmissionControllerI extends OfferedI, RequiredI{
-	public boolean deleteAndRemoveVirtualMachine(String applicationUri) throws Exception;
-	
-	public VM removeVirtualMachine(String applicationUri) throws Exception;
-
 	public boolean upFrequencyCores(String applicationURI, int idVM) throws Exception;
 	public boolean downFrequencyCores(String applicationURI, int idVM) throws Exception;
 	public ArrayList<Integer> getFrequencyCores(String applicationURI, int idVM) throws Exception;

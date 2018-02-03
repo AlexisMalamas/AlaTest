@@ -38,21 +38,7 @@ implements AdmissionControllerI{
 
 			assert	owner != null && owner instanceof AdmissionController ;
 		}
-
-		@Override
-		public boolean deleteAndRemoveVirtualMachine(String applicationUri) throws Exception {
-			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
-			
-			return this.owner.handleRequestSync(
-					new ComponentI.ComponentService<Boolean>() {
-						@Override
-						public Boolean call() throws Exception {
-							return ac.deleteAndRemoveVirtualMachine(applicationUri);
-							
-						}
-					}) ;
-		}
-
+		
 		@Override
 		public boolean upFrequencyCores(String applicationURI, int idVM) throws Exception {
 			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
@@ -90,20 +76,6 @@ implements AdmissionControllerI{
 						@Override
 						public ArrayList<Integer> call() throws Exception {
 							return ac.getFrequencyCores(applicationURI, idVM);
-							
-						}
-					}) ;
-		}
-
-		@Override
-		public VM removeVirtualMachine(String applicationUri) throws Exception {
-			final AdmissionControllerI ac = (AdmissionControllerI) this.owner;
-			
-			return this.owner.handleRequestSync(
-					new ComponentI.ComponentService<VM>() {
-						@Override
-						public VM call() throws Exception {
-							return ac.removeVirtualMachine(applicationUri);
 							
 						}
 					}) ;

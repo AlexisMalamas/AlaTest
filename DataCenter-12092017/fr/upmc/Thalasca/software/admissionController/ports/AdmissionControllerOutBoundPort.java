@@ -37,11 +37,6 @@ implements AdmissionControllerI{
 		}
 
 		@Override
-		public boolean deleteAndRemoveVirtualMachine(String applicationUri) throws Exception {
-			return ((AdmissionControllerI)this.connector).deleteAndRemoveVirtualMachine(applicationUri);
-		}
-
-		@Override
 		public boolean upFrequencyCores(String applicationURI, int idVM) throws Exception {
 			return ((AdmissionControllerI)this.connector).upFrequencyCores(applicationURI, idVM);
 		}
@@ -55,10 +50,4 @@ implements AdmissionControllerI{
 		public ArrayList<Integer> getFrequencyCores(String applicationURI, int idVM) throws Exception {
 			return ((AdmissionControllerI)this.connector).getFrequencyCores(applicationURI, idVM);
 		}
-
-		@Override
-		public VM removeVirtualMachine(String applicationUri) throws Exception {
-			return ((AdmissionControllerI)this.connector).removeVirtualMachine(applicationUri);
-		}
-
 }

@@ -14,12 +14,7 @@ import fr.upmc.components.connectors.AbstractConnector;
 public class AdmissionControllerConnector 
 extends AbstractConnector
 implements AdmissionControllerI{
-
-	@Override
-	public boolean deleteAndRemoveVirtualMachine(String applicationUri) throws Exception {
-		return ((AdmissionControllerI)this.offering).deleteAndRemoveVirtualMachine(applicationUri);
-	}
-
+	
 	@Override
 	public boolean upFrequencyCores(String applicationURI, int idVM) throws Exception {
 		return ((AdmissionControllerI)this.offering).upFrequencyCores(applicationURI, idVM);
@@ -33,11 +28,6 @@ implements AdmissionControllerI{
 	@Override
 	public ArrayList<Integer> getFrequencyCores(String applicationURI, int idVM) throws Exception {
 		return ((AdmissionControllerI)this.offering).getFrequencyCores(applicationURI, idVM);
-	}
-
-	@Override
-	public VM removeVirtualMachine(String applicationUri) throws Exception {
-		return ((AdmissionControllerI)this.offering).removeVirtualMachine(applicationUri);
 	}
 
 }
