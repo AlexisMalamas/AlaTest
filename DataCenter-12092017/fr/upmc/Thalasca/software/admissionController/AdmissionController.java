@@ -604,41 +604,6 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 		
 		return coreFrequencies;
 	}
-	
-	@Override
-	public void shutdown() throws ComponentShutdownException {
-		try {
-			for(ComputerServicesOutboundPort csop: csopList){
-				if (csop.connected()) {
-					csop.doDisconnection();
-				}
-			}
-			for(ComputerStaticStateDataOutboundPort cssdop: cssdopList){
-				if (cssdop.connected()) {
-					cssdop.doDisconnection();
-				}
-			}
-			for(ComputerDynamicStateDataOutboundPort cdsdop: cdsdopList)
-				if (cdsdop.connected()) {
-					cdsdop.doDisconnection();
-				}
-
-			if (this.portDispatcher.connected()) {
-				this.portDispatcher.doDisconnection();
-			}
-			if (this.portApplicationVM.connected()) {
-				this.portApplicationVM.doDisconnection();
-			}
-
-			if (this.portPerformanceController.connected()) {
-				this.portPerformanceController.doDisconnection();
-			}
-		} catch (Exception e) {
-			throw new ComponentShutdownException("Error shutdown AdmissionController", e);
-		}
-
-		super.shutdown();
-	}
 
 	/**
 	 * 
@@ -779,6 +744,12 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 		this.listVmAvailable.add(currentDynamicState.getVM());		
 	}
 	
+	/**
+	 *
+	 * Push VM in ring
+	 * @param	interval	time interval between 2 push of vm
+	 * 
+	 **/
 	@Override
 	public void startUnlimitedPushing(int interval) throws Exception {
 		final AdmissionController c = this ;
@@ -826,5 +797,40 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
             }
         }
         return new DynamicVM(vm);
+	}
+	
+	@Override
+	public void shutdown() throws ComponentShutdownException {
+		try {
+			for(ComputerServicesOutboundPort csop: csopList){
+				if (csop.connected()) {
+					csop.doDisconnection();
+				}
+			}
+			for(ComputerStaticStateDataOutboundPort cssdop: cssdopList){
+				if (cssdop.connected()) {
+					cssdop.doDisconnection();
+				}
+			}
+			for(ComputerDynamicStateDataOutboundPort cdsdop: cdsdopList)
+				if (cdsdop.connected()) {
+					cdsdop.doDisconnection();
+				}
+
+			if (this.portDispatcher.connected()) {
+				this.portDispatcher.doDisconnection();
+			}
+			if (this.portApplicationVM.connected()) {
+				this.portApplicationVM.doDisconnection();
+			}
+
+			if (this.portPerformanceController.connected()) {
+				this.portPerformanceController.doDisconnection();
+			}
+		} catch (Exception e) {
+			throw new ComponentShutdownException("Error shutdown AdmissionController", e);
+		}
+
+		super.shutdown();
 	}
 }

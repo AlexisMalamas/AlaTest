@@ -37,9 +37,11 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 
 	protected final String performanceContollerUri;
 
-	public final static Long UPDATE_INVERVAL = 10000L; // update every 10 sec
-	public final static Long LOWER_WANTED_TIME_REQUEST = 2000L; // lower range for time execution of request
-	public final static Long MAX_WANTED_TIME_REQUEST = 5000L; // max range for time execution of request
+	public final static Long UPDATE_INVERVAL = 5000L; // update every 5 sec
+	public final static Long LOWER_LOWER_WANTED_TIME_REQUEST = 1500L; // lower lower range for time execution of request
+	public final static Long LOWER_WANTED_TIME_REQUEST = 3000L; // lower range for time execution of request
+	public final static Long MAX_WANTED_TIME_REQUEST = 4000L; // max range for time execution of request
+	public final static Long MAX_MAX_WANTED_TIME_REQUEST = 6000L; // max max range for time execution of request
 	
 	public static final int intervalPushingTime = 500;
 
@@ -50,7 +52,7 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	protected PerformanceControllerDynamicStateDataOutboundPort pcdsop;
 	
 	protected ScheduledFuture<?> pushingFuture;
-	protected ArrayList<VM> listVmAvailable;
+	protected ArrayList<VM> listVmAvailable; // list of available VM to send in next push
 	
 	public String dispatcherRequestNotificationInboundPortURI;
 	public String vmRequestNotificationOutboundPortURI;
@@ -72,7 +74,7 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 		this.performanceContollerUri = performanceContollerUri;
 		this.applicationUri = applicationUri;
 		this.listVmAvailable = new ArrayList<VM>();
-		this.applicatioNeedVM = true;
+		this.applicatioNeedVM = false;
 		
 		this.dispatcherRequestNotificationInboundPortURI = dispatcherRequestNotificationInboundPortURI;
 		this.vmRequestNotificationOutboundPortURI = vmRequestNotificationOutboundPortURI;
@@ -112,6 +114,11 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 
 	}
 
+	/**
+	 * Function for control time of request execution on each vm for this application.
+	 * Controller does differents actions according to this execution time
+	 * 
+	 * */
 	public void update()
 	{
 		this.scheduleTask(new ComponentI.ComponentTask() {
@@ -119,17 +126,22 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 			public void run() {
 				try {
 					for(int i=0; i<dmop.getNbConnectedVM(); i++) {
-						if(dmop.getAverageExecutionTimeRequest(i)>MAX_WANTED_TIME_REQUEST)
+						// we need a VM
+						if(dmop.getAverageExecutionTimeRequest(i)>MAX_MAX_WANTED_TIME_REQUEST) 
+							applicatioNeedVM=true;
+						// just up frequency of VM
+						else if(dmop.getAverageExecutionTimeRequest(i)>MAX_WANTED_TIME_REQUEST)
 							System.out.println("App: "+applicationUri+"   up frequency vm "+i+":"
 									+acop.upFrequencyCores(applicationUri, dmop.getIdVm(i)));
+						// Application need less VM
+						else if(dmop.getAverageExecutionTimeRequest(i)<LOWER_LOWER_WANTED_TIME_REQUEST)
+							listVmAvailable.add(dmop.disconnectVirtualMachine());
+						// just down frequency of VM
 						else if(dmop.getAverageExecutionTimeRequest(i)<LOWER_WANTED_TIME_REQUEST)
 							System.out.println("App: "+applicationUri+"   down frequency vm "+i+":"
 									+acop.downFrequencyCores(applicationUri, dmop.getIdVm(i)));
 					}
-
 					
-					//listVmAvailable.add(dmop.disconnectVirtualMachine());
-
 					System.out.println("App: "+applicationUri+"   Average Execution Time Request : "+ 
 							dmop.getAverageExecutionTimeRequest()+" ms");
 					for(int i=0; i<dmop.getNbConnectedVM(); i++)
@@ -149,6 +161,12 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 		super.shutdown();
 	}
 
+	/**
+	 *
+	 * Push VM in ring
+	 * @param	interval	time interval between 2 push of vm
+	 * 
+	 **/
 	@Override
 	public void startUnlimitedPushing(int interval) throws Exception {
 		final PerformanceController c = this ;
@@ -173,6 +191,9 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	public void startLimitedPushing(int interval, int n) throws Exception {
 	}
 
+	/**
+	 *	Stop pushing of VM in ring 
+	 **/
 	@Override
 	public void stopPushing() throws Exception {
 		if (this.pushingFuture != null &&
@@ -185,6 +206,7 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	/**
 	 *
 	 * Accept and save VM from previous performanceController or from admissionController
+	 * @param	currentDynamicState	Vm to send in ring
 	 * 
 	 **/
 	@Override
@@ -231,9 +253,8 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	}
 
 	/**
-	 * 
-	 * get not used vm
-	 *
+	 *	Function used to return not used vm and wrap in DynamicVM object
+	 *	@return	DynamicVM	Return not used vm and wrap in DynamicVM object
 	 **/
 	public PerformanceControllerDynamicStateI getDynamicState() throws Exception {
 		VM vm = null;
