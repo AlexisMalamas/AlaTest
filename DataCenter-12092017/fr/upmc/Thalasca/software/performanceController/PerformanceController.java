@@ -18,6 +18,8 @@ import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControll
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.exceptions.ComponentShutdownException;
+import fr.upmc.components.ports.DataInboundPortI;
+import fr.upmc.components.ports.DataOutboundPortI;
 import fr.upmc.components.pre.reflection.connectors.ReflectionConnector;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.datacenter.TimeManagement;
@@ -93,10 +95,12 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 				acipUri,
 				AdmissionControllerConnector.class.getCanonicalName());
 		
+		this.addOfferedInterface(DataInboundPortI.class);
 		this.pcdsip = new PerformanceControllerDynamicStateDataInboundPort(performanceControllerInboundPortURI, this);
 		addPort(pcdsip);
 		pcdsip.publishPort();
 		
+		this.addRequiredInterface(DataOutboundPortI.class);
 		this.pcdsop = new PerformanceControllerDynamicStateDataOutboundPort(performanceControllerOutboundPortURI, this);
 		addPort(pcdsop);
 		pcdsop.publishPort();
@@ -199,10 +203,10 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 				ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
 				this.addPort(rop);
 				rop.localPublishPort();
-				rop.doConnection(currentDynamicState.getVM().getVmURI()+"_VM", ReflectionConnector.class.getCanonicalName());
+				rop.doConnection(currentDynamicState.getVM().getVmURI(), ReflectionConnector.class.getCanonicalName());
 				rop.doPortConnection(
-						currentDynamicState.getVM().getVmURI()+"_"+vmRequestNotificationOutboundPortURI,
-						currentDynamicState.getVM().getVmURI()+"_"+dispatcherRequestNotificationInboundPortURI,
+						currentDynamicState.getVM().getIdVM()+"_"+vmRequestNotificationOutboundPortURI,
+						dispatcherRequestNotificationInboundPortURI,
 						RequestNotificationConnector.class.getCanonicalName());
 			}
 			else

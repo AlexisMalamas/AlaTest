@@ -268,6 +268,7 @@ public class Test2Application extends AbstractCVM{
 			// add 2 VM in available list VM
 			test.ac.addVirtualMachine();
 			test.ac.addVirtualMachine();
+			test.ac.addVirtualMachine();
 			
 			new Thread(new Runnable() {
 				@Override

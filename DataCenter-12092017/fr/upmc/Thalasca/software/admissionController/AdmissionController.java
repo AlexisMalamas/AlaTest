@@ -36,6 +36,8 @@ import fr.upmc.components.cvm.pre.dcc.interfaces.DynamicComponentCreationI;
 import fr.upmc.components.cvm.pre.dcc.ports.DynamicComponentCreationOutboundPort;
 import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.components.exceptions.ComponentStartException;
+import fr.upmc.components.ports.DataInboundPortI;
+import fr.upmc.components.ports.DataOutboundPortI;
 import fr.upmc.components.pre.reflection.connectors.ReflectionConnector;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.datacenter.TimeManagement;
@@ -56,8 +58,6 @@ import fr.upmc.datacenter.hardware.processors.interfaces.ProcessorStaticStateI;
 import fr.upmc.datacenter.hardware.processors.ports.ProcessorDynamicStateDataOutboundPort;
 import fr.upmc.datacenter.hardware.processors.ports.ProcessorManagementOutboundPort;
 import fr.upmc.datacenter.hardware.processors.ports.ProcessorStaticStateDataOutboundPort;
-import fr.upmc.datacenter.interfaces.ControlledDataOfferedI;
-import fr.upmc.datacenter.interfaces.ControlledDataRequiredI;
 import fr.upmc.datacenter.interfaces.PushModeControllingI;
 import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
 import fr.upmc.datacenter.software.applicationvm.connectors.ApplicationVMManagementConnector;
@@ -170,12 +170,12 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 		this.addPort(this.acip);
 		this.acip.publishPort();
 		
-		this.addOfferedInterface(ControlledDataOfferedI.ControlledPullI.class) ;
+		this.addOfferedInterface(DataInboundPortI.class) ;
 		this.pcdsip = new PerformanceControllerDynamicStateDataInboundPort(performanceControllerInboundPortURI, this);
 		addPort(pcdsip);
 		pcdsip.publishPort();
 		
-		this.addRequiredInterface(ControlledDataRequiredI.ControlledPullI.class) ;
+		this.addRequiredInterface(DataOutboundPortI.class) ;
 		this.pcdsop = new PerformanceControllerDynamicStateDataOutboundPort(performanceControllerOutboundPortURI, this);
 		addPort(pcdsop);
 		pcdsop.publishPort();
@@ -371,7 +371,7 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 						applicationUri+"_"+performanceControllerInboundPortURI,
 						applicationUri+"_"+performanceControllerOutboundPortURI,
 						applicationUri+"_"+DispatcherRequestNotificationInboundPortURI,
-						applicationUri+"_"+VmRequestNotificationOutboundPortURI
+						VmRequestNotificationOutboundPortURI
 				});
 
 		// stop pushing for add a performanceController in Ring
@@ -783,21 +783,20 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 	public void startUnlimitedPushing(int interval) throws Exception {
 		final AdmissionController c = this ;
 		this.pushingFuture =
-			this.scheduleTask(
+			this.scheduleTaskAtFixedRate(
 					new ComponentI.ComponentTask() {
 						@Override
 						public void run() {
 							try {
-								System.out.println("teeeeee");
 								c.sendDynamicState();
-								c.startUnlimitedPushing(interval);
 							} catch (Exception e) {
 								throw new RuntimeException(e) ;
 							}
 						}
 					},
 					TimeManagement.acceleratedDelay(interval),
-					TimeUnit.MILLISECONDS) ;
+					TimeManagement.acceleratedDelay(interval),
+					TimeUnit.MILLISECONDS);
 	}
 
 	@Override
