@@ -211,7 +211,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 					RequestGeneratorManagementConnector.class.getCanonicalName());
 			
 			this.rgmop.startGeneration();
-			Thread.sleep(90000L);
+			Thread.sleep(900000L);
 			this.rgmop.stopGeneration();
 		}
 		else

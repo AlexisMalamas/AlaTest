@@ -39,10 +39,10 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	protected final String performanceContollerUri;
 
 	public final static Long UPDATE_INVERVAL = 2000L; // update every 5 sec
-	public final static Long LOWER_LOWER_WANTED_TIME_REQUEST = 1500L; // lower lower range for time execution of request
-	public final static Long LOWER_WANTED_TIME_REQUEST = 3000L; // lower range for time execution of request
-	public final static Long MAX_WANTED_TIME_REQUEST = 4000L; // max range for time execution of request
-	public final static Long MAX_MAX_WANTED_TIME_REQUEST = 6000L; // max max range for time execution of request
+	public final static Long LOWER_LOWER_WANTED_TIME_REQUEST = 500L; // lower lower range for time execution of request
+	public final static Long LOWER_WANTED_TIME_REQUEST = 1000L; // lower range for time execution of request
+	public final static Long MAX_WANTED_TIME_REQUEST = 2000L; // max range for time execution of request
+	public final static Long MAX_MAX_WANTED_TIME_REQUEST = 3000L; // max max range for time execution of request
 	
 	public static final int intervalPushingTime = 500;
 
@@ -58,8 +58,6 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	public String dispatcherRequestNotificationInboundPortURI;
 	public String vmRequestNotificationOutboundPortURI;
 	
-	protected boolean applicatioNeedVM; // set true if application need moreVM
-
 	protected Writer writer;
 	
 	public PerformanceController(
@@ -77,7 +75,6 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 		this.performanceContollerUri = performanceContollerUri;
 		this.applicationUri = applicationUri;
 		this.listVmAvailable = new ArrayList<VM>();
-		this.applicatioNeedVM = false;
 		
 		this.dispatcherRequestNotificationInboundPortURI = dispatcherRequestNotificationInboundPortURI;
 		this.vmRequestNotificationOutboundPortURI = vmRequestNotificationOutboundPortURI;
@@ -134,13 +131,14 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 					for(int i=0; i<dmop.getNbConnectedVM(); i++) {
 						// we need a VM
 						if(dmop.getAverageExecutionTimeRequest(i)>MAX_MAX_WANTED_TIME_REQUEST) 
-							applicatioNeedVM=true;
+							pickVM();
 						// just up frequency of VM
 						else if(dmop.getAverageExecutionTimeRequest(i)>MAX_WANTED_TIME_REQUEST)
 							System.out.println("App: "+applicationUri+"   up frequency vm "+i+":"
 									+acop.upFrequencyCores(applicationUri, dmop.getIdVm(i)));
 						// Application need less VM
-						else if(dmop.getAverageExecutionTimeRequest(i)<LOWER_LOWER_WANTED_TIME_REQUEST)
+						else if(dmop.getAverageExecutionTimeRequest(i)<LOWER_LOWER_WANTED_TIME_REQUEST &&
+								dmop.getAverageExecutionTimeRequest(i)>100)
 							listVmAvailable.add(dmop.disconnectVirtualMachine());
 						// just down frequency of VM
 						else if(dmop.getAverageExecutionTimeRequest(i)<LOWER_WANTED_TIME_REQUEST)
@@ -160,6 +158,34 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 				update();
 			}
 		}, UPDATE_INVERVAL, TimeUnit.MILLISECONDS);
+	}
+	
+	/**
+	 *
+	 * Pick a VM for this application in list of available VM 
+	 * 
+	 **/
+	public void pickVM() throws Exception
+	{
+		synchronized(this) {
+			if(!listVmAvailable.isEmpty())
+			{
+				VM vm = this.listVmAvailable.remove(listVmAvailable.size()-1);
+				System.out.println("Pick "+vm.getIdVM()+" for Application "+this.applicationUri);
+				
+				// connect VM to dispatcher
+				ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
+				this.addPort(rop);
+				rop.localPublishPort();
+				rop.doConnection(vm.getVmURI(), ReflectionConnector.class.getCanonicalName());
+				rop.doPortConnection(
+						vm.getIdVM()+"_"+vmRequestNotificationOutboundPortURI,
+						dispatcherRequestNotificationInboundPortURI,
+						RequestNotificationConnector.class.getCanonicalName());
+				// connect dispatcher to VM
+				this.dmop.connectToVirtualMachine(vm);
+			}
+		}
 	}
 
 	@Override
@@ -221,24 +247,7 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 		System.out.println(this.performanceContollerUri+" recieve a VM "+currentDynamicState.getVM().getIdVM()
 				+" from previous entity in ring");
 		synchronized(this){
-			if(applicatioNeedVM){
-				applicatioNeedVM = false;
-				System.out.println("Pick "+currentDynamicState.getVM().getIdVM()+" for Application "+this.applicationUri);
-				
-				// connect dispatcher to VM
-				this.dmop.connectToVirtualMachine(currentDynamicState.getVM());
-				// connect VM to dispatcher
-				ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
-				this.addPort(rop);
-				rop.localPublishPort();
-				rop.doConnection(currentDynamicState.getVM().getVmURI(), ReflectionConnector.class.getCanonicalName());
-				rop.doPortConnection(
-						currentDynamicState.getVM().getIdVM()+"_"+vmRequestNotificationOutboundPortURI,
-						dispatcherRequestNotificationInboundPortURI,
-						RequestNotificationConnector.class.getCanonicalName());
-			}
-			else
-				this.listVmAvailable.add(currentDynamicState.getVM());
+			this.listVmAvailable.add(currentDynamicState.getVM());
 		}
 	}
 	
