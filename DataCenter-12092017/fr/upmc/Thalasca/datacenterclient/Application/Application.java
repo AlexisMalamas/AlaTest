@@ -208,11 +208,11 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 		if (response) {	
 			this.rgmop.doConnection(
 					applicationUri+"_"+RequestGeneratorManagementInboundPortURI,
-					RequestGeneratorManagementConnector.class.getCanonicalName());			
-
+					RequestGeneratorManagementConnector.class.getCanonicalName());
+			
 			this.rgmop.startGeneration();
-			Thread.sleep(90000L);		
-			this.rgmop.stopGeneration();					
+			Thread.sleep(90000L);
+			this.rgmop.stopGeneration();
 		}
 		else
 			System.out.println("Reponse negative from admission Controller");

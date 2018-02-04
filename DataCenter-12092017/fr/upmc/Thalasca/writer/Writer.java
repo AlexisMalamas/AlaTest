@@ -50,7 +50,7 @@ public class Writer {
 	public void WriteInFile(String data) throws FileNotFoundException{
 
 		try{
-			this.writerFile = new PrintWriter(new FileOutputStream(new File(this.nameFile+".txt"),true));
+			this.writerFile = new PrintWriter(new FileOutputStream(new File("files/"+this.nameFile+".txt"),true));
 			this.writerFile.println(data);
 			this.writerFile.close();
 

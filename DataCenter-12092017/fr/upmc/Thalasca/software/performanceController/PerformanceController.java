@@ -38,7 +38,7 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 
 	protected final String performanceContollerUri;
 
-	public final static Long UPDATE_INVERVAL = 5000L; // update every 5 sec
+	public final static Long UPDATE_INVERVAL = 2000L; // update every 5 sec
 	public final static Long LOWER_LOWER_WANTED_TIME_REQUEST = 1500L; // lower lower range for time execution of request
 	public final static Long LOWER_WANTED_TIME_REQUEST = 3000L; // lower range for time execution of request
 	public final static Long MAX_WANTED_TIME_REQUEST = 4000L; // max range for time execution of request

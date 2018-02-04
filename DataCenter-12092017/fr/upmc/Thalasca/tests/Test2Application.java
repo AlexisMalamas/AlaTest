@@ -70,7 +70,7 @@ public class Test2Application extends AbstractCVM{
 
 		// create and deploy computer
 		String computerURI = "computer" ;
-		int numberOfProcessors = 3 ;
+		int numberOfProcessors = 30 ;
 		int numberOfCores = 4 ;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>() ;
 		admissibleFrequencies.add(1500) ;	
@@ -96,7 +96,7 @@ public class Test2Application extends AbstractCVM{
 		this.addDeployedComponent(c) ;
 
 		String computerURI2 = "computer2" ;
-		int numberOfProcessors2 = 3 ;
+		int numberOfProcessors2 = 30 ;
 		int numberOfCores2 = 4 ;
 		Set<Integer> admissibleFrequencies2 = new HashSet<Integer>() ;
 		admissibleFrequencies2.add(1500) ;
@@ -265,10 +265,9 @@ public class Test2Application extends AbstractCVM{
 			System.out.println("starting...");
 			test.start();
 			
-			// add 3 VM in available list VM
-			test.ac.addVirtualMachine();
-			test.ac.addVirtualMachine();
-			test.ac.addVirtualMachine();
+			// add 40 VM in available list VM
+			for(int i = 0; i<40; i++)
+				test.ac.addVirtualMachine();
 			
 			new Thread(new Runnable() {
 				@Override

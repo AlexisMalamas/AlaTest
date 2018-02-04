@@ -35,10 +35,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	protected final String dispatcherURI ;
 	// URI of application
 	protected final String applicationURI;
-
-	// current VM
-	private int currentVm;
-
+	
 	// send request to VM
 	protected ArrayList<RequestSubmissionOutboundPort>	rsopList ;
 
@@ -78,7 +75,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 
 		this.dispatcherURI = dispatcherURI;
 		this.applicationURI = applicationURI;
-		this.currentVm = 0;
 		this.TotalRequestExectutionTime = 0;
 		this.nbTotalRequest = 0;
 		this.startTimeRequest = new HashMap<String, Long>();
@@ -123,26 +119,23 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
 		this.nbTotalRequest++;
 		this.startTimeRequest.put(r.getRequestURI(), System.currentTimeMillis());
-		this.nbTotalRequestVM.set(this.currentVm, this.nbTotalRequestVM.get(this.currentVm)+1);
-		this.nameRequestToVm.put(r.getRequestURI(), this.currentVm);
 		
-		this.rsopList.get(this.currentVm).submitRequestAndNotify(r) ;
-		this.currentVm += 1;
-		this.currentVm %= this.rsopList.size();
+		// give request to vm with less execution time for last nb request
+		int vm = 0;
+		for(int i=1; i<this.rsopList.size(); i++)
+			if(getAverageExecutionTimeRequest(vm)>getAverageExecutionTimeRequest(i))
+				vm=i;
+		
+		
+		
+		this.nbTotalRequestVM.set(vm, this.nbTotalRequestVM.get(vm)+1);
+		this.nameRequestToVm.put(r.getRequestURI(), vm);
+		
+		this.rsopList.get(vm).submitRequestAndNotify(r) ;
 	}
 	
-	/**
-	 *
-	 * Send request to current VM
-	 * @param	r	Request to send
-	 * 
-	 **/
 	@Override
-	public void acceptRequestSubmission(RequestI r) throws Exception {
-		this.rsopList.get(this.currentVm).submitRequest(r) ;
-		this.currentVm += 1;
-		this.currentVm %= this.rsopList.size();
-	}
+	public void acceptRequestSubmission(RequestI r) throws Exception {}
 
 	/**
 	 * 
@@ -204,9 +197,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	public VM disconnectVirtualMachine() throws Exception {
 		if(this.listVM.size()>1) {
 			this.rsopList.get(this.rsopList.size()-1).doDisconnection();
-			// if current Vm is removed vm, go next vm
-			if(this.currentVm == this.rsopList.size()-1)
-				this.currentVm=0;
 			this.rsopList.remove(this.rsopList.size()-1);
 			
 			this.TotalRequestExectutionTimeVM.remove(this.TotalRequestExectutionTimeVM.size()-1);
