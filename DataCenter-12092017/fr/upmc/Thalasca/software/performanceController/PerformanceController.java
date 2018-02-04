@@ -15,6 +15,7 @@ import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceCon
 import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerStateDataConsumerI;
 import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerDynamicStateDataInboundPort;
 import fr.upmc.Thalasca.software.performanceController.ports.PerformanceControllerDynamicStateDataOutboundPort;
+import fr.upmc.Thalasca.writer.Writer;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.exceptions.ComponentShutdownException;
@@ -59,6 +60,8 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 	
 	protected boolean applicatioNeedVM; // set true if application need moreVM
 
+	protected Writer writer;
+	
 	public PerformanceController(
 			String performanceContollerUri,
 			String dmipUri,
@@ -110,6 +113,9 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 		this.startUnlimitedPushing(intervalPushingTime);
 
 		System.out.println(this.dmop.getNbConnectedVM()+" Vm connected for "+performanceContollerUri);
+		
+		this.writer = new Writer(this.applicationUri);
+		
 		update();
 
 	}
@@ -141,7 +147,7 @@ implements PushModeControllingI, PerformanceControllerStateDataConsumerI{
 							System.out.println("App: "+applicationUri+"   down frequency vm "+i+":"
 									+acop.downFrequencyCores(applicationUri, dmop.getIdVm(i)));
 					}
-					
+					writer.WriteInFile(dmop.getAverageExecutionTimeRequest().toString());
 					System.out.println("App: "+applicationUri+"   Average Execution Time Request : "+ 
 							dmop.getAverageExecutionTimeRequest()+" ms");
 					for(int i=0; i<dmop.getNbConnectedVM(); i++)

@@ -5,6 +5,12 @@ import java.net.InetAddress;
 import fr.upmc.Thalasca.software.performanceController.interfaces.PerformanceControllerDynamicStateI;
 import fr.upmc.datacenter.TimeManagement;
 
+/**
+ * 
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ *
+ */
+
 public class DynamicVM 
 implements PerformanceControllerDynamicStateI {
 

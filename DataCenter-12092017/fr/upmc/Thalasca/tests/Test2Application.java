@@ -265,7 +265,7 @@ public class Test2Application extends AbstractCVM{
 			System.out.println("starting...");
 			test.start();
 			
-			// add 2 VM in available list VM
+			// add 3 VM in available list VM
 			test.ac.addVirtualMachine();
 			test.ac.addVirtualMachine();
 			test.ac.addVirtualMachine();
