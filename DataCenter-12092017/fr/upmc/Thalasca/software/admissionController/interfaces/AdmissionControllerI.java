@@ -1,8 +1,6 @@
 package fr.upmc.Thalasca.software.admissionController.interfaces;
 
 import java.util.ArrayList;
-
-import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.components.interfaces.OfferedI;
 import fr.upmc.components.interfaces.RequiredI;
 

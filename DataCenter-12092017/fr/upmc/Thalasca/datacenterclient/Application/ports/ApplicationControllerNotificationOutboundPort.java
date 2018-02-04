@@ -6,6 +6,8 @@ import fr.upmc.components.ports.AbstractOutboundPort;
 
 /**
  * 
+ * The class <code>ApplicationControllerNotificationOutboundPort</code> implements a data
+ * outbound port requiring the <code>ApplicationControllerNotificationI</code> interface.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */
@@ -27,7 +29,7 @@ public ApplicationControllerNotificationOutboundPort(ComponentI owner) throws Ex
 	}
 	
 	@Override
-	public void responseFromApplicationController(boolean response, String applicationUri) throws Exception {
-		((ApplicationControllerNotificationI)this.connector).responseFromApplicationController(response, applicationUri);			
+	public void responseFromAdmissionController(boolean response, String applicationUri) throws Exception {
+		((ApplicationControllerNotificationI)this.connector).responseFromAdmissionController(response, applicationUri);			
 	}
 }

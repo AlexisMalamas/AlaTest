@@ -6,6 +6,13 @@ import fr.upmc.components.ComponentI;
 import fr.upmc.components.interfaces.DataOfferedI;
 import fr.upmc.datacenter.ports.AbstractControlledDataInboundPort;
 
+/**
+ *
+ * The class <code>PerformanceControllerDynamicStateDataInboundPort</code> 
+ * <code>AbstractControlledDataInboundPort</code> class.
+ * @author Kevin GESNOUIN et Alexis MALAMAS
+ * 
+ **/
 public class PerformanceControllerDynamicStateDataInboundPort
 extends AbstractControlledDataInboundPort
 {

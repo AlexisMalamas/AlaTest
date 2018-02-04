@@ -1,13 +1,14 @@
 package fr.upmc.Thalasca.software.admissionController.connectors;
 
 import java.util.ArrayList;
-
-import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.components.connectors.AbstractConnector;
 
 /**
  * 
+ * The class <code>AdmissionControllerConnector</code> implements the
+ * connector between outbound and inboud ports implementing the interface
+ * <code>AdmissionControllerI</code>.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */

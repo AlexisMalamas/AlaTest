@@ -1,14 +1,14 @@
 package fr.upmc.Thalasca.software.admissionController.ports;
 
 import java.util.ArrayList;
-
-import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractOutboundPort;
 
 /**
  * 
+ * The class <code>AdmissionControllerOutBoundPort</code> implements a data
+ * outbound port requiring the <code>AdmissionControllerI</code> interface.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */

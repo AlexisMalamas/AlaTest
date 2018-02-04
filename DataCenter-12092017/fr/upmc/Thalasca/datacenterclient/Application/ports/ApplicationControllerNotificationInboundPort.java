@@ -6,7 +6,9 @@ import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractInboundPort;
 
 /**
- * 
+ *
+ * The class <code>ApplicationControllerNotificationInboundPort</code> implements a data
+ * inbound port offering the <code>ApplicationControllerNotificationI</code> interface.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */
@@ -32,7 +34,7 @@ implements ApplicationControllerNotificationI{
 	}
 	
 	@Override
-	public void responseFromApplicationController(boolean response, String applicationUri) throws Exception {
+	public void responseFromAdmissionController(boolean response, String applicationUri) throws Exception {
 		
 		final ApplicationAcceptNotificationI application = (ApplicationAcceptNotificationI) this.owner;
 		
@@ -40,7 +42,7 @@ implements ApplicationControllerNotificationI{
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						application.acceptResponseFromApplicationController(response, applicationUri);
+						application.acceptResponseFromAdmissionController(response, applicationUri);
 						return null;
 					}
 				});		

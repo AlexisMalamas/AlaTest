@@ -7,11 +7,15 @@ import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 
 /**
  * 
+ * The class <code>ApplicationManagementOutBoundPort</code> implements a data
+ * outbound port requiring the <code>ApplicationManagementI</code> interface.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */
 
-public class ApplicationManagementOutBoundPort extends AbstractOutboundPort implements ApplicationManagementI {
+public class ApplicationManagementOutBoundPort 
+extends AbstractOutboundPort 
+implements ApplicationManagementI {
 	public ApplicationManagementOutBoundPort(
 			ComponentI owner
 			) throws Exception

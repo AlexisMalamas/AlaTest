@@ -6,6 +6,9 @@ import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 
 /**
  * 
+ * The class <code>ApplicationManagementConnector</code> implements the
+ * connector between outbound and inboud ports implementing the interface
+ * <code>ApplicationManagementI</code>.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */

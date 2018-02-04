@@ -7,6 +7,8 @@ import fr.upmc.components.ports.AbstractInboundPort;
 
 /**
  * 
+ * The class <code>ApplicationSubmissionNotificationInboundPort</code> implements a data
+ * inbound port offering the <code>ApplicationSubmissionNotificationI</code> interface.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */

@@ -21,24 +21,25 @@ import fr.upmc.datacenterclient.requestgenerator.interfaces.RequestGeneratorMana
 import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
 
 /**
- * 
+ * <code> Application </code> represent our clients in for Data center.
+ * <code> Application </code> contains a request generator that will send request when the application
+ * will be accepted by <code>AdmissionController </code>
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */
-
 public class Application 
 extends AbstractComponent
 implements ApplicationManagementI, ApplicationAcceptNotificationI{
 
-
+	private String applicationURI;
+	
+	// RequestGenerator
 	protected RequestGenerator rg;
 	protected final String requestGeneratorUri = "rg";
-	
 	protected static final String	RequestGeneratorManagementInboundPortURI = "rgmip" ;
 	protected static final String	RequestGeneratorManagementOutboundPortURI = "rgmop" ;
 	protected static final String	GeneratorRequestSubmissionOutboundPortURI = "grsop" ;
 	protected static final String	GeneratorRequestNotificationInboundPortURI = "grnip" ;	
-
 	protected final Double meanTime = 500.0;
 	protected final Long meanNumberInstructions = 6000000000L;
 
@@ -46,13 +47,11 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	protected RequestGeneratorManagementOutboundPort rgmop;
 	protected ReflectionOutboundPort rop;
 
+	//port to communicate with AdmissionController
 	protected ApplicationManagementInboundPort appmip;
 	protected ApplicationSubmissionNotificationOutboundPort appsnop;
 	protected ApplicationControllerNotificationInboundPort appcnip;
-
 	protected ApplicationManagementOutBoundPort appmop;
-	
-	private String applicationURI;
 
 	public Application(String applicationUri,
 			String applicationControllerNotificationInboundPortURI,
@@ -126,6 +125,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 	/**
 	 * 
 	 * Create dynamically request generator of application
+	 * @param	applicationUri	URI of Application
 	 * 
 	 * */
 	public void createDynamicRequestGenerator(String applicationUri) throws Exception
@@ -139,13 +139,17 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 				applicationUri+"_"+GeneratorRequestSubmissionOutboundPortURI,
 				applicationUri+"_"+GeneratorRequestNotificationInboundPortURI) ;
 
-		// Toggle on tracing and logging in the request generator to
-		// follow the submission and end of execution notification of
-		// individual requests.
 		this.rg.toggleTracing() ;
 		this.rg.toggleLogging() ;
 	}
 
+	/**
+	 * 
+	 * Connect GeneratorRequest to dispatcher
+	 * @param	DispatcherRequestSubmissionInboundPortURI	URI of RequestSubmissionInboundPort on Dispatcher
+	 * @param	applicationUri								URI of Application
+	 * 
+	 **/
 	@Override
 	public void connectionDispatcherWithRequestGeneratorForSubmission(String DispatcherRequestSubmissionInboundPortURI, String applicationUri)
 			throws Exception {
@@ -156,6 +160,13 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 				RequestSubmissionConnector.class.getCanonicalName());
 	}
 
+	/**
+	 * 
+	 * Connect GeneratorRequest to dispatcher for notification
+	 * @param	ropDispatcher	port to do connection
+	 * @param	DispatcherRequestSubmissionInboundPortURI	URI of RequestSubmissionInboundPort on Dispatcher
+	 * @param	applicationUri								URI of Application
+	 **/
 	@Override
 	public void connectionDispatcherWithRequestGeneratorForNotification(ReflectionOutboundPort ropDispatcher,
 			String DispatcherRequestSubmissionInboundPortURI, String applicationUri) throws Exception {
@@ -166,6 +177,13 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 				RequestNotificationConnector.class.getCanonicalName());
 	}
 
+	/**
+	 *
+	 * Submit application to admissionController
+	 * @param	applicationUri 	URI of application
+	 * @param	nombreVM		number of VM wanted by this application
+	 * 
+	 **/
 	@Override
 	public void submitApplicationToAdmissionController(String applicationUri, int nombreVM) throws Exception {
 		System.out.println("Submit Application "+applicationUri);
@@ -178,9 +196,13 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 
 	}
 
+	/**
+	 *	Accept response from admissionController
+	 *	@param	response		true if application accepted by AdmissionController else false
+	 *	@param	applicationUri 	URI of application
+	 **/
 	@Override
-	public void acceptResponseFromApplicationController(boolean response, String applicationUri) throws Exception {
-
+	public void acceptResponseFromAdmissionController(boolean response, String applicationUri) throws Exception {
 		System.out.println("Response from AdmissionController "+response+" " );
 
 		if (response) {	
@@ -197,5 +219,7 @@ implements ApplicationManagementI, ApplicationAcceptNotificationI{
 
 	}
 
-
+	public String getApplicationURI() {
+		return applicationURI;
+	}
 }

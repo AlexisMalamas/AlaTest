@@ -6,6 +6,12 @@ import fr.upmc.components.ComponentI;
 import fr.upmc.components.interfaces.DataRequiredI;
 import fr.upmc.datacenter.ports.AbstractControlledDataOutboundPort;
 
+/**
+ * 
+ * The class <code>PerformanceControllerDynamicStateDataOutboundPort</code> extends
+ * AbstractControlledDataOutboundPort <code>AdmissionControllerI</code> class.
+ * 
+ **/
 public class PerformanceControllerDynamicStateDataOutboundPort
 extends AbstractControlledDataOutboundPort{
 	

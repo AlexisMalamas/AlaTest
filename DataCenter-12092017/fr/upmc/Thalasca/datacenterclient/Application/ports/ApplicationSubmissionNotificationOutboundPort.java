@@ -6,6 +6,8 @@ import fr.upmc.components.ports.AbstractOutboundPort;
 
 /**
  * 
+ * The class <code>ApplicationSubmissionNotificationOutboundPort</code> implements a data
+ * outbound port requiring the <code>ApplicationSubmissionNotificationI</code> interface.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */

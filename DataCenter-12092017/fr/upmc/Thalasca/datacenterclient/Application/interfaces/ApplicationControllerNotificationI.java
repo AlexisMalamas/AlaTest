@@ -12,5 +12,5 @@ import fr.upmc.components.interfaces.RequiredI;
 public interface ApplicationControllerNotificationI 
 extends OfferedI, RequiredI {
 
-	public void responseFromApplicationController(boolean response, String applicationUri) throws Exception;
+	public void responseFromAdmissionController(boolean response, String applicationUri) throws Exception;
 }

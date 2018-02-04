@@ -425,11 +425,11 @@ implements ApplicationRequestI, AdmissionControllerI, PushModeControllingI, Perf
 			}
 			
 			//send response to application
-			this.appcnop.responseFromApplicationController(true, applicationURI);
+			this.appcnop.responseFromAdmissionController(true, applicationURI);
 
 		} else {
 			System.out.println("Application rejected");	
-			this.appcnop.responseFromApplicationController(false, applicationURI);
+			this.appcnop.responseFromAdmissionController(false, applicationURI);
 		}
 	}
 

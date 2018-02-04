@@ -6,6 +6,9 @@ import fr.upmc.components.connectors.AbstractConnector;
 
 /**
  * 
+ * The class <code>DispatcherManagementConnector</code> implements the
+ * connector between outbound and inboud ports implementing the interface
+ * <code>DispatcherManagementI</code>.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */

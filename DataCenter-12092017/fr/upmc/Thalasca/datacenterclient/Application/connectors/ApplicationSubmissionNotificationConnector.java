@@ -6,6 +6,9 @@ import fr.upmc.components.connectors.AbstractConnector;
 
 /**
  * 
+ * The class <code>ApplicationSubmissionNotificationConnector</code> implements the
+ * connector between outbound and inboud ports implementing the interface
+ * <code>ApplicationSubmissionNotificationI</code>.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */

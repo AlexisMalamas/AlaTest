@@ -7,6 +7,8 @@ import fr.upmc.components.ports.AbstractOutboundPort;
 
 /**
  * 
+ * The class <code>DispatcherManagementOutboundport</code> implements a data
+ * outbound port requiring the <code>DispatcherManagementI</code> interface.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */

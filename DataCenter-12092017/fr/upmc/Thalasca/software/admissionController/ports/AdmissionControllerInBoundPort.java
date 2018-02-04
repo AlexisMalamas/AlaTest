@@ -1,8 +1,6 @@
 package fr.upmc.Thalasca.software.admissionController.ports;
 
 import java.util.ArrayList;
-
-import fr.upmc.Thalasca.datacenter.software.VM.VM;
 import fr.upmc.Thalasca.software.admissionController.AdmissionController;
 import fr.upmc.Thalasca.software.admissionController.interfaces.AdmissionControllerI;
 import fr.upmc.components.ComponentI;
@@ -10,6 +8,8 @@ import fr.upmc.components.ports.AbstractInboundPort;
 
 /**
  * 
+ * The class <code>AdmissionControllerInBoundPort</code> implements a data
+ * inbound port offering the <code>AdmissionControllerI</code> interface.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */

@@ -22,6 +22,8 @@ import fr.upmc.datacenter.software.ports.RequestSubmissionOutboundPort;
 
 /**
  * 
+ * <code>Dispatcher</code> will dispatch request to VM wich are connected for this application
+ * One <code>Dispatcher</code> per application.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */
@@ -29,7 +31,9 @@ public class Dispatcher
 extends AbstractComponent
 implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherManagementI{
 
+	// URI of dispatcher
 	protected final String dispatcherURI ;
+	// URI of application
 	protected final String applicationURI;
 
 	// current VM
@@ -60,7 +64,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	private ArrayList<Integer> nbTotalRequestVM;
 	private HashMap<String, Integer> nameRequestToVm; // to know which VM excute a request
 	private HashMap<String, Long> startTimeRequest; // to know time excution of a request
-	
 	private HashMap<Integer,  LinkedList<Long>> executionTimeRequest; // first index for idVM
 
 	public Dispatcher( String applicationURI,
@@ -72,10 +75,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 			) throws Exception
 	{
 		super(dispatcherURI,1, 1);
-
-		// preconditions check
-		assert  requestSubmissionInboundPortURI != null ;
-		assert  requestNotificationOutboundPortURI != null ;
 
 		this.dispatcherURI = dispatcherURI;
 		this.applicationURI = applicationURI;
@@ -114,16 +113,9 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.nameRequestToVm = new HashMap<String, Integer>();
 	}
 
-	@Override
-	public void acceptRequestSubmission(RequestI r) throws Exception {
-		this.rsopList.get(this.currentVm).submitRequest(r) ;
-		this.currentVm += 1;
-		this.currentVm %= this.rsopList.size();
-	}
-
 	/**
 	 *
-	 * Send request to current VM
+	 * Send request to current VM and notify
 	 * @param	r	Request to send
 	 * 
 	 **/
@@ -135,6 +127,19 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		this.nameRequestToVm.put(r.getRequestURI(), this.currentVm);
 		
 		this.rsopList.get(this.currentVm).submitRequestAndNotify(r) ;
+		this.currentVm += 1;
+		this.currentVm %= this.rsopList.size();
+	}
+	
+	/**
+	 *
+	 * Send request to current VM
+	 * @param	r	Request to send
+	 * 
+	 **/
+	@Override
+	public void acceptRequestSubmission(RequestI r) throws Exception {
+		this.rsopList.get(this.currentVm).submitRequest(r) ;
 		this.currentVm += 1;
 		this.currentVm %= this.rsopList.size();
 	}
@@ -193,7 +198,7 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	/**
 	 * 
 	 * 	Disconnect Last VM
-	 * 
+	 * 	@return	VM	return disconnected VM to send it to next PerformanceController
 	 */
 	@Override
 	public VM disconnectVirtualMachine() throws Exception {
@@ -213,14 +218,18 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 			return null;
 	}
 
+	/**
+	 *	Return total of request dispatched
+	 *	@return	int	number of request treated
+	 **/
 	public int getNbTotalRequest() {
 		return this.nbTotalRequest;
 	}
 
-	public long getTotalRequestExectutionTime() {
-		return this.TotalRequestExectutionTime;
-	}
-
+	/**
+	 *	Return Average time Execution of all request treated by this dispatcher
+	 *	@return	Long	Average time Execution of all request treated
+	 **/
 	@Override
 	public Long getAverageExecutionTimeRequest() throws Exception {
 		if(this.nbTotalRequest!=0)
@@ -230,9 +239,9 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 	}
 
 	/**
-	 * 
-	 * @param vm	id of vm
-	 * @return 		Average time for last NB_LAST_REQUEST requests on the given vm in parameter
+	 * Return Average time Execution of NB_LAST_REQUEST request dispatched on given VM
+	 * @param	vm		id of vm
+	 * @return	Long 	Average time for last NB_LAST_REQUEST requests on the given VM in parameter
 	 * 
 	 * */
 	@Override
@@ -245,16 +254,6 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 			return sumTime/this.executionTimeRequest.get(vm).size();
 		}
 		return 0L;
-	}
-
-	/**
-	 * 
-	 *  @return		Number of connected VM to the dispatcher
-	 * 
-	 */
-	@Override
-	public int getNbConnectedVM() {
-		return this.rsopList.size();
 	}
 	
 	@Override
@@ -279,6 +278,16 @@ implements RequestSubmissionHandlerI, RequestNotificationHandlerI, DispatcherMan
 		}
 
 		super.shutdown();
+	}
+	
+	/**
+	 * 
+	 *  @return	Number of connected VM to this dispatcher
+	 * 
+	 */
+	@Override
+	public int getNbConnectedVM() {
+		return this.rsopList.size();
 	}
 
 	@Override

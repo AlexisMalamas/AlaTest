@@ -2,18 +2,21 @@ package fr.upmc.Thalasca.datacenterclient.Application.ports;
 
 import fr.upmc.Thalasca.datacenterclient.Application.Application;
 import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationManagementI;
-import fr.upmc.Thalasca.datacenterclient.Application.interfaces.ApplicationRequestI;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractInboundPort;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 
 /**
  * 
+ * The class <code>ApplicationManagementInboundPort</code> implements a data
+ * inbound port offering the <code>ApplicationManagementI</code> interface.
  * @author Kevin GESNOUIN et Alexis MALAMAS
  *
  */
 
-public class ApplicationManagementInboundPort extends AbstractInboundPort implements ApplicationManagementI{
+public class ApplicationManagementInboundPort 
+extends AbstractInboundPort 
+implements ApplicationManagementI{
 
 	private static final long serialVersionUID = 1L;
 
